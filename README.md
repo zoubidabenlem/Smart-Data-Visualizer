@@ -14,7 +14,7 @@ The system is designed as a lightweight, secure alternative to complex Business 
 
 ---
 
-## 🛠 Tech Stack
+##  Tech Stack
 
 ### Backend
 - Python
