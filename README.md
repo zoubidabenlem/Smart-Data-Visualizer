@@ -1,5 +1,9 @@
 # Smart-Data-Visualizer
-Design and develop a web-based data visualization system that enables users to import datasets in Excel or CSV format, or connect to a MySQL database in read-only mode. It will allow the creation of interactive dashboards through a dedicated Builder mode for configuring visualizations and a Viewer mode for read-only access and consultation.
+Design and develop a web-based data visualization sDesign and develop a web-based data visualization system that enables users to import datasets in Excel or CSV format, or connect to a MySQL database in read-only mode.
+
+A simple authentication mechanism will be implemented to ensure secure access to system resources.
+
+The system will include a basic data preparation pipeline (cleaning, filtering, and aggregations) and will allow the creation of interactive dashboards through a dedicated Builder mode for configuring visualizations and a Viewer mode for read-only access and consultation.
 ##  Project Overview
 
 Smart Data Visualizer is a web-based data visualization system that allows users to:
