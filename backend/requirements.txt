@@ -8,3 +8,4 @@ passlib[bcrypt]
 pandas
 cachetools
 pydantic-settings
+python-dotenv
