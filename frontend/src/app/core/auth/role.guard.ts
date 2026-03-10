@@ -10,7 +10,6 @@ export const roleGuard: CanActivateFn = () => {
     router.navigate(['/builder']);
     return true;
   }
-  
-  // User is authenticated but not an admin
-  return router.navigate(['/viewer']);
+  // Viewer trying to access /builder → send to /viewer
+  return router.createUrlTree(['/viewer']);
 };

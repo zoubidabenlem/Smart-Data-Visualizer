@@ -3,9 +3,10 @@ import {
   HttpRequest,
   HttpHandler,
   HttpEvent,
-  HttpInterceptor
+  HttpInterceptor,
+  HttpErrorResponse
 } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, catchError, throwError } from 'rxjs';
 import { AuthService } from '../auth/auth.service';
 
 //Injectable has no root , since interceptors are different , they're registeres in appModule providers
@@ -13,17 +14,21 @@ import { AuthService } from '../auth/auth.service';
 export class JwtInterceptor implements HttpInterceptor {
 
   constructor(private auth: AuthService) {}
-  intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
+  intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     const token = this.auth.getToken();
-    if (token){
-      //create copy if token exists every reuqest get the header 
-      request= request.clone({
-        setHeaders: {
-          Authorization: `Bearer ${token}`
-        } 
-      });
-    }
-    //login request goes out as-is. 
-    return next.handle(request);
+     // Attach token if present
+    const authReq = token
+      ? req.clone({ setHeaders: { Authorization: `Bearer ${token}` } })
+      : req;
+
+    return next.handle(authReq).pipe(
+      catchError((error: HttpErrorResponse) => {
+        // If any request gets 401, token is expired — force logout
+        if (error.status === 401) {
+          this.auth.logout();
+        }
+        return throwError(() => error);
+      })
+    );
   }
 }
