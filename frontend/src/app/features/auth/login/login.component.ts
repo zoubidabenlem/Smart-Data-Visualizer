@@ -26,40 +26,35 @@ export class LoginComponent {
       password:['',[Validators.required, Validators.minLength(6)]]
     });
   }
-  onSubmit():void{
-    //safety check  if form is invalid do nothing and mark fields as touched for validator mssgs
-    if(this.loginForm.invalid){
-      this.loginForm.markAllAsTouched();
-      return;
-    }
-    // show loading state and clear errmssg
-    this.isLoading=true;
-    this.errorMessage='';
-    
-    // auth.login creates observable , Angular needs to subsicrbe to send request
-    this.auth.login(this.loginForm.value).subscribe({
-      //next runs when the backend responds succesfully (token stored in auth service)
-      next: (response)=>{
-        this.isLoading=false;
-        if(response.role === 'admin'){
-          this.router.navigate(['/builder']);
-        }else{
-          this.router.navigate(['/viewer']);
-        }
+   onSubmit(): void {
+    if (this.loginForm.invalid) return;
+
+    this.isLoading = true;
+    this.errorMessage = '';
+
+    const { email, password } = this.loginForm.value;
+
+    this.auth.login(email, password).subscribe({
+      next: (res) => {
+        this.isLoading = false;
+        // Route based on role
+        this.router.navigate([res.role === 'admin' ? '/builder' : '/viewer']);
       },
-      // error() runs when the backend returns an error response.
-      error: (err)=>{
-        this.isLoading=false;
-        if(err.status === 401){
-          this.errorMessage='UNAUTHORIZED: Invalid email or password';
-        } else if(err.status===0){
-          this.errorMessage='NO RESPONSE FROM SERVER';
-        }else{
-          this.errorMessage='UNKNOWN ERROR: Something went wrong';
-        } 
+      error: (err) => {
+        this.isLoading = false;
+        if (err.status === 401) {
+          this.errorMessage = 'Incorrect email or password.';
+        } else if (err.status === 403) {
+          this.errorMessage = 'Account is disabled. Contact your administrator.';
+        } else if (err.status === 0) {
+          this.errorMessage = 'Cannot reach the server. Is the API running?';
+        } else {
+          this.errorMessage = `Unexpected error (${err.status}). Check the console.`;
+        }
       }
     });
   }
+
   // Getter shortcuts so the template can access form controls cleanly.
   get email(){return this.loginForm.get('email');}
   get password(){return this.loginForm.get('password');}

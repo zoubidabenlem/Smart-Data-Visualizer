@@ -11,6 +11,6 @@ export const authGuard: CanActivateFn = () => {
       // Token exists in memory
     return true;
   }
-  router.navigate(['login']);
-  return false; //naviagte to login and  block original navigateion
+  return router.createUrlTree(['/login']);
+ //naviagte to login and  block original navigateion
 };

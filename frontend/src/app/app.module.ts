@@ -1,6 +1,6 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
-
+import { HttpClientModule } from '@angular/common/http';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { NgChartsModule } from 'ng2-charts';
@@ -15,7 +15,8 @@ import { JwtInterceptor } from './core/interceptors/jwt.interceptor';
   imports: [
     BrowserModule,
     AppRoutingModule,
-    NgChartsModule
+    NgChartsModule,
+    HttpClientModule
   ],
   providers: [ { provide: HTTP_INTERCEPTORS, useClass: JwtInterceptor, multi: true }],
   bootstrap: [AppComponent]

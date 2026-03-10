@@ -1,6 +1,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
+import { environment } from 'src/environments/environment';
+import { Router } from '@angular/router';
 
 //Interfaces to describe data in and out the api
 export interface LoginRequest{
@@ -21,26 +23,24 @@ export interface LoginResponse{
 export class AuthService {
 
   //only auth service can setwrite /set  the token(through login)
-  private readonly API_URL = 'http://localhost:8080/';
+  private readonly apiUrl = environment.apiUrl;
   private token: string | null = null;
   private role: string | null = null;
 
   // Angular injects HttpClient here automatically because of @Injectable above.
-  constructor(private httpp: HttpClient) { }
+  constructor(private http: HttpClient, private router: Router) { }
 
   //login function
-  login(credentials: LoginRequest):Observable<LoginResponse>{
-    return this.httpp
-      .post<LoginResponse>('${this.API_URL}/login', credentials)
+ login(email: string, password: string): Observable<LoginResponse> {
+    return this.http
+      .post<LoginResponse>(`${this.apiUrl}/auth/login`, { email, password })
       .pipe(
-        //tap() is an operator that lets you run a side effect (storing the token) when the Observable emits, without interfering with what the subscriber receives. 
-        tap(response =>{
+        tap((response) => {
           this.token = response.access_token;
           this.role = response.role;
         })
       );
   }
-
   //logout function
   logout():void{
     this.token = null;
