@@ -31,7 +31,7 @@ export class AuthService {
   //login function
   login(credentials: LoginRequest):Observable<LoginResponse>{
     return this.httpp
-      .post<LoginResponse>('${this.API_URL}auth/login', credentials)
+      .post<LoginResponse>('${this.API_URL}/login', credentials)
       .pipe(
         //tap() is an operator that lets you run a side effect (storing the token) when the Observable emits, without interfering with what the subscriber receives. 
         tap(response =>{
