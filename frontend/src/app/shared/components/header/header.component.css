@@ -10,15 +10,27 @@
 .header-content {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: space-between; /* Creates two clean ends */
 }
 
-.logo img {
-  height: 40px;
+.brand-identity {
+  display: flex;
+  align-items: center;
+  gap: 12px; /* Pulls the name and logo together */
+  text-decoration: none;
+}
+
+.logo-img {
+  height: 32px; /* Fixed height is much cleaner than 10vh */
   width: auto;
-  display: block;
 }
 
+.brand-name {
+  color: var(--color-text-primary);
+  font-weight: 700;
+  font-size: 1.1rem;
+  letter-spacing: -0.5px;
+}
 .main-nav {
   display: flex;
   gap: 2rem;
