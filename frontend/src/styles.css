@@ -1,1 +1,55 @@
-/* You can add global styles to this file, and also import other style files */
+/* ===== Global CSS Variables ===== */
+:root {
+  /* Backgrounds */
+  --color-bg-deep: #031017;
+  --color-bg-surface: #202930;
+  --color-bg-card: #202930;
+
+  /* Accents */
+  --color-primary: #265374;      /* neon teal */
+  --color-secondary: #96647E;    /* magenta glow */
+  --color-accent: #DEA2B8;       /* neon pink */
+  --color-border-subtle: #2F3E46;
+
+  /* Text */
+  --color-text-primary: #E6F0F5;
+  --color-text-muted: #8FA3AD;
+
+  /* Utility */
+  --border-radius: 8px;
+  --transition: 0.2s ease-in-out;
+}
+
+/* ===== Base Styles ===== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background-color: var(--color-bg-deep);
+  color: var(--color-text-primary);
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  line-height: 1.5;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Links & buttons inherit fonts */
+a, button {
+  font-family: inherit;
+}
+
+/* Utility classes for spacing (optional) */
+.container {
+  width: 90%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
