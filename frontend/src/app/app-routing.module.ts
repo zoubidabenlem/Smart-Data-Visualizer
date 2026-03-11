@@ -4,14 +4,13 @@ import { authGuard } from './core/auth/auth.guard';
 import { roleGuard } from './core/auth/role.guard';
 
 const routes: Routes = [
-    // Default route
-  { path: '', redirectTo: 'login', pathMatch: 'full' },
-    // Login route — no guards, publicly accessible.
-  // Lazy loads AuthModule which internally renders LoginComponent at path ''.
+  // Landing page (public)
+  { path: '', loadChildren: () => import('./features/landing/landing.module').then(m => m.LandingModule) },
+
+  // Login (public)
   {
     path: 'login',
-    loadChildren: () =>
-      import('./features/auth/auth.module').then(m => m.AuthModule)
+    loadChildren: () => import('./features/auth/auth.module').then(m => m.AuthModule)
   },
   // Builder route — protected by BOTH guards, run in order
   {
