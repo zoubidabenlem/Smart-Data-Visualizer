@@ -1,65 +1,92 @@
-<div class="login-wrapper">
-    <div class="login-card">
-        <!-- App title and subtitle -->
-        <h1 class="login-title">Smart Data Visualizer</h1>
-        <p class="login-subtitle">Sign in to continue</p>
+<div class="login-page" [style.background-image]="'url(assets/images/landing_bg.jpg)'">
+  <div class="overlay"></div>
+  <div class="login-container">
+    <!-- Left panel: branding and descriptive text -->
+    <div class="left-panel">
+      <img src="assets/images/logo.png" alt="Smart Data Visualizer" class="logo" />
+      <h1>Welcome Back</h1>
+      <p>
+        Visualize your data like never before. Secure, fast, and intuitive.
+      </p>
+      <p class="small-text">
+        Don't have an account? <a routerLink="/register">Sign up</a>
+      </p>
+    </div>
 
-         <!-- Error banner -->
-        <div *ngIf="errorMessage" class = "error-banner" role="alert">
-            {{errorMessage}}
+    <!-- Right panel: login form card -->
+    <div class="right-panel">
+      <div class="login-card glass">
+        <h2 class="login-title">Sign In</h2>
+        <p class="login-subtitle">Enter your credentials</p>
+
+        <!-- Error banner -->
+        <div *ngIf="errorMessage" class="error-banner" role="alert">
+          {{ errorMessage }}
         </div>
 
-        <!--Login form-->
+        <!-- Login form -->
         <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" novalidate>
-            <!-- EMAIL FIELD -->
-            <div class="field-group">
-                <label for="email">Email</label>
-                <input
-                id="email"
-                type="email"
-                formControlName="email"
-                placeholder="you@example.com"
-                autocomplete="email"
-                [class.invalid]="email?.invalid && email?.touched"    
-                /> 
+          <!-- Email field -->
+          <div class="field-group">
+            <label for="email">Email</label>
+            <input
+              id="email"
+              type="email"
+              formControlName="email"
+              placeholder="you@example.com"
+              autocomplete="email"
+              [class.invalid]="email?.invalid && email?.touched"
+            />
+            <span
+              class="field-error"
+              *ngIf="email?.touched && email?.hasError('required')"
+            >
+              Email is required.
+            </span>
+            <span
+              class="field-error"
+              *ngIf="email?.touched && email?.hasError('email')"
+            >
+              Please enter a valid email address.
+            </span>
+          </div>
 
-                <!-- Validation messages -->
-                 <span class="field-error" *ngIf="email?.touched && email?.hasError('required')">
-                    Email is Required.
-                 </span>
-                 <span class="field-error" *ngIf="email?.touched && email?.hasError('email')">
-                    Please enter a valid email address.
-                 </span>
-            </div>
+          <!-- Password field -->
+          <div class="field-group">
+            <label for="password">Password</label>
+            <input
+              id="password"
+              type="password"
+              formControlName="password"
+              placeholder="••••••••"
+              autocomplete="current-password"
+              [class.invalid]="password?.invalid && password?.touched"
+            />
+            <span
+              class="field-error"
+              *ngIf="password?.touched && password?.hasError('required')"
+            >
+              Password is required.
+            </span>
+            <span
+              class="field-error"
+              *ngIf="password?.touched && password?.hasError('minlength')"
+            >
+              Password must be at least 6 characters.
+            </span>
+          </div>
 
-            <!-- PWD FIELD -->
-             <div class="field-group">
-                <label for="password">Password</label>
-                <input
-                id="password"
-                type="password"
-                formControlName="password"
-                placeholder="••••••••"
-                autocomplete="current-password"
-                [class.invalid]="password?.invalid && password?.touched"
-                />
-                    <!-- eRROR messages -->
-                    <span class="field-error" *ngIf="password?.touched && password?.hasError('required')">
-                        Password is Required.
-                    </span>
-                    <span class="field-error" *ngIf="password?.touched && password?.hasError('minlength')">
-                        Password must be at least 6 characters.
-                     </span>
-            </div>
-             <!-- SUBMIT BUTTON -->
-              <button
-              type="submit" 
-              class="submit-btn" 
-              [disabled]="isLoading || loginForm.invalid"
-              >
-              <span *ngIf="!isLoading">Sign In</span>
-              <span *ngIf="isLoading">Signing in ...</span>
-              </button>
+          <!-- Submit button -->
+          <button
+            type="submit"
+            class="submit-btn"
+            [disabled]="isLoading || loginForm.invalid"
+          >
+            <span *ngIf="!isLoading">Sign In</span>
+            <span *ngIf="isLoading">Signing in ...</span>
+          </button>
         </form>
+      </div>
     </div>
+  </div>
 </div>
