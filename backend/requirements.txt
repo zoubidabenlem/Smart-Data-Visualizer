@@ -10,4 +10,4 @@ cachetools
 pydantic-settings
 python-dotenv
 email-validator
-
+openpyxl
