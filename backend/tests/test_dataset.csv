@@ -1,0 +1,101 @@
+ticket_id,timestamp,employee_id,department,issue_category,priority,resolution_time_hrs,system_uptime_pct,status
+T-1000,2026-01-21 090100,EMP-5506,Finance,Software,Low,10.1,99.82,Closed
+T-1001,2026-01-24 160500,EMP-7912,Engineering,Hardware,Critical,0.8,99.85,Closed
+T-1002,2026-01-20 083500,EMP-4257,Legal,Software,High,4.7,99.86,Closed
+T-1003,2026-01-28 084800,EMP-3615,Legal,Network,Medium,,99.83,Pending
+T-1004,2026-01-31 130600,EMP-2519,Legal,Hardware,Low,,99.97,Pending
+T-1005,2026-01-20 125100,EMP-1711,Product,Security,Low,9.5,99.98,Closed
+T-1006,2026-01-03 161800,EMP-6925,Finance,Cloud Services,Low,7.1,99.93,Closed
+T-1007,2026-01-25 120500,EMP-4814,Sales,AccessIAM,High,3.7,99.93,Closed
+T-1008,2026-01-12 102300,EMP-6820,Finance,Cloud Services,Medium,15.7,99.99,Closed
+T-1009,2026-01-21 093800,EMP-3803,Finance,Software,High,4.8,99.85,Closed
+T-1010,2026-01-30 184400,EMP-4598,IT Support,Hardware,Low,,99.96,Open
+T-1011,2026-01-26 132500,EMP-5386,Sales,Software,Critical,3.7,99.91,Closed
+T-1012,2026-01-23 131300,EMP-9179,Legal,Cloud Services,High,4.8,99.85,Closed
+T-1013,2026-01-08 163400,EMP-5304,Legal,Security,Low,21.6,99.84,Closed
+T-1014,2026-01-05 163100,EMP-2489,Engineering,Hardware,Low,10.7,99.83,Closed
+T-1015,2026-01-22 143800,EMP-2040,Legal,AccessIAM,Low,30.2,99.89,Closed
+T-1016,2026-01-09 165500,EMP-1188,Sales,Cloud Services,Low,42.9,99.95,Closed
+T-1017,2026-01-25 182100,EMP-2827,Marketing,AccessIAM,Medium,11.0,99.8,Closed
+T-1018,2026-01-24 123200,EMP-3927,Sales,Cloud Services,Medium,17.1,99.93,Closed
+T-1019,2026-01-20 110900,EMP-7126,HR,Security,Low,46.0,99.98,Closed
+T-1020,2026-01-30 083800,EMP-6310,Product,Hardware,Medium,,99.99,In Progress
+T-1021,2026-01-29 121500,EMP-1949,Finance,Security,Low,,99.82,In Progress
+T-1022,2026-01-16 094800,EMP-9727,HR,Software,Low,33.0,99.99,Closed
+T-1023,2026-01-06 123300,EMP-7932,Finance,Security,Low,37.2,99.94,Closed
+T-1024,2026-01-23 122500,EMP-7118,Product,Security,Medium,23.9,99.85,Closed
+T-1025,2026-01-03 130100,EMP-4770,Finance,Hardware,High,2.4,99.93,Closed
+T-1026,2026-01-08 095700,EMP-1514,IT Support,Hardware,Low,26.6,99.86,Closed
+T-1027,2026-01-16 113400,EMP-3167,Product,Software,Medium,38.5,99.96,Closed
+T-1028,2026-01-07 090600,EMP-8062,IT Support,AccessIAM,Medium,22.1,99.97,Closed
+T-1029,2026-01-02 184100,EMP-2612,Engineering,AccessIAM,Low,36.0,99.96,Closed
+T-1030,2026-01-04 111200,EMP-4116,Product,Software,Medium,22.6,99.86,Closed
+T-1031,2026-01-08 092800,EMP-2604,Engineering,Cloud Services,Low,48.0,99.97,Closed
+T-1032,2026-01-03 111000,EMP-7658,Product,AccessIAM,Low,13.4,99.88,Closed
+T-1033,2026-01-02 102400,EMP-1035,Legal,Network,Critical,3.7,96.32,Closed
+T-1034,2026-01-10 144400,EMP-8973,HR,Software,Critical,1.5,99.99,Closed
+T-1035,2026-01-19 160300,EMP-6138,Engineering,Hardware,High,5.5,99.9,Closed
+T-1036,2026-01-28 161000,EMP-1931,Sales,Software,Low,,99.92,In Progress
+T-1037,2026-01-22 112500,EMP-2964,Finance,Security,Low,30.2,99.92,Closed
+T-1038,2026-01-14 183700,EMP-9565,IT Support,Network,Medium,13.0,99.94,Closed
+T-1039,2026-01-08 122500,EMP-3144,Marketing,AccessIAM,Medium,17.9,99.95,Closed
+T-1040,2026-01-03 082900,EMP-2638,Sales,Security,Low,13.4,99.85,Closed
+T-1041,2026-01-30 135600,EMP-2127,Finance,Network,Medium,,99.83,Pending
+T-1042,2026-01-27 164500,EMP-5956,Engineering,Cloud Services,Low,,99.99,Pending
+T-1043,2026-01-04 101600,EMP-2891,Sales,Cloud Services,Critical,2.4,93.5,Closed
+T-1044,2026-01-20 114500,EMP-6617,Finance,Cloud Services,Low,31.9,99.85,Closed
+T-1045,2026-01-16 125700,EMP-1832,Sales,Cloud Services,Medium,22.6,99.86,Closed
+T-1046,2026-01-01 134900,EMP-3143,Marketing,Software,Low,36.6,99.91,Closed
+T-1047,2026-01-14 160000,EMP-2832,Sales,Cloud Services,Medium,43.8,99.91,Closed
+T-1048,2026-01-27 133700,EMP-3426,Legal,Software,Medium,,99.86,In Progress
+T-1049,2026-01-29 085700,EMP-6862,Finance,Cloud Services,Low,,99.93,Open
+T-1050,2026-01-12 165600,EMP-7658,HR,Software,Critical,3.5,100.0,Closed
+T-1051,2026-01-26 105600,EMP-7755,Engineering,Software,High,6.4,99.87,Closed
+T-1052,2026-01-30 145100,EMP-5065,Marketing,Software,Critical,,99.88,In Progress
+T-1053,2026-01-02 151400,EMP-4269,Product,Network,High,3.8,99.96,Closed
+T-1054,2026-01-08 110100,EMP-4164,Legal,Network,Medium,16.3,99.81,Closed
+T-1055,2026-01-25 122200,EMP-9346,Legal,Cloud Services,Critical,3.9,94.95,Closed
+T-1056,2026-01-31 080700,EMP-5279,HR,Security,Low,,99.81,Pending
+T-1057,2026-01-20 142200,EMP-6139,Legal,Security,Low,47.3,99.82,Closed
+T-1058,2026-01-29 171200,EMP-5173,Engineering,Cloud Services,Low,4.1,99.99,Closed
+T-1059,2026-01-18 184600,EMP-4228,IT Support,AccessIAM,Low,7.1,99.93,Closed
+T-1060,2026-01-11 172000,EMP-3041,Marketing,Security,Low,17.6,99.88,Closed
+T-1061,2026-01-13 123500,EMP-3085,Finance,AccessIAM,Low,33.3,99.88,Closed
+T-1062,2026-01-24 103900,EMP-5930,Legal,Security,High,7.0,99.86,Closed
+T-1063,2026-01-07 145000,EMP-6279,Product,AccessIAM,Low,23.5,99.84,Closed
+T-1064,2026-01-16 104200,EMP-2389,Marketing,Security,Low,33.2,99.92,Closed
+T-1065,2026-01-03 114300,EMP-6085,Finance,Software,Medium,10.5,99.81,Closed
+T-1066,2026-01-16 175400,EMP-2193,Product,AccessIAM,Low,43.0,99.92,Closed
+T-1067,2026-01-23 143100,EMP-7547,Finance,Software,High,5.9,99.8,Closed
+T-1068,2026-01-25 094900,EMP-7965,Finance,Software,Low,39.4,99.94,Closed
+T-1069,2026-01-15 083500,EMP-5082,Sales,AccessIAM,Critical,1.0,99.89,Closed
+T-1070,2026-01-17 163800,EMP-6198,Product,Security,High,6.9,99.98,Closed
+T-1071,2026-01-14 162800,EMP-3607,Product,AccessIAM,Low,15.4,99.85,Closed
+T-1072,2026-01-21 124900,EMP-9540,Product,Cloud Services,Low,14.5,99.89,Closed
+T-1073,2026-01-23 121500,EMP-5451,IT Support,Network,High,7.4,99.82,Closed
+T-1074,2026-01-05 112400,EMP-3503,Finance,Hardware,High,4.5,99.87,Closed
+T-1075,2026-01-15 140300,EMP-4388,Legal,AccessIAM,High,7.4,99.92,Closed
+T-1076,2026-01-23 085400,EMP-7232,Product,Hardware,High,7.7,99.86,Closed
+T-1077,2026-01-13 143400,EMP-9947,Finance,AccessIAM,Low,13.7,99.89,Closed
+T-1078,2026-01-01 142100,EMP-7624,HR,AccessIAM,Low,44.5,100.0,Closed
+T-1079,2026-01-18 085800,EMP-7455,Engineering,Hardware,Low,32.3,99.83,Closed
+T-1080,2026-01-15 100300,EMP-5262,Legal,Network,High,3.3,99.87,Closed
+T-1081,2026-01-25 141700,EMP-7906,Marketing,Hardware,Medium,24.7,99.95,Closed
+T-1082,2026-01-02 131400,EMP-2124,Engineering,Hardware,Low,45.8,99.84,Closed
+T-1083,2026-01-01 170900,EMP-4908,HR,AccessIAM,Low,33.5,99.91,Closed
+T-1084,2026-01-07 154400,EMP-5198,IT Support,Software,Low,30.7,99.99,Closed
+T-1085,2026-01-23 094900,EMP-3683,Marketing,Hardware,Low,29.5,99.99,Closed
+T-1086,2026-01-19 185800,EMP-7149,Legal,Cloud Services,High,3.2,99.92,Closed
+T-1087,2026-01-27 181500,EMP-2669,Marketing,Cloud Services,Medium,,99.96,In Progress
+T-1088,2026-01-19 082200,EMP-9728,Legal,Cloud Services,High,4.2,99.9,Closed
+T-1089,2026-01-11 085400,EMP-7882,Product,Hardware,Medium,23.1,99.87,Closed
+T-1090,2026-01-29 154500,EMP-3506,Legal,Software,Low,,99.92,Pending
+T-1091,2026-01-30 164900,EMP-8921,Product,AccessIAM,High,,99.86,Pending
+T-1092,2026-01-08 091700,EMP-8385,Finance,AccessIAM,High,5.4,99.93,Closed
+T-1093,2026-01-11 083100,EMP-6325,HR,AccessIAM,Medium,13.3,99.96,Closed
+T-1094,2026-01-11 125600,EMP-5526,Engineering,Security,High,7.7,99.82,Closed
+T-1095,2026-01-24 143100,EMP-4937,Product,Cloud Services,Medium,35.3,99.89,Closed
+T-1096,2026-01-01 091800,EMP-4630,Legal,Cloud Services,Medium,14.7,99.93,Closed
+T-1097,2026-01-12 153500,EMP-9698,IT Support,AccessIAM,Medium,47.9,99.91,Closed
+T-1098,2026-01-12 151700,EMP-6023,Marketing,Software,Low,9.3,99.84,Closed
+T-1099,2026-01-04 164800,EMP-4033,Finance,Software,Low,36.5,99.86,Closed
