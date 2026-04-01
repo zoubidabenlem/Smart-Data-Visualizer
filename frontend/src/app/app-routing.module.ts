@@ -2,7 +2,7 @@ import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { authGuard } from './core/auth/auth.guard';
 import { roleGuard } from './core/auth/role.guard';
-
+import { BuilderModule } from './features/builder/builder.module';
 const routes: Routes = [
   // Landing page (public)
   { path: '', loadChildren: () => import('./features/landing/landing.module').then(m => m.LandingModule) },
@@ -14,11 +14,11 @@ const routes: Routes = [
   },
   // Builder route — protected by BOTH guards, run in order
   {
-    path: 'builder',
-    canActivate: [authGuard, roleGuard],
-    loadChildren: () =>
-      import('./features/builder/builder.module').then(m => m.BuilderModule)
-  },
+  path: 'builder',
+  canActivate: [authGuard, roleGuard],
+  data: { roles: ['admin'] },
+  loadChildren: () => import('./features/builder/builder.module').then(m => m.BuilderModule)
+},
   // Viewer route — protected by AuthGuard
   {
     path: 'viewer',

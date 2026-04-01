@@ -1,0 +1,29 @@
+<div class="modal-overlay" (click)="closeModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Dataset Preview</h3>
+      <button class="close-btn" (click)="closeModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div *ngIf="isLoading">Loading preview...</div>
+      <div *ngIf="error" class="error">{{ error }}</div>
+      <div *ngIf="!isLoading && !error">
+        <p *ngIf="cached" class="cached-badge">(Cached)</p>
+        <div class="preview-table-wrapper">
+          <table class="preview-table">
+            <thead>
+              <tr>
+                <th *ngFor="let col of columns">{{ col }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let row of rows">
+                <td *ngFor="let col of columns">{{ row[col] }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

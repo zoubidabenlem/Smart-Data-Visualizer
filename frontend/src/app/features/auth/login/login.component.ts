@@ -36,10 +36,14 @@ export class LoginComponent {
 
     this.auth.login(email, password).subscribe({
       next: (res) => {
-        this.isLoading = false;
-        // Route based on role
-        this.router.navigate([res.role === 'admin' ? '/builder' : '/viewer']);
-      },
+        console.log('Login response:', res);
+  this.auth.setToken(res.access_token);   // store token
+  this.auth.setRole(res.role);            // store role
+  this.isLoading = false;
+  const targetRoute = res.role === 'admin' ? '/builder' : '/viewer';
+  console.log('Attempting to navigate to:', targetRoute);
+  this.router.navigate([targetRoute]);
+},
       error: (err) => {
         this.isLoading = false;
         if (err.status === 401) {

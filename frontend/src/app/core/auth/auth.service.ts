@@ -4,58 +4,61 @@ import { Observable, tap } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { Router } from '@angular/router';
 
-//Interfaces to describe data in and out the api
-export interface LoginRequest{
-  email:string;
+export interface LoginRequest {
+  email: string;
   password: string;
 }
 
-export interface LoginResponse{
-  access_token:string;
-  token_type:string;
-  role:string;
+export interface LoginResponse {
+  access_token: string;
+  token_type: string;
+  role: string;
 }
 
-//Service for authentication : this class can be injectable (provided in root = one instance)
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
-
-  //only auth service can setwrite /set  the token(through login)
   private readonly apiUrl = environment.apiUrl;
-  private token: string | null = null;
-  private role: string | null = null;
+  private readonly TOKEN_KEY = 'access_token';
+  private readonly ROLE_KEY = 'user_role';
 
-  // Angular injects HttpClient here automatically because of @Injectable above.
-  constructor(private http: HttpClient, private router: Router) { }
+  constructor(private http: HttpClient, private router: Router) {}
 
-  //login function
- login(email: string, password: string): Observable<LoginResponse> {
+  login(email: string, password: string): Observable<LoginResponse> {
     return this.http
       .post<LoginResponse>(`${this.apiUrl}/auth/login`, { email, password })
       .pipe(
         tap((response) => {
-          this.token = response.access_token;
-          this.role = response.role;
+          this.setToken(response.access_token);
+          this.setRole(response.role);
         })
       );
   }
-  //logout function
-  logout():void{
-    this.token = null;
-    this.role = null;
+
+  logout(): void {
+    localStorage.removeItem(this.TOKEN_KEY);
+    localStorage.removeItem(this.ROLE_KEY); 
+    this.router.navigate(['/login']);
   }
-  //Retrieve the token
+
+  setToken(token: string): void {
+    localStorage.setItem(this.TOKEN_KEY, token);
+  }
+
   getToken(): string | null {
-    return this.token;
+    return localStorage.getItem(this.TOKEN_KEY);
   }
-  //retrieve the role
+
+  setRole(role: string): void {
+    localStorage.setItem(this.ROLE_KEY, role);
+  }
+
   getRole(): string | null {
-    return this.role;
+    return localStorage.getItem(this.ROLE_KEY);
   }
-  //method to check if the user is authenticated
+
   isAuthenticated(): boolean {
-    return !!this.token;
+    return !!this.getToken();  // Check localStorage
   }
 }

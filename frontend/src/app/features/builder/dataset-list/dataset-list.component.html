@@ -1,0 +1,30 @@
+<div *ngIf="loading" class="loading">Loading datasets...</div>
+<div *ngIf="error" class="error-message">{{ error }}</div>
+<div *ngIf="!loading && datasets.length === 0" class="no-data">
+  No datasets found. Upload one above.
+</div>
+
+<div *ngIf="!loading && datasets.length > 0" class="datasets-table-wrapper">
+  <table class="datasets-table">
+    <thead>
+      <tr>
+        <th>Filename</th>
+        <th>Rows</th>
+        <th>Columns</th>
+        <th>Created</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let ds of datasets">
+        <td>{{ ds.filename }}</td>
+        <td>{{ ds.row_count }}</td>
+        <td>{{ ds.col_count }}</td>
+        <td>{{ ds.created_at | date:'medium' }}</td>
+        <td>
+          <button class="preview-btn" (click)="preview.emit(ds.id)">Preview</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>

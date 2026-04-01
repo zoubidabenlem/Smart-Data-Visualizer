@@ -5,10 +5,27 @@
       <span class="brand-name">Smart Data Visualizer</span>
     </a>
 
-    <nav class="main-nav">
-      <a routerLink="/features">Features</a>
-      <a routerLink="/about">About</a>
-      <a routerLink="/login" class="btn-login">Sign In</a>
+     <nav class="main-nav">
+
+      <!-- hidden  when logged in -->
+      <ng-container *ngIf="!isLoggedIn">
+        <a routerLink="/features">Features</a>
+        <a routerLink="/about">About</a>
+      </ng-container>
+
+      <!-- Auth section -->
+      <ng-container *ngIf="isLoggedIn; else notLoggedIn">
+        <span class="user-greeting">Welcome, {{ role }}</span>
+        <button (click)="logout()" class="btn-logout">Sign Out</button>
+
+        <a routerLink="/builder" *ngIf="role === 'admin'">Dashboard</a>
+        <a routerLink="/viewer" *ngIf="role !== 'admin'">Dashboard</a>
+      </ng-container>
+
+      <ng-template #notLoggedIn>
+        <a routerLink="/login" class="btn-login">Sign In</a>
+      </ng-template>
+
     </nav>
   </div>
 </header>

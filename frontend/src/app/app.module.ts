@@ -6,10 +6,13 @@ import { AppComponent } from './app.component';
 import { NgChartsModule } from 'ng2-charts';
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
 import { JwtInterceptor } from './core/interceptors/jwt.interceptor';
-
+import { ExtraOptions } from '@angular/router';
 // Import the  headr and footer components
 import { HeaderComponent } from './shared/components/header/header.component';
 import { FooterComponent } from './shared/components/footer/footer.component';
+const routerOptions: ExtraOptions = {
+  enableTracing: true // logs router events to console
+};
 @NgModule({
   declarations: [
     AppComponent,

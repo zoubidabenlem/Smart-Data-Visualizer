@@ -1,0 +1,21 @@
+<div class="builder-container">
+  <h1>Builder Dashboard</h1>
+
+  <!-- Upload Section -->
+  <app-dataset-upload (uploadSuccess)="onUploadSuccess()"></app-dataset-upload>
+
+  <!-- Dataset List -->
+  <app-dataset-list
+    [datasets]="datasets"
+    [loading]="isLoading"
+    [error]="error"
+    (preview)="openPreview($event)">
+  </app-dataset-list>
+
+  <!-- Preview Modal -->
+  <app-preview-modal
+    *ngIf="selectedDatasetId"
+    [datasetId]="selectedDatasetId"
+    (close)="selectedDatasetId = null">
+  </app-preview-modal>
+</div>

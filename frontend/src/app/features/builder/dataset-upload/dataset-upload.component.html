@@ -1,0 +1,19 @@
+<div class="upload-area">
+  <h3>Upload Dataset</h3>
+  <p>CSV or Excel files (max 50 MB)</p>
+
+  <div class="file-input-wrapper">
+    <input type="file" id="fileInput" (change)="onFileSelected($event)" accept=".csv,.xlsx,.xls">
+    <button class="upload-btn" (click)="upload()" [disabled]="uploading">
+      {{ uploading ? 'Uploading...' : 'Upload' }}
+    </button>
+  </div>
+
+  <div *ngIf="selectedFile" class="file-info">
+    Selected: {{ selectedFile.name }} ({{ (selectedFile.size / 1024 / 1024).toFixed(2) }} MB)
+  </div>
+
+  <div *ngIf="error" class="error-message">
+    {{ error }}
+  </div>
+</div>
