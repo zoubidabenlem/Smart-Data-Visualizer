@@ -17,7 +17,7 @@ venv/
 .env/
 .venv/
 env/
-
+backend/uploads
 # Distribution / packaging
 build/
 dist/

@@ -3,6 +3,7 @@ import { RouterModule, Routes } from '@angular/router';
 import { authGuard } from './core/auth/auth.guard';
 import { roleGuard } from './core/auth/role.guard';
 import { BuilderModule } from './features/builder/builder.module';
+import { UnauthorizedComponent } from './core/unauthorized/unauthorized.component';
 const routes: Routes = [
   // Landing page (public)
   { path: '', loadChildren: () => import('./features/landing/landing.module').then(m => m.LandingModule) },
@@ -27,7 +28,7 @@ const routes: Routes = [
       import('./features/viewer/viewer.module').then(m => m.ViewerModule)
   },
 
-
+{ path: 'unauthorized', component: UnauthorizedComponent },
   // Wildcard route — catches any URL that didn't match above.
   // Always put this last — the router matches top to bottom
   // and a wildcard at the top would swallow every route.

@@ -6,15 +6,19 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterModule, Routes } from '@angular/router';
 import { HttpClientModule } from '@angular/common/http';
 import { AuthService } from 'src/app/core/auth/auth.service';
+import { RegisterComponent } from './register/register.component';
+
 const routes: Routes = [
   //no /login  :AppRoutingModule already handles the 'login' prefix. This module only needs to know what to render at the root of its own path
   {path: '',component:LoginComponent},
+  { path: 'login/register', component: RegisterComponent }
+
 ]
 @NgModule({
    // Every component that belongs to this module must be declared here.
   declarations: [
     LoginComponent,
-    //RegisterComponent
+    RegisterComponent
   ],
   imports: [
     CommonModule,   // *ngIf, *ngFor, async pipe, etc.

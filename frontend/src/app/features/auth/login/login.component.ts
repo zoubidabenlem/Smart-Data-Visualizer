@@ -2,31 +2,29 @@ import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from 'src/app/core/auth/auth.service';
+
 @Component({
-  //html tag name for this component
   selector: 'app-login',
-  //html template
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css']
 })
 export class LoginComponent {
-  //properties for state
   isLoading = false;
   errorMessage = '';
-//login form holds the form values, states, validity
-  loginForm:FormGroup;
+  loginForm: FormGroup;
+
   constructor(
-    private fb : FormBuilder,//creats formgroup objects
-    private router : Router,//calls backend login endpoint
-    private auth : AuthService //naviagte after succesful login
+    private fb: FormBuilder,
+    private router: Router,
+    private auth: AuthService
   ) {
-    //Build the form inside the constructor each key is a form field 
-    this.loginForm=this.fb.group({
-      email:['', [Validators.required, Validators.email]],
-      password:['',[Validators.required, Validators.minLength(6)]]
+    this.loginForm = this.fb.group({
+      email: ['', [Validators.required, Validators.email]],
+      password: ['', [Validators.required, Validators.minLength(6)]]
     });
   }
-   onSubmit(): void {
+
+  onSubmit(): void {
     if (this.loginForm.invalid) return;
 
     this.isLoading = true;
@@ -36,14 +34,11 @@ export class LoginComponent {
 
     this.auth.login(email, password).subscribe({
       next: (res) => {
-        console.log('Login response:', res);
-  this.auth.setToken(res.access_token);   // store token
-  this.auth.setRole(res.role);            // store role
-  this.isLoading = false;
-  const targetRoute = res.role === 'admin' ? '/builder' : '/viewer';
-  console.log('Attempting to navigate to:', targetRoute);
-  this.router.navigate([targetRoute]);
-},
+        // res contains { access_token, token_type, role }
+        this.isLoading = false;
+        const targetRoute = res.role === 'admin' ? '/builder' : '/viewer';
+        this.router.navigate([targetRoute]);
+      },
       error: (err) => {
         this.isLoading = false;
         if (err.status === 401) {
@@ -59,7 +54,6 @@ export class LoginComponent {
     });
   }
 
-  // Getter shortcuts so the template can access form controls cleanly.
-  get email(){return this.loginForm.get('email');}
-  get password(){return this.loginForm.get('password');}
+  get email() { return this.loginForm.get('email'); }
+  get password() { return this.loginForm.get('password'); }
 }

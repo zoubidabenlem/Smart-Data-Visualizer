@@ -1,1 +1,54 @@
-<p>register works!</p>
+<div class="register-page" [style.backgroundImage]="backgroundImageUrl">
+  <div class="overlay"></div>
+  <div class="register-container">
+    <div class="left-panel">
+      <img src="assets/images/logo.png" alt="Smart Data Visualizer" class="logo" />
+      <h1>Create Account</h1>
+      <p>Start visualizing your data in minutes.</p>
+      <p class="small-text">
+        Already have an account? <a routerLink="/login">Sign in</a>
+      </p>
+    </div>
+
+    <div class="right-panel">
+      <div class="register-card glass">
+        <h2 class="register-title">Sign Up</h2>
+        <p class="register-subtitle">Fill in your details</p>
+
+        <div *ngIf="errorMessage" class="error-banner">{{ errorMessage }}</div>
+        <div *ngIf="successMessage" class="success-banner">{{ successMessage }}</div>
+
+        <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" novalidate>
+          <div class="field-group">
+            <label for="email">Email</label>
+            <input id="email" type="email" formControlName="email" placeholder="you@example.com"
+                   [class.invalid]="email?.invalid && email?.touched">
+            <span class="field-error" *ngIf="email?.touched && email?.hasError('required')">Email is required.</span>
+            <span class="field-error" *ngIf="email?.touched && email?.hasError('email')">Enter a valid email.</span>
+          </div>
+
+          <div class="field-group">
+            <label for="password">Password</label>
+            <input id="password" type="password" formControlName="password" placeholder="••••••••"
+                   [class.invalid]="password?.invalid && password?.touched">
+            <span class="field-error" *ngIf="password?.touched && password?.hasError('required')">Password required.</span>
+            <span class="field-error" *ngIf="password?.touched && password?.hasError('minlength')">Minimum 6 characters.</span>
+          </div>
+
+          <div class="field-group">
+            <label for="confirmPassword">Confirm Password</label>
+            <input id="confirmPassword" type="password" formControlName="confirmPassword" placeholder="••••••••"
+                   [class.invalid]="confirmPassword?.invalid && confirmPassword?.touched">
+            <span class="field-error" *ngIf="confirmPassword?.touched && confirmPassword?.hasError('required')">Please confirm your password.</span>
+            <span class="field-error" *ngIf="registerForm.hasError('passwordMismatch') && confirmPassword?.touched">Passwords do not match.</span>
+          </div>
+
+          <button type="submit" class="submit-btn" [disabled]="isLoading || registerForm.invalid">
+            <span *ngIf="!isLoading">Register</span>
+            <span *ngIf="isLoading">Creating account...</span>
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

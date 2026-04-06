@@ -1,0 +1,244 @@
+/* ===== Full‑screen background section ===== */
+.register-page {
+  min-height: 83.5vh;                /* fill viewport */
+  width: 100%;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-size: cover;
+  background-position: center;
+}
+
+/* ===== Dark overlay with blur ===== */
+/* register.component.css */
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  /* Darker gradient overlay to ground the left side */
+  background: linear-gradient(to right, rgba(3, 16, 23, 0.9), rgba(3, 16, 23, 0.6)); 
+  backdrop-filter: blur(10px); /* Increased from 2px for a premium feel */
+  z-index: 0;
+}
+
+/* ===== Main container: two‑column grid ===== */
+.register-container {
+  position: relative;
+  z-index: 1;
+
+  display: grid;
+  grid-template-columns: 1fr 420px;  /* left flexible, right fixed */
+  gap: 60px;
+
+  width: 90%;
+  max-width: 1100px;
+  padding: 60px;
+  border-radius: 16px;
+  box-shadow: 0 0 30px rgba(150, 100, 126, 0.15); /* subtle neon glow */
+}
+
+/* ===== Left panel (branding) ===== */
+/* register.component.css - Replace .left-panel and .left-panel .logo */
+
+.left-panel {
+  color: var(--color-text-primary);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-right: 20px; /* Space between text and the register card */
+}
+
+.left-panel .logo {
+  width: 200px; /* Slightly smaller for a cleaner look */
+  height: auto;
+  margin-bottom: 24px;
+  /* Use a cleaner drop shadow or remove it if the logo is already high-contrast */
+  filter: drop-shadow(0 0 15px rgba(222, 162, 184, 0.3)); 
+  opacity: 0.9;
+}
+
+.left-panel h1 {
+  font-size: 3rem; /* Bigger, bolder statement */
+  font-weight: 800;
+  letter-spacing: -1px;
+  margin-bottom: 0.5rem;
+  background: linear-gradient(white, #cbd5e1); /* Subtle text gradient */
+  -webkit-background-clip: text;
+  background-clip: text; /* Standard property */
+  -webkit-text-fill-color: transparent;
+  color: transparent; /* Standard property */
+}
+
+.left-panel p {
+  font-size: 1.2rem;
+  max-width: 400px; /* Prevents long lines of text which are hard to read */
+  color: var(--color-text-muted);
+  line-height: 1.4;
+}
+.left-panel .small-text {
+  font-size: 0.95rem;
+}
+
+.left-panel a {
+  color: var(--color-accent);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.left-panel a:hover {
+  color: var(--color-secondary);
+  text-decoration: underline;
+}
+
+/* ===== Right panel (form container) ===== */
+.right-panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ===== Improved glass card ===== */
+.register-card {
+  width: 100%;
+  max-width: 400px;
+}
+
+.glass {
+  background: rgba(32, 41, 48, 0.6); /* #202930 with opacity */
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(150, 100, 126, 0.25); /* muted purple border */
+  border-radius: 12px;
+  padding: 32px;
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5);
+}
+
+.register-title {
+  font-size: 2rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: var(--color-text-primary);
+  text-align: center;
+}
+
+.register-subtitle {
+  color: var(--color-text-muted);
+  text-align: center;
+  margin-bottom: 2rem;
+  font-size: 0.95rem;
+}
+
+/* ===== Form fields ===== */
+.field-group {
+  margin-bottom: 1.5rem;
+}
+
+.field-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.field-group input {
+  width: 100%;
+  padding: 0.8rem 1rem;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--border-radius);
+  color: var(--color-text-primary);
+  font-size: 1rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.field-group input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(38, 83, 116, 0.3);
+}
+
+.field-group input.invalid {
+  border-color: #ff6b6b;
+}
+
+.field-error {
+  display: block;
+  color: #ff8a8a;
+  font-size: 0.8rem;
+  margin-top: 0.3rem;
+}
+
+/* ===== Error banner ===== */
+.error-banner {
+  background: rgba(255, 107, 107, 0.2);
+  border: 1px solid #ff6b6b;
+  color: #ffb3b3;
+  padding: 0.8rem 1rem;
+  border-radius: var(--border-radius);
+  margin-bottom: 1.5rem;
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+/* ===== Submit button ===== */
+.submit-btn {
+  width: 100%;
+  padding: 0.9rem;
+  background: var(--color-accent);
+  color: var(--color-bg-deep);
+  border: none;
+  border-radius: var(--border-radius);
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.submit-btn:hover:not(:disabled) {
+  background: var(--color-secondary);
+  transform: translateY(-2px);
+}
+
+.submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ===== Responsive design ===== */
+@media (max-width: 900px) {
+  .register-container {
+    grid-template-columns: 1fr;      /* stack vertically */
+    gap: 30px;
+    padding: 40px;
+  }
+
+  .left-panel {
+    text-align: center;
+    align-items: center;
+  }
+
+  .left-panel .logo {
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .register-container {
+    padding: 20px;
+  }
+
+  .glass {
+    padding: 24px;
+  }
+
+  .left-panel h1 {
+    font-size: 2rem;
+  }
+}
