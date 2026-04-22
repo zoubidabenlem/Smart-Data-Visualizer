@@ -2,15 +2,20 @@ from fastapi import APIRouter, Depends, UploadFile, File, HTTPException, status
 from sqlalchemy.orm import Session
 from pathlib import Path
 import pandas as pd
+import os
+from app.services.refine_service import apply_refine_transformations, get_refined_cache_key
+from app.core.cache import refined_cache
 
 from app.db.base import get_db
 from app.dependencies.auth_dependencies import require_admin, get_current_user
 from app.models.dataset import Dataset, SourceType
 from app.models.user import User
 from app.schemas.dataset_schemas import DatasetOut
+from app.schemas.refine_schema import *
 from app.services.fileUpload_service import save_upload, extract_metadata
 from app.core.cache import preview_cache
 from app.core.config import settings
+
 
 router = APIRouter(prefix="/datasets", tags=["Datasets"])
 #POST /datasets/upload
@@ -43,6 +48,7 @@ def upload_dataset(
         row_count=meta["row_count"],
         col_count=meta["col_count"],
         column_schema=meta["column_schema"],
+        source_path=str(saved_path), 
     )
     db.add(dataset)
     db.commit()
@@ -69,75 +75,145 @@ def list_datasets(
         .all()
     )
     return [DatasetOut.model_validate(dataset) for dataset in datasets]
-
+@router.get("/{dataset_id}", response_model=DatasetOut)
+def get_dataset(
+    dataset_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    dataset = db.query(Dataset).filter(
+        Dataset.id == dataset_id,
+        Dataset.user_id == current_user.id
+    ).first()
+    if not dataset:
+        raise HTTPException(status_code=404, detail="Dataset not found")
+    return DatasetOut.model_validate(dataset)
 # GET /datasets/{id}/preview
-@router.get(
-    "/{dataset_id}/preview",
-    status_code=status.HTTP_200_OK,
-    summary="Preview the first 50 rows of a dataset.",
-)
+@router.get("/{dataset_id}/preview", status_code=200)
 def preview_dataset(
     dataset_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
-) -> dict:
-    """
-    Returns first 50 rows as JSON.
-    Result is cached in memory for 5 minutes (TTLCache).
-    
-    Cache key: "{dataset_id}"
-    Cache miss: load file from disk with Pandas, store result, return it.
-    Cache hit: return stored result immediately, no disk I/O.
-    """
-    #check cache
+):
+    # Check cache first (original preview cache)
     cache_key = str(dataset_id)
     if cache_key in preview_cache:
         return {"cached": True, "data": preview_cache[cache_key]}
-    
-    #Fetch dataset metadata from db
-    dataset= db.query(Dataset).filter(
-        Dataset.id == dataset_id,
-        Dataset.user_id == current_user.id,
-    ).first()
-    
+
+    dataset = db.query(Dataset).filter(Dataset.id == dataset_id, Dataset.user_id == current_user.id).first()
     if not dataset:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Dataset {dataset_id} not found",
-        )
+        raise HTTPException(404, "Dataset not found")
 
-    #read file from disk and cache result
-        # The file_path is not stored in DB yet — we reconstruct it from the uploads dir TODOd add a file_path column to the Dataset model
-    upload_dir = Path(settings.upload_dir)
-    # Find the file matching this dataset's filename (uuid prefix + original name)
-    matches = list(upload_dir.glob(f"*_{dataset.filename}"))
-    if not matches:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="File not found on disk. It may have been deleted.",
-        )
-    file_path = matches[-1]   # take the most recent if multiple
+    # If refined, try to load from refined_cache or recompute
+    if dataset.is_refined is True:
+        refined_key = get_refined_cache_key(dataset_id)
+        if refined_key in refined_cache:
+            rows = refined_cache[refined_key][:50]  # first 50 rows
+            preview_cache[cache_key] = rows
+            return {"cached": False, "data": rows, "refined": True}
+        else:
+            # Cache miss – should not happen if refine was called, but fallback: recompute refine
+            # For simplicity, raise a helpful error
+            raise HTTPException(400, "Refined data not in cache. Please re-run refine or re-upload.")
 
-    # Load first 50 rows
+    # Otherwise, original flow (read file, first 50 rows)
+    file_path = Path(str(dataset.source_path))
+    if not file_path.exists():
+        raise HTTPException(400, "File missing, please re-upload")
+
     try:
-        if dataset.source_type == SourceType.csv:  # type: ignore
-            try:
-                df = pd.read_csv(file_path, nrows=50, encoding="utf-8")
-            except UnicodeDecodeError:
-                df = pd.read_csv(file_path, nrows=50, encoding="latin-1")
+        if dataset.source_type == SourceType.csv: #type: ignore
+            df = pd.read_csv(file_path, nrows=50)
         else:
             df = pd.read_excel(file_path, nrows=50)
-
-        # Convert to JSON-serializable list of dicts
-        rows = df.where(pd.notnull(df), None).to_dict(orient="records")  # type: ignore
-
+        rows = df.where(pd.notnull(df), None).to_dict(orient="records")
     except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail=f"Could not read file: {str(e)}",
-        )
+        raise HTTPException(422, f"Could not read file: {str(e)}")
 
-    # Store in cache
     preview_cache[cache_key] = rows
+    return {"cached": False, "data": rows, "refined": False}
 
-    return {"cached": False, "data": rows}
+@router.get("/{dataset_id}/columns", status_code=200)
+def get_dataset_columns(
+    dataset_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    dataset = db.query(Dataset).filter(Dataset.id == dataset_id, Dataset.user_id == current_user.id).first()
+    if not dataset:
+        raise HTTPException(404, "Dataset not found")
+    if dataset.is_refined is True and dataset.refined_column_schema is not None:
+        return {"columns": dataset.refined_column_schema}
+    else:
+        return {"columns": dataset.column_schema}
+    
+@router.post(
+    "/{dataset_id}/refine-schema",
+    response_model=RefineSchemaResponse,
+    status_code=status.HTTP_200_OK,
+    dependencies=[Depends(require_admin)],
+)
+async def refine_schema(
+    dataset_id: int,
+    payload: RefineSchemaRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    # 1. Get dataset
+    dataset = db.query(Dataset).filter(Dataset.id == dataset_id).first()
+    if not dataset:
+        raise HTTPException(404, "Dataset not found")
+    #  Prevent re-refinement
+    if dataset.is_refined is True:
+        raise HTTPException(400, "Dataset already refined")
+    ## todo : check with current original name to avoid  action on old col
+    # 2. Get source path (as string)
+    source_path = dataset.source_path
+    if source_path is None:
+        raise HTTPException(400, "Dataset file unavailable, please re-upload")
+    
+    file_path = Path(str(dataset.source_path))
+    if not file_path.exists():
+        raise HTTPException(400, "Dataset file missing on disk, please re-upload")
+
+    # 3. Read DataFrame
+    try:   
+        if dataset.source_type == SourceType.csv: #type: ignore
+            try:
+                df = pd.read_csv(file_path, encoding="utf-8")
+            except UnicodeDecodeError:
+                df = pd.read_csv(file_path, encoding="latin-1")
+        elif dataset.source_type == SourceType.excel: #type: ignore
+            df = pd.read_excel(file_path)
+        else:
+            raise HTTPException(400, "Refine not supported for MySQL sources yet")
+    except Exception as e:
+        raise HTTPException(400, f"Error reading file: {str(e)}")
+
+    # 4. Validate unique new names
+    new_names = [a.new_name for a in payload.columns if a.action in ('keep', 'rename') and a.new_name]
+    if len(new_names) != len(set(new_names)):
+        raise HTTPException(422, "Duplicate new column names are not allowed")
+
+    # 5. Apply transformations
+    try:
+        refined_df, refined_columns_info = apply_refine_transformations(df, payload.columns)
+    except ValueError as e:
+        raise HTTPException(422, str(e))
+
+    # 6. Update database
+    dataset.is_refined = True          # type: ignore
+    dataset.refined_column_schema = [col.dict() for col in refined_columns_info]  # type: ignore
+    db.commit()
+
+    # 7. Cache refined DataFrame
+    cache_key = get_refined_cache_key(dataset_id)
+    refined_cache[cache_key] = refined_df.to_dict(orient='records')
+
+    # 8. Return
+    return RefineSchemaResponse(
+        dataset_id=dataset_id,
+        refined_columns=refined_columns_info,
+        is_refined=True
+    )
+

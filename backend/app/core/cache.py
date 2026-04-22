@@ -12,3 +12,4 @@ preview_cache: TTLCache = TTLCache(
     maxsize=settings.cache_max_size,
     ttl=settings.cache_ttl_seconds,
 )
+refined_cache = TTLCache(maxsize=50, ttl=300)   # add this line

@@ -2,6 +2,7 @@ from pydantic import BaseModel
 from datetime import datetime
 from typing import Optional
 from app.models.dataset import SourceType
+from typing import List
 
 #Column struct
 class ColumnInfo(BaseModel):
@@ -18,3 +19,6 @@ class DatasetOut(BaseModel):
     column_schema: Optional[list]
     uploaded_at: datetime
     model_config={"from_attributes": True}  #for pydantic to read sqlAlchemy objs
+    source_path: Optional[str]
+    is_refined: bool                              # ← REQUIRED
+    refined_column_schema: Optional[List[ColumnInfo]] = None
