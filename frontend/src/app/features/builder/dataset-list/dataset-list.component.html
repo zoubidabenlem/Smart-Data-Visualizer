@@ -23,6 +23,7 @@
         <td>{{ ds.created_at | date:'medium' }}</td>
         <td>
           <button class="preview-btn" (click)="preview.emit(ds.id)">Preview</button>
+          <button class="refine-btn" (click)="refine.emit(ds.id)">Refine</button>
         </td>
       </tr>
     </tbody>

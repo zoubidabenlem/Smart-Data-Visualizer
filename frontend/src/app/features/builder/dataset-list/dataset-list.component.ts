@@ -13,4 +13,6 @@ export class DatasetListComponent {
   @Input() loading = false;
   @Input() error = '';
   @Output() preview = new EventEmitter<number>();
+  @Output() refine = new EventEmitter<number>();   
+
 }

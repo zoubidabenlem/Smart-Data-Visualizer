@@ -27,4 +27,17 @@ export class DatasetService {
   getPreview(id: number): Observable<DatasetPreview> {
     return this.http.get<DatasetPreview>(`${this.apiUrl}/${id}/preview`);
   }
+
+  //methods for schema refinement
+  getDatasetColumns(datasetId: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/${datasetId}/columns`);
+  }
+
+  refineSchema(datasetId:number, payload:any): Observable<any> {
+  return this.http.post(`${this.apiUrl}/${datasetId}/refine-schema`, payload);  
+}
+getDataset(id: number): Observable<DatasetOut> {
+    return this.http.get<DatasetOut>(`${this.apiUrl}/${id}`);
+  }
+
 }

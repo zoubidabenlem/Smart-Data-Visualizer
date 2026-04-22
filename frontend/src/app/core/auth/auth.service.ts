@@ -54,6 +54,8 @@ export class AuthService {
           id: userId,
           role: userRole,
         };
+        console.log(' Setting user:', user);
+
         this.setUser(user);
       })
     );

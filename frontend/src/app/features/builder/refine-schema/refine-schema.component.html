@@ -1,0 +1,93 @@
+<div class="refine-container">
+  <h2>Refine Dataset: {{ datasetName }}</h2>
+
+  <!-- Loading state -->
+  <div *ngIf="loading" class="loading">Loading columns...</div>
+
+  <!-- Already refined message -->
+  <div *ngIf="alreadyRefined" class="error-message">
+    <p>This dataset has already been refined.</p>
+    <button type="button" class="btn-primary" (click)="continueToColumnPicker()">
+      Continue to Column Picker
+    </button>
+  </div>
+
+  <!-- Success message after refinement -->
+  <div *ngIf="refineSuccess" class="success-message">
+    <p>Schema refined successfully!</p>
+    <button type="button" class="btn-primary" (click)="continueToColumnPicker()">
+      Continue to Column Picker
+    </button>
+  </div>
+
+  <!-- General error message -->
+  <div *ngIf="errorMessage && !loading && !alreadyRefined && !refineSuccess" class="error">
+    {{ errorMessage }}
+  </div>
+
+  <!-- Refinement Form -->
+  <form *ngIf="!loading && !alreadyRefined && !refineSuccess && refineForm"
+        [formGroup]="refineForm" (ngSubmit)="onSubmit()">
+    <div class="table-wrapper">
+      <table class="refine-table">
+        <thead>
+          <tr>
+            <th>Column Name</th>
+            <th>Detected Type</th>
+            <th>Action</th>
+            <th>New Name (if kept)</th>
+            <th>Override Type</th>
+          </tr>
+        </thead>
+        <tbody formArrayName="columns">
+          <tr *ngFor="let colCtrl of columnsArray.controls; let i = index" [formGroupName]="i">
+            <!-- Original Name -->
+            <td>{{ colCtrl.get('original_name')?.value }}</td>
+            <!-- Detected Type -->
+            <td>{{ colCtrl.get('detected_type')?.value }}</td>
+            <!-- Action Dropdown -->
+            <td>
+              <select formControlName="action" class="action-select">
+                <option value="keep">Keep</option>
+                <option value="drop">Drop</option>
+              </select>
+            </td>
+            <!-- New Name Input -->
+            <td>
+              <input type="text" formControlName="new_name" placeholder="New name"
+                     [disabled]="colCtrl.get('action')?.value === 'drop'"
+                     [class.error]="colCtrl.get('new_name')?.invalid && colCtrl.get('new_name')?.touched">
+              <div class="field-error" *ngIf="colCtrl.get('new_name')?.invalid && colCtrl.get('new_name')?.touched">
+                Name is required for kept columns.
+              </div>
+            </td>
+            <!-- Override Type Dropdown -->
+            <td>
+              <select formControlName="override_dtype" [disabled]="colCtrl.get('action')?.value === 'drop'">
+                <option value="none">(no override)</option>
+                <option value="float">float</option>
+                <option value="int">int</option>
+                <option value="datetime">datetime</option>
+                <option value="string">string</option>
+              </select>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Duplicate name warning -->
+    <div *ngIf="isNewNameDuplicate()" class="global-error">
+      Duplicate new column names are not allowed.
+    </div>
+
+    <!-- Form Actions -->
+    <div class="actions">
+      <button type="button" class="btn-secondary" (click)="onSkip()">Skip Refinement</button>
+      <button type="submit" class="btn-primary"
+              [disabled]="refineForm.invalid || isNewNameDuplicate() || submitting">
+        {{ submitting ? 'Applying...' : 'Apply & Next' }}
+      </button>
+    </div>
+  </form>
+</div>

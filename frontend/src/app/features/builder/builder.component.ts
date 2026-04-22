@@ -3,6 +3,7 @@
 import { Component, OnInit } from '@angular/core';
 import { DatasetService } from '../../core/services/dataset.service';
 import { DatasetOut } from '../../core/models/dataset.model';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-builder',
@@ -15,7 +16,10 @@ export class BuilderComponent implements OnInit {
   error = '';
   selectedDatasetId: number | null = null;
 
-  constructor(private datasetService: DatasetService) {}
+  constructor(
+    private datasetService: DatasetService,
+  private router: Router
+) {}
 
   ngOnInit(): void {
     this.loadDatasets();
@@ -41,5 +45,9 @@ export class BuilderComponent implements OnInit {
 
   openPreview(id: number): void {
     this.selectedDatasetId = id;
+  }
+
+  openRefine(id: number): void {
+    this.router.navigate(['/builder/refine', id]);
   }
 }

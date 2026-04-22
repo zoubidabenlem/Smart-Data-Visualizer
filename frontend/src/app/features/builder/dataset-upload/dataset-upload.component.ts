@@ -1,5 +1,6 @@
 import { Component , Output, EventEmitter } from '@angular/core';
 import { DatasetService } from '../../../core/services/dataset.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-dataset-upload',
@@ -13,7 +14,7 @@ export class DatasetUploadComponent {
   uploading = false;
   error = '';
 
-  constructor(private datasetService: DatasetService) {}
+  constructor(private datasetService: DatasetService,private router: Router) {}
 
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
@@ -47,13 +48,15 @@ export class DatasetUploadComponent {
     this.error = '';
 
     this.datasetService.upload(this.selectedFile).subscribe({
-      next: () => {
+      next: (dataset) => {
         this.uploading = false;
         this.selectedFile = null;
         // Reset file input
         const fileInput = document.getElementById('fileInput') as HTMLInputElement;
         if (fileInput) fileInput.value = '';
         this.uploadSuccess.emit();
+        this.router.navigate(['/builder/refine', dataset.id]);
+
       },
       error: (err) => {
         this.uploading = false;

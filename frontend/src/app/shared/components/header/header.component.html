@@ -6,22 +6,21 @@
     </a>
 
     <nav class="main-nav">
-      <!-- Visible when NOT logged in -->
-      <ng-container *ngIf="!isLoggedIn">
+      <!-- Logged in state -->
+      <ng-container *ngIf="currentUser; else loggedOut">
+        <span class="user-greeting">Welcome, {{ currentUser!.role }}</span>
+        <button (click)="logout()" class="btn-logout">Sign Out</button>
+
+        <a *ngIf="currentUser!.role === 'admin'" routerLink="/builder">Dashboard</a>
+        <a *ngIf="currentUser!.role !== 'admin'" routerLink="/viewer">Dashboard</a>
+      </ng-container>
+
+      <!-- Logged out state -->
+      <ng-template #loggedOut>
         <a routerLink="/features">Features</a>
         <a routerLink="/about">About</a>
         <a routerLink="/register" class="btn-register">Sign Up</a>
-      </ng-container>
-
-      <!-- Visible when logged in -->
-      <ng-container *ngIf="isLoggedIn">
-        <span class="user-greeting">Welcome, {{ role }}</span>
-        <button (click)="logout()" class="btn-logout">Sign Out</button>
-
-        <!-- Dashboard links based on role -->
-        <a *ngIf="role === 'admin'" routerLink="/builder">Dashboard</a>
-        <a *ngIf="role !== 'admin'" routerLink="/viewer">Dashboard</a>
-      </ng-container>
+      </ng-template>
     </nav>
   </div>
 </header>
