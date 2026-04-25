@@ -1,0 +1,55 @@
+{
+  "dataset_id": 36,
+  "chart_data": [
+    {
+      "name": "bobby",
+      "city": "purgatory ",
+      "gender": "male",
+      "education": "bachelor",
+      "age": 20.0,
+      "cgpa": 7.68
+    },
+    {
+      "name": "moriarity",
+      "city": "asgard",
+      "gender": "male",
+      "education": "bachelor",
+      "age": 19.0,
+      "cgpa": 7.66
+    },
+    {
+      "name": "sherlock",
+      "city": "wakanda",
+      "gender": "male",
+      "education": "bachelor",
+      "age": 48.0,
+      "cgpa": 8.75
+    },
+    {
+      "name": "sam",
+      "city": "wakanda",
+      "gender": "male",
+      "education": "bachelor",
+      "age": 22.0,
+      "cgpa": 9.47
+    },
+    {
+      "name": "moriarity",
+      "city": "asgard",
+      "gender": "male",
+      "education": "masters",
+      "age": 21.0,
+      "cgpa": 8.56
+    },
+    {
+      "name": "moriarity",
+      "city": "wakanda",
+      "gender": "male",
+      "education": "masters",
+      "age": 43.0,
+      "cgpa": 7.74
+    }
+  ],
+  "row_count": 6,
+  "cached": false
+}

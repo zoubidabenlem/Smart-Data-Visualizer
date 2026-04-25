@@ -1,0 +1,11 @@
+{
+  "columns": [
+    {"action": "keep",   "original_name": "name"},
+    {"action": "keep",   "original_name": "city"},
+    {"action": "keep",   "original_name": "gender"},
+    {"action": "rename", "original_name": "profession", "new_name": "education"},
+    {"action": "keep",   "original_name": "age"},
+    {"action": "keep",   "original_name": "cgpa"},
+    {"action": "drop",   "original_name": "placed"}
+  ]
+}

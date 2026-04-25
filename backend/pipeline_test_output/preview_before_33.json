@@ -1,0 +1,182 @@
+[
+  {
+    "name": "moriarity",
+    "city": null,
+    "gender": "female",
+    "profession": "phd",
+    "age": 28.0,
+    "cgpa": 5.94,
+    "placed": 1
+  },
+  {
+    "name": "moriarity",
+    "city": "asgard",
+    "gender": null,
+    "profession": "bachelor",
+    "age": 50.0,
+    "cgpa": 8.55,
+    "placed": 0
+  },
+  {
+    "name": "holmes",
+    "city": null,
+    "gender": "female",
+    "profession": "masters",
+    "age": 18.0,
+    "cgpa": 5.56,
+    "placed": 0
+  },
+  {
+    "name": "sam",
+    "city": null,
+    "gender": "male",
+    "profession": "bachelor",
+    "age": 25.0,
+    "cgpa": 8.57,
+    "placed": 1
+  },
+  {
+    "name": "sam",
+    "city": null,
+    "gender": "male",
+    "profession": "bachelor",
+    "age": 19.0,
+    "cgpa": 8.76,
+    "placed": 1
+  },
+  {
+    "name": "bobby",
+    "city": "purgatory ",
+    "gender": "male",
+    "profession": "bachelor",
+    "age": 20.0,
+    "cgpa": 7.68,
+    "placed": 0
+  },
+  {
+    "name": null,
+    "city": "wakanda",
+    "gender": "male",
+    "profession": null,
+    "age": 20.0,
+    "cgpa": 9.01,
+    "placed": 0
+  },
+  {
+    "name": null,
+    "city": "wakanda",
+    "gender": "male",
+    "profession": "bachelor",
+    "age": 20.0,
+    "cgpa": 8.31,
+    "placed": 0
+  },
+  {
+    "name": "moriarity",
+    "city": "asgard",
+    "gender": "female",
+    "profession": null,
+    "age": 19.0,
+    "cgpa": 7.2,
+    "placed": 0
+  },
+  {
+    "name": "castiel",
+    "city": null,
+    "gender": "female",
+    "profession": "masters",
+    "age": null,
+    "cgpa": 8.35,
+    "placed": 1
+  },
+  {
+    "name": "moriarity",
+    "city": "asgard",
+    "gender": "male",
+    "profession": "bachelor",
+    "age": 19.0,
+    "cgpa": 7.66,
+    "placed": 1
+  },
+  {
+    "name": "moriarity",
+    "city": "purgatory ",
+    "gender": "male",
+    "profession": "bachelor",
+    "age": 28.0,
+    "cgpa": null,
+    "placed": 1
+  },
+  {
+    "name": "sherlock",
+    "city": "wakanda",
+    "gender": "male",
+    "profession": "bachelor",
+    "age": 48.0,
+    "cgpa": 8.75,
+    "placed": 0
+  },
+  {
+    "name": "sam",
+    "city": "wakanda",
+    "gender": "male",
+    "profession": "bachelor",
+    "age": 22.0,
+    "cgpa": 9.47,
+    "placed": 1
+  },
+  {
+    "name": "sam",
+    "city": "wakanda",
+    "gender": "male",
+    "profession": "bachelor",
+    "age": 27.0,
+    "cgpa": null,
+    "placed": 0
+  },
+  {
+    "name": "moriarity",
+    "city": "asgard",
+    "gender": "male",
+    "profession": "masters",
+    "age": 21.0,
+    "cgpa": 8.56,
+    "placed": 0
+  },
+  {
+    "name": "moriarity",
+    "city": "wakanda",
+    "gender": "male",
+    "profession": "masters",
+    "age": 43.0,
+    "cgpa": 7.74,
+    "placed": 1
+  },
+  {
+    "name": "sam",
+    "city": "asgard",
+    "gender": null,
+    "profession": "bachelor",
+    "age": 29.0,
+    "cgpa": 7.69,
+    "placed": 0
+  },
+  {
+    "name": null,
+    "city": "purgatory ",
+    "gender": "female",
+    "profession": "bachelor",
+    "age": 30.0,
+    "cgpa": 7.79,
+    "placed": 1
+  },
+  {
+    "name": "watson",
+    "city": "wakanda",
+    "gender": "male",
+    "profession": "bachelor",
+    "age": null,
+    "cgpa": 8.32,
+    "placed": 0
+  }
+]

@@ -1,0 +1,15 @@
+============================================================
+COMPARISON: BEFORE vs AFTER REFINEMENT
+============================================================
+Rows before   : 20
+Rows after    : 20
+Columns before: 7
+Columns after : 6
+Removed cols  : ['placed', 'profession']
+Added cols    : ['education']
+
+Missing values in common columns:
+
+Data type changes:
+
+Sample changed rows (first 5 differing rows):
