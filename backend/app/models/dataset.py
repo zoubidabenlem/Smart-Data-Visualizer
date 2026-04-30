@@ -23,7 +23,7 @@ class Dataset(Base):
     # column_schema stores: [{"name": "revenue", "dtype": "float64"}, ...]
     # This is what the Angular Builder reads to populate column pickers
     #refine step 
-    source_path = Column(String, nullable=False)
+    source_path = Column(String(1024), nullable=False)
     is_refined = Column(Boolean, default=False)
     refined_column_schema = Column(JSON, nullable=True)
     # Relationships

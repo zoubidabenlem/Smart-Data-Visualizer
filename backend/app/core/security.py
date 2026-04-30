@@ -15,6 +15,13 @@ def hash_password(plain: str) -> str:
 
 
 def verify_password(plain: str, hashed: str) -> bool:
+     # Force truncation to 72 bytes to prevent the error
+    encoded = plain.encode('utf-8')[:72]
+    truncated = encoded.decode('utf-8', errors='ignore')
+    
+    # Debug print
+    print(f"Original password length: {len(plain)}")
+    print(f"Truncated password length: {len(truncated)}")
     return pwd_context.verify(plain, hashed)
 
 

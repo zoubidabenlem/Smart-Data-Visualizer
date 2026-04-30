@@ -28,6 +28,7 @@ class Settings(BaseSettings):
     # Cache
     cache_ttl_seconds: int = 300
     cache_max_size: int = 100
+    prepare_async_threshold: int = 10_000 #rows swtitch to async above these
 
     # CORS
     cors_origin: str = "http://localhost:4200"

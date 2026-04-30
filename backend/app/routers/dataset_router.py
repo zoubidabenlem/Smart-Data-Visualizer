@@ -1,11 +1,14 @@
+import asyncio
+
 from fastapi import APIRouter, Depends, UploadFile, File, HTTPException, status
+from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from pathlib import Path
 import pandas as pd
 import os
 from app.services.refine_service import apply_refine_transformations, get_refined_cache_key
 from app.core.cache import refined_cache
-
+from app.core.logging_config import logger
 from app.db.base import get_db
 from app.dependencies.auth_dependencies import require_admin, get_current_user
 from app.models.dataset import Dataset, SourceType
@@ -23,11 +26,19 @@ import numpy as np
 from app.services.pipeline.utils import dataframe_to_json_safe
 from app.services.pipeline.utils import sanitize_records
 #DATA PREP IMPORTS
+from sqlalchemy import Column
 from app.services.pipeline.orchestrator import run_pipeline
 from app.services.pipeline.utils import get_prepared_cache_key
+from app.services.pipeline.utils import preview_cache_key
+##validation imports
+from app.services.pipeline.validation import validate_filters, validate_aggregation, validate_missing_config , PipelineValidationError  
+from typing import List, Dict, Any, cast
 from app.services.refine_service import get_refined_cache_key
 from app.core.cache import prepared_cache, refined_cache, refined_df_cache
-from app.schemas.pipeline import PrepareRequest, PrepareResponse
+from app.schemas.pipeline import PrepareRequest, PrepareResponse, MissingConfig, MissingOverride
+#async
+from app.services.task_manager import task_cache, run_in_background, create_task
+
 
 router = APIRouter(prefix="/datasets", tags=["Datasets"])
 #POST /datasets/upload
@@ -77,21 +88,16 @@ def upload_dataset(
         # Step 2: Recursive safety net – catch any stray float('nan') or ±inf
         safe_preview = sanitize_records(safe_preview)
 
-        preview_cache[str(dataset.id)] = safe_preview
-
+         # CACHE store as dict with data and refined flag
+        cache_key = preview_cache_key(dataset.id, is_refined=False) #type: ignore
+        preview_cache[cache_key] = {"data": safe_preview, "refined": False}
     except Exception as e:
         # Non‑critical – preview will be generated on first request
-        # latr logging the error for debugging
         pass
 
     db.refresh(dataset)
 
     return DatasetOut.model_validate(dataset)
-
-    db.refresh(dataset)
-
-    return DatasetOut.model_validate(dataset)
-
 # GET /datasets
 @router.get(
     "/",
@@ -131,23 +137,40 @@ def preview_dataset(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    cache_key = str(dataset_id)
-    if cache_key in preview_cache:
-        return {"cached": True, "data": preview_cache[cache_key]}
-
+     # get dataset to know if refined and to build correct cache key
     dataset = db.query(Dataset).filter(
         Dataset.id == dataset_id, Dataset.user_id == current_user.id
     ).first()
     if not dataset:
         raise HTTPException(404, "Dataset not found")
 
-    if dataset.is_refined is True:
+    # Determine refined status and build cache key accordingly
+    is_refined = dataset.is_refined if hasattr(dataset, 'is_refined') else False
+    if isinstance(is_refined, Column):
+        is_refined = is_refined.scalar()  # This will retrieve the value from the database    cache_key = preview_cache_key(dataset_id, is_refined)
+    cache_key = preview_cache_key(dataset_id, is_refined)
+    #  cache now stores a dict with 'data' and 'refined'
+    if cache_key in preview_cache:
+        cached_entry = preview_cache[cache_key]
+        logger.info(f"Preview cache HIT for dataset_id={dataset_id}, refined={is_refined}")
+
+        return {
+            "cached": True,
+            "data": cached_entry["data"],
+            "refined": cached_entry["refined"]
+        }
+    else:
+        logger.info(f"Preview cache MISS for dataset_id={dataset_id}, refined={is_refined}")
+
+    # If refined dataset but cache missing, try refined cache
+    if is_refined:
         refined_key = get_refined_cache_key(dataset_id)
         if refined_key in refined_cache:
             rows = refined_cache[refined_key][:50]
+            # sanitize just in case (defensive)
             safe_rows = sanitize_records(rows) if rows else []
-
-            preview_cache[cache_key] = safe_rows
+            # store in preview cache with refined=True
+            preview_cache[cache_key] = {"data": safe_rows, "refined": True}
             return {"cached": False, "data": safe_rows, "refined": True}
         else:
             raise HTTPException(400, "Refined data not in cache. Please re-run refine.")
@@ -163,12 +186,15 @@ def preview_dataset(
         else:
             df = pd.read_excel(file_path, nrows=50)
 
+        # Use unified JSON-safe conversion
         safe_rows = dataframe_to_json_safe(df)
-
+        safe_rows = sanitize_records(safe_rows)
     except Exception as e:
-        raise HTTPException(422, f"Could not read file: {str(e)}")
+        #  Better error code for file corruption
+        raise HTTPException(400, f"Could not read file: {str(e)}")
 
-    preview_cache[cache_key] = safe_rows
+    #  Store with refined=False
+    preview_cache[cache_key] = {"data": safe_rows, "refined": False}
     return {"cached": False, "data": safe_rows, "refined": False}
 
 @router.get("/{dataset_id}/columns", status_code=200)
@@ -244,26 +270,22 @@ async def refine_schema(
     dataset.refined_column_schema = [col.dict() for col in refined_columns_info]  # type: ignore
     db.commit()
 
-    # ===================================================================
     # 7. Cache both the raw DataFrame AND the JSON‑safe version
-    # ===================================================================
     cache_key = get_refined_cache_key(dataset_id)
 
-    # NEW: Store the original DataFrame for pipeline operations (e.g., prepare)
-    # (This prevents the "list has no attribute 'dropna'" error)
+    # Store original DataFrame for pipeline
     refined_df_cache[cache_key] = refined_df
+    logger.info(f"Refine cache stored for dataset_id={dataset_id}, key={cache_key}")
 
-    # Keep the JSON‑safe version for quick preview responses
-    # Uses our helper that replaces NaN/Inf and converts datetimes to strings
+    # NEW: Use unified JSON-safe conversion
     json_safe_data = dataframe_to_json_safe(refined_df)
-    # Extra safety: deep‑clean any remaining special floats
     json_safe_data = sanitize_records(json_safe_data)
     refined_cache[cache_key] = json_safe_data
 
-    # (Optional) Immediately populate the preview cache to avoid file reads later
-    preview_cache[str(dataset_id)] = json_safe_data[:50]
+    # NEW: Store preview cache with correct key and refined flag
+    preview_key = preview_cache_key(dataset_id, is_refined=True)
+    preview_cache[preview_key] = {"data": json_safe_data[:50], "refined": True}
 
-    # 8. Return
     return RefineSchemaResponse(
         dataset_id=dataset_id,
         refined_columns=refined_columns_info,
@@ -272,7 +294,7 @@ async def refine_schema(
 
 #API ENDPOINT FOR DATA PREP PHASE 3
 @router.post("/{dataset_id}/prepare", response_model=PrepareResponse)
-def prepare_dataset(
+async def prepare_dataset(
     dataset_id: int,
     payload: PrepareRequest,
     db: Session = Depends(get_db),
@@ -285,12 +307,75 @@ def prepare_dataset(
     if not dataset:
         raise HTTPException(404, "Dataset not found")
 
-    # 2. Build cache key
+    # 2. Branch on size: synchronous for small datasets, async for large ones
+    if dataset.row_count < settings.prepare_async_threshold: #type: ignore
+        # ========== SYNCHRONOUS PATH (unchanged) ==========
+        cache_key = get_prepared_cache_key(dataset_id, payload.dict())
+
+        if cache_key in prepared_cache:
+            cached_data = sanitize_records(prepared_cache[cache_key])
+            return PrepareResponse(
+                dataset_id=dataset_id,
+                chart_data=cached_data,
+                row_count=len(cached_data),
+                cached=True
+            )
+        else:
+            logger.info(f"Cache MISS for dataset_id={dataset_id}, hash={cache_key}")
+
+        # Load DataFrame (prefer refined, else original)
+        refined_key = get_refined_cache_key(dataset_id)
+        if (dataset.is_refined is True) and refined_key in refined_df_cache:
+            df = refined_df_cache[refined_key]
+        else:
+            file_path = Path(str(dataset.source_path))
+            if not file_path.exists():
+                raise HTTPException(400, "Source file missing")
+            if dataset.source_type == SourceType.csv: #type: ignore
+                df = pd.read_csv(file_path)
+            else:
+                df = pd.read_excel(file_path)
+
+        # Validation block
+        dataset_columns = list(df.columns)
+        column_dtypes = {str(k): v for k, v in df.dtypes.to_dict().items()}
+
+        try:
+            validate_filters(payload.filters, dataset_columns, column_dtypes)
+            validate_aggregation(
+                payload.group_by,
+                payload.agg_func,
+                payload.value_col,
+                dataset_columns,
+                column_dtypes
+            )
+            if payload.missing_config:
+                validate_missing_config(payload.missing_config, dataset_columns, column_dtypes)
+        except PipelineValidationError as e:
+            raise HTTPException(status_code=422, detail={"errors": e.errors})
+
+        try:
+            chart_data = run_pipeline(df, payload)
+        except ValueError as e:
+            raise HTTPException(422, str(e))
+        except Exception as e:
+            raise HTTPException(500, f"Pipeline error: {str(e)}")
+
+        chart_data = sanitize_records(chart_data)
+        prepared_cache[cache_key] = chart_data
+        return PrepareResponse(
+            dataset_id=dataset_id,
+            chart_data=chart_data,
+            row_count=len(chart_data),
+            cached=False
+        )
+
+    # ========== ASYNC PATH (new) ==========
     cache_key = get_prepared_cache_key(dataset_id, payload.dict())
 
-    # 3. Check cache
+    # If the result is already cached, return immediately (still synchronous)
     if cache_key in prepared_cache:
-        cached_data = prepared_cache[cache_key]
+        cached_data = sanitize_records(prepared_cache[cache_key])
         return PrepareResponse(
             dataset_id=dataset_id,
             chart_data=cached_data,
@@ -298,36 +383,73 @@ def prepare_dataset(
             cached=True
         )
 
-    # ===================================================================
-    # 4. Load DataFrame (prefer refined, else original)
-    # ===================================================================
-    refined_key = get_refined_cache_key(dataset_id)
-    # FIXED: Now checks refined_df_cache (DataFrame) instead of refined_cache (list of dicts)
-    if (dataset.is_refined is True) and refined_key in refined_df_cache:
-        df = refined_df_cache[refined_key]      # <-- Returns a real DataFrame
-    else:
-        # Load from original source file
-        file_path = Path(str(dataset.source_path))
-        if not file_path.exists():
-            raise HTTPException(400, "Source file missing")
-        if dataset.source_type == SourceType.csv:   # type: ignore
-            df = pd.read_csv(file_path)
-        else:
-            df = pd.read_excel(file_path)
-    
-    # 5. Run pipeline
-    try:
-        chart_data = run_pipeline(df, payload)
-    except ValueError as e:
-        raise HTTPException(422, str(e))
-    except Exception as e:
-        raise HTTPException(500, f"Pipeline error: {str(e)}")
+    # --- Early validation using only the file header (efficient) ---
+    file_path = Path(str(dataset.source_path))
+    if not file_path.exists():
+        raise HTTPException(400, "Source file missing")
 
-    # 6. Cache and return
-    prepared_cache[cache_key] = chart_data
-    return PrepareResponse(
-        dataset_id=dataset_id,
-        chart_data=chart_data,
-        row_count=len(chart_data),
-        cached=False
+    if dataset.source_type == SourceType.csv:  #type: ignore
+        df_header = pd.read_csv(file_path, nrows=0)   # reads only column names & dtypes
+    else:
+        df_header = pd.read_excel(file_path, nrows=0)
+
+    dataset_columns = list(df_header.columns)
+    column_dtypes = {str(k): v for k, v in df_header.dtypes.to_dict().items()}
+
+    try:
+        validate_filters(payload.filters, dataset_columns, column_dtypes)
+        validate_aggregation(
+            payload.group_by,
+            payload.agg_func,
+            payload.value_col,
+            dataset_columns,
+            column_dtypes
+        )
+        if payload.missing_config:
+            validate_missing_config(payload.missing_config, dataset_columns, column_dtypes)
+    except PipelineValidationError as e:
+        raise HTTPException(status_code=422, detail={"errors": e.errors})
+
+    # --- Schedule background processing ---
+    task_id = await create_task()
+
+    # The function that will run in a background thread
+    def process(ds_id: int, payload_dict: dict, key: str):
+        # Reconstruct objects (no DB session needed if we load from file/cache)
+        payload_obj = PrepareRequest(**payload_dict)
+
+        # Load the full DataFrame (same logic as sync path)
+        refined_key = get_refined_cache_key(ds_id)
+        # Note: dataset.is_refined is not directly available here; we can store it in closure
+        if dataset.is_refined and refined_key in refined_df_cache:  #type: ignore
+            df_full = refined_df_cache[refined_key]
+        else:
+            if dataset.source_type == SourceType.csv:  #type: ignore
+                df_full = pd.read_csv(file_path)
+            else:
+                df_full = pd.read_excel(file_path)
+
+        # Run the pipeline
+        chart_data = run_pipeline(df_full, payload_obj)
+        chart_data = sanitize_records(chart_data)
+        prepared_cache[key] = chart_data
+
+    # Fire and forget – the task writes results into prepared_cache when done
+    asyncio.create_task(
+        run_in_background(
+            process,
+            ds_id=dataset_id,
+            payload_dict=payload.dict(),
+            key=cache_key,
+            task_id=task_id,
+        )
+    )
+
+    return JSONResponse(
+        status_code=202,
+        content={
+            "task_id": task_id,
+            "status_url": f"/prepare/status/{task_id}",
+            "message": "Processing started",
+        },
     )

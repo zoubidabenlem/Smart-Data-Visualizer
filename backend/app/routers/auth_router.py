@@ -30,6 +30,35 @@ def login(body: UserLogin, db: Session = Depends(get_db)) -> TokenResponse:
     avoid user-enumeration attacks).
     """
     user = db.query(User).filter(User.email == body.email.lower()).first()
+   
+
+    # DEBUG - remove after fixing
+    if not user:
+        raise HTTPException(401, "Invalid credentials")
+    
+    # ✅ FIXED: Use body.password, NOT UserLogin.password
+    if not verify_password(body.password, user.password_hash):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect email or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    print(f"User found: {user.email}")
+    print(f"Stored hash: {user.password_hash}")
+    
+    # The actual verification
+    try:
+# ✅ CORRECT - Use password_hash field
+        result = verify_password(body.password, user.password_hash)       
+        print(f"Password verification result: {result}")
+    except Exception as e:
+        print(f"Verification ERROR: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(500, f"Password verification error: {str(e)}")
+    # END DEBUG
+    
+    # Your existing code...
 
     if not user or not verify_password(body.password, str(user.password_hash)):
         raise HTTPException(
