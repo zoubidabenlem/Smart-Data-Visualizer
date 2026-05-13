@@ -91,7 +91,7 @@ def create_dashboard(
     return {"id": new_dash.id}
 
 ######## GET/dashboards ───────────────────────────────────────────────────────────────
-@router.get("/", response_model=List[DashboardListItem])
+@router.get("/", response_model=List[DashboardListItem],dependencies=[Depends(require_admin)])
 def list_dashboards(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -115,7 +115,7 @@ def list_dashboards(
     ]
 
 ######## GET/dashboards/{id} ─────────────────────────────────────────────────────────
-@router.get("/{dashboard_id}", response_model=DashboardResponse)
+@router.get("/{dashboard_id}", response_model=DashboardResponse, dependencies=[Depends(require_admin)])
 def get_dashboard(
     dashboard_id: int,
     db: Session = Depends(get_db),
@@ -207,7 +207,7 @@ def update_dashboard(
         dash.title = payload.title
         if dash.config_json:
             dash.config_json = {**dash.config_json, "title": payload.title}
-            
+
     if payload.config is not None:
         dash.config_json = payload.config.dict()
 
