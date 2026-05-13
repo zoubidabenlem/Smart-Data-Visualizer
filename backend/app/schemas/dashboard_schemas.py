@@ -53,3 +53,37 @@ class DashboardConfig(BaseModel):
         "extra": "forbid",
         "str_strip_whitespace": True,
     }
+
+# ------------------------------------------------------------------
+# API request / response models for dashboard CRUD
+# ------------------------------------------------------------------
+
+class DashboardCreateRequest(BaseModel):
+    """Wrapper for POST /dashboards – only needs the config."""
+    config: DashboardConfig
+
+
+class DashboardUpdateRequest(BaseModel):
+    """Allowed fields for PUT /dashboards/{id}. Both are optional."""
+    title: Optional[str] = None
+    config: Optional[DashboardConfig] = None
+
+
+class DashboardListItem(BaseModel):
+    """Returned in GET /dashboards list."""
+    id: int
+    title: str
+    chart_type: str
+    dataset_id: int
+    created_at: str
+
+
+class DashboardResponse(BaseModel):
+    """Returned by GET /dashboards/{id}."""
+    id: int
+    config: DashboardConfig
+    chart_data: list   # list of dicts
+    created_at: str
+    updated_at: str
+
+    model_config = {"from_attributes": True}

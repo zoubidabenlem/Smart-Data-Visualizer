@@ -17,3 +17,26 @@ refined_cache = TTLCache(maxsize=50, ttl=300)
 prepared_cache = TTLCache(maxsize=100, ttl=300)
 
 refined_df_cache = TTLCache(maxsize=100, ttl=300)
+
+# --------------------------------------------------------------------
+# Dashboard chart cache (TTL = 300 seconds)
+# --------------------------------------------------------------------
+dashboard_chart_cache = TTLCache(maxsize=100, ttl=300)
+
+# --------------------------------------------------------------------
+# Helper functions for the dashboard router
+# --------------------------------------------------------------------
+def get_cache(key: str):
+    """Return cached value or None if key doesn't exist."""
+    return dashboard_chart_cache.get(key)
+
+def set_cache(key: str, value, ttl: int = None):  # ttl ignored – cache already has global TTL
+    """Store a value in the cache."""
+    dashboard_chart_cache[key] = value
+
+def invalidate_cache(key: str):
+    """Remove a key from the cache (safe if missing)."""
+    try:
+        del dashboard_chart_cache[key]
+    except KeyError:
+        pass
