@@ -9,6 +9,8 @@ class ChartType(str, enum.Enum):
     line    = "line"
     pie     = "pie"
     scatter = "scatter"
+    area = "area"
+    heatmap = "heatmap"
 
 class DashboardConfig(Base):
     __tablename__ = "dashboard_configs"
