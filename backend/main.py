@@ -17,12 +17,14 @@ from app.core.exception_handlers import (
 #validation error
 from pydantic import ValidationError
 from app.services.pipeline.validation import PipelineValidationError
+from app.core.logging_middleware import LoggingMiddleware
 
 app = FastAPI(
     title="Smart Data Visualizer API",
     version="1.0.0",
     description="Lightweight BI MVP — FastAPI · Pandas · MySQL · JWT",
 )
+app.add_middleware(LoggingMiddleware)
 
 # ── CORS (adjust origins for production) ─────────────────────────────────────
 app.add_middleware(
