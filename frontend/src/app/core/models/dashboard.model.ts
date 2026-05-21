@@ -14,7 +14,7 @@ export interface MissingConfig {
   overrides?: { [column: string]: string | MissingOverride };
 }
 
-export type ChartType = 'bar' | 'line' | 'scatter' | 'pie' | 'area' | 'heatmap';
+export type ChartType = 'bar' | 'line' | 'scatter' | 'pie' | 'area' | 'heatmap' | 'kpi';
 export type AggFunc = 'SUM' | 'MEAN' | 'COUNT';
 
 export interface DashboardConfig {

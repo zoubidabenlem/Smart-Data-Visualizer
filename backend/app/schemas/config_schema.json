@@ -137,7 +137,8 @@
         "pie",
         "scatter",
         "area",
-        "heatmap"
+        "heatmap",
+        "kpi"
       ],
       "title": "Chart Type",
       "type": "string"

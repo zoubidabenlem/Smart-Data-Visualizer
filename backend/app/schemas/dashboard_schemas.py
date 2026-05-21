@@ -6,7 +6,7 @@ ALLOWED_CHART_TYPES = {"bar", "line", "pie", "scatter", "area", "heatmap"}
 
 class DashboardConfig(BaseModel):
     dataset_id: int
-    chart_type: Literal["bar", "line", "pie", "scatter", "area", "heatmap"]
+    chart_type: Literal["bar", "line", "pie", "scatter", "area", "heatmap","kpi"]
     title: str
     x_column: Optional[str] = None
     y_column: Optional[str] = None
