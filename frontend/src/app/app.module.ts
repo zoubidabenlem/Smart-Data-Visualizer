@@ -17,7 +17,7 @@ const routerOptions: ExtraOptions = {
   declarations: [
     AppComponent,
     HeaderComponent,
-    FooterComponent
+    FooterComponent,
   ],
   imports: [
     BrowserModule,

@@ -1,0 +1,249 @@
+{
+  "$defs": {
+    "FilterCondition": {
+      "properties": {
+        "column": {
+          "title": "Column",
+          "type": "string"
+        },
+        "operator": {
+          "enum": [
+            "==",
+            "!=",
+            ">",
+            "<",
+            "in",
+            "like"
+          ],
+          "title": "Operator",
+          "type": "string"
+        },
+        "value": {
+          "title": "Value"
+        }
+      },
+      "required": [
+        "column",
+        "operator",
+        "value"
+      ],
+      "title": "FilterCondition",
+      "type": "object"
+    },
+    "MissingConfig": {
+      "description": "Top\u2011level missing value configuration.",
+      "properties": {
+        "default": {
+          "enum": [
+            "drop",
+            "fill",
+            "mean"
+          ],
+          "type": "string",
+          "default": "drop",
+          "title": "Default"
+        },
+        "default_fill_value": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Default Fill Value"
+        },
+        "overrides": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "$ref": "#/$defs/MissingOverride"
+                  }
+                ]
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Overrides"
+        }
+      },
+      "title": "MissingConfig",
+      "type": "object"
+    },
+    "MissingOverride": {
+      "description": "Per\u2011column override for missing value strategy.",
+      "properties": {
+        "strategy": {
+          "enum": [
+            "drop",
+            "fill",
+            "mean"
+          ],
+          "title": "Strategy",
+          "type": "string"
+        },
+        "fill_value": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Fill Value"
+        }
+      },
+      "required": [
+        "strategy"
+      ],
+      "title": "MissingOverride",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "dataset_id": {
+      "title": "Dataset Id",
+      "type": "integer"
+    },
+    "chart_type": {
+      "enum": [
+        "bar",
+        "line",
+        "pie",
+        "scatter",
+        "area",
+        "heatmap",
+        "kpi"
+      ],
+      "title": "Chart Type",
+      "type": "string"
+    },
+    "title": {
+      "title": "Title",
+      "type": "string"
+    },
+    "x_column": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "X Column"
+    },
+    "y_column": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Y Column"
+    },
+    "filters": {
+      "items": {
+        "$ref": "#/$defs/FilterCondition"
+      },
+      "title": "Filters",
+      "type": "array"
+    },
+    "group_by": {
+      "anyOf": [
+        {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Group By"
+    },
+    "agg_func": {
+      "anyOf": [
+        {
+          "enum": [
+            "SUM",
+            "MEAN",
+            "COUNT"
+          ],
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Agg Func"
+    },
+    "value_col": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Value Col"
+    },
+    "missing_config": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/MissingConfig"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "color_scheme": {
+      "default": "default",
+      "title": "Color Scheme",
+      "type": "string"
+    }
+  },
+  "required": [
+    "dataset_id",
+    "chart_type",
+    "title"
+  ],
+  "title": "DashboardConfig",
+  "type": "object"
+}

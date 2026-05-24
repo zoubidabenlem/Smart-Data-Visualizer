@@ -10,7 +10,8 @@
     [loading]="isLoading"
     [error]="error"
     (preview)="openPreview($event)"
-    (refine)="openRefine($event)">
+    (refine)="openRefine($event)"
+    (createDashboard)="navigateToDashboardBuilder($event)">
   </app-dataset-list>
 
   <!-- Preview Modal -->

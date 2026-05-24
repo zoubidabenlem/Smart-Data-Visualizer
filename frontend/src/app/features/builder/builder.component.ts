@@ -50,4 +50,9 @@ export class BuilderComponent implements OnInit {
   openRefine(id: number): void {
     this.router.navigate(['/builder/refine', id]);
   }
+
+  navigateToDashboardBuilder(id: number) {
+  this.router.navigate(['/dashboard-builder', id]);
+  }
+
 }

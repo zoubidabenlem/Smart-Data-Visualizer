@@ -14,6 +14,7 @@ import { PreviewModalComponent } from './preview-modal/preview-modal.component';
 import { DatasetUploadComponent } from './dataset-upload/dataset-upload.component';
 import { BuilderComponent } from './builder.component';
 import { SchemaRefineComponent } from './refine-schema/refine-schema.component';
+import { DashboardBuilderComponent } from '../dashboard-builder/dashboard-builder.component';
 @NgModule({
   declarations: [
     BuilderComponent,
@@ -21,6 +22,7 @@ import { SchemaRefineComponent } from './refine-schema/refine-schema.component';
     DatasetListComponent,
     PreviewModalComponent,
     SchemaRefineComponent,
+    DashboardBuilderComponent, 
     ColumnPickerComponent,
     DatasetSelectorComponent,
     ColumnPickerComponent,

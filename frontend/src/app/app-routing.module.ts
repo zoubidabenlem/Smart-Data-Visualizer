@@ -3,6 +3,7 @@ import { RouterModule, Routes } from '@angular/router';
 import { authGuard } from './core/auth/auth.guard';
 import { roleGuard } from './core/auth/role.guard';
 import { BuilderModule } from './features/builder/builder.module';
+import { DashboardBuilderComponent } from './features/dashboard-builder/dashboard-builder.component';
 import { UnauthorizedComponent } from './core/unauthorized/unauthorized.component';
 const routes: Routes = [
   // Landing page (public)
@@ -19,6 +20,13 @@ const routes: Routes = [
   canActivate: [authGuard, roleGuard],
   data: { roles: ['admin'] },
   loadChildren: () => import('./features/builder/builder.module').then(m => m.BuilderModule)
+},
+//DASHBOARD BUILDER route — protected by BOTH guards, run in order
+{
+  path: 'dashboard-builder/:datasetId',
+  canActivate: [authGuard, roleGuard],
+  data: { roles: ['admin'] },
+  component: DashboardBuilderComponent
 },
   // Viewer route — protected by AuthGuard
   {
