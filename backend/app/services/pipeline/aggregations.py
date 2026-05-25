@@ -7,22 +7,14 @@ def apply_aggregation(
     agg_func: Optional[str],
     value_col: Optional[str]
 ) -> pd.DataFrame:
-    # If any required parameter is missing, return original DataFrame
-    if not group_by or not agg_func or not value_col:
+    # If no aggregation requested, return original DataFrame
+    if not agg_func or not value_col:
         return df
 
-    # Narrow types for static type checker
-    assert group_by is not None and len(group_by) > 0
-    assert value_col is not None and value_col != ""
-
-    # Validate columns exist
+    # Validate column exists
     if value_col not in df.columns:
         raise ValueError(f"Value column '{value_col}' not found")
-    for col in group_by:
-        if col not in df.columns:
-            raise ValueError(f"Group by column '{col}' not found")
 
-    # Map frontend aggregation function to pandas method
     agg_map = {
         "SUM": "sum",
         "MEAN": "mean",
@@ -34,7 +26,16 @@ def apply_aggregation(
     if not pandas_agg:
         raise ValueError(f"Unsupported aggregation: {agg_func}")
 
-    # Perform groupby aggregation
+    # Global aggregation (no group_by)
+    if not group_by or len(group_by) == 0:
+        result = {value_col: getattr(df[value_col], pandas_agg)()}
+        # For COUNT, also return count as integer; optionally rename
+        return pd.DataFrame([result])
+
+    # Grouped aggregation
+    for col in group_by:
+        if col not in df.columns:
+            raise ValueError(f"Group by column '{col}' not found")
+
     grouped = df.groupby(group_by, as_index=False)[value_col].agg(pandas_agg)
-    # Rename aggregated column for clarity
     return pd.DataFrame(grouped)
