@@ -26,7 +26,9 @@ def apply_aggregation(
     agg_map = {
         "SUM": "sum",
         "MEAN": "mean",
-        "COUNT": "count"
+        "COUNT": "count",
+        "MAX": "max",
+        "MIN": "min"
     }
     pandas_agg = agg_map.get(agg_func)
     if not pandas_agg:

@@ -47,7 +47,7 @@ class PrepareRequest(BaseModel):
     # other fields
     filters: List[FilterCondition] = []
     group_by: Optional[List[str]] = None
-    agg_func: Optional[Literal["SUM", "MEAN", "COUNT"]] = None
+    agg_func: Optional[Literal["SUM", "MEAN", "COUNT","MAX","MIN"]] = None
     value_col: Optional[str] = None
 
     @field_validator('value_col')

@@ -2,7 +2,7 @@ from typing import Optional, List, Literal
 from pydantic import BaseModel, Field, field_validator, model_validator
 from app.schemas.pipeline import FilterCondition, MissingConfig
 
-ALLOWED_CHART_TYPES = {"bar", "line", "pie", "scatter", "area", "heatmap"}
+ALLOWED_CHART_TYPES = {"bar", "line", "pie", "scatter", "area", "heatmap","kpi"}
 
 class DashboardConfig(BaseModel):
     dataset_id: int
@@ -12,7 +12,7 @@ class DashboardConfig(BaseModel):
     y_column: Optional[str] = None
     filters: List[FilterCondition] = Field(default_factory=list)  # defaults to empty list
     group_by: Optional[List[str]] = None
-    agg_func: Optional[Literal["SUM", "MEAN", "COUNT"]] = None
+    agg_func: Optional[Literal["SUM", "MEAN", "COUNT","MAX","MIN"]] = None
     value_col: Optional[str] = None
     missing_config: Optional[MissingConfig] = None
     color_scheme: str = "default"  # consistent naming with default value
@@ -28,12 +28,16 @@ class DashboardConfig(BaseModel):
     @field_validator("agg_func")
     @classmethod
     def validate_agg_func(cls, v: Optional[str]) -> Optional[str]:
-        if v is not None and v.upper() not in {"SUM", "MEAN", "COUNT"}:
-            raise ValueError(f"Invalid aggregation function: {v}. Allowed: SUM, MEAN, COUNT")
+        if v is not None and v.upper() not in {"SUM", "MEAN", "COUNT", "MAX", "MIN"}:
+            raise ValueError(f"Invalid aggregation function: {v}. Allowed: SUM, MEAN, COUNT, MAX, MIN")
         return v.upper() if v else None
 
     @model_validator(mode="after")
     def check_aggregation_consistency(self) -> "DashboardConfig":
+
+        if self.chart_type == "kpi":
+            return self
+    
         group_by = self.group_by
         agg_func = self.agg_func
         value_col = self.value_col

@@ -11,6 +11,7 @@ class ChartType(str, enum.Enum):
     scatter = "scatter"
     area = "area"
     heatmap = "heatmap"
+    kpi = "kpi"
 
 class DashboardConfig(Base):
     __tablename__ = "dashboard_configs"

@@ -86,38 +86,41 @@ def validate_aggregation(
 ) -> None:
     """
     Validate aggregation parameters.
-    Aggregation is optional; if one of group_by/agg_func/value_col is provided, all must be.
+    Cases:
+      - No aggregation: group_by, agg_func, value_col all None/empty.
+      - Global aggregation: agg_func and value_col provided, group_by is None or empty list.
+      - Grouped aggregation: all three provided with non-empty group_by.
     """
     # No aggregation requested
     if not group_by and not agg_func and not value_col:
         return
 
-    # All-or-nothing check
-    if not (group_by and agg_func and value_col):
-        raise PipelineValidationError([{"field": "aggregation", "msg": "group_by, agg_func, and value_col must all be provided together."}])
+    # Global aggregation: agg_func and value_col present, group_by missing/empty
+    if (agg_func and value_col) and (not group_by or len(group_by) == 0):
+        # Global aggregation is valid – skip group_by checks
+        pass
+    # Grouped aggregation: all three must be non-empty
+    elif group_by and agg_func and value_col:
+        # Group-by columns existence
+        for col in group_by:
+            if col not in dataset_columns:
+                raise PipelineValidationError([{"field": "aggregation.group_by", "msg": f"Group by column '{col}' not found."}])
+        # Value column existence
+        if value_col not in dataset_columns:
+            raise PipelineValidationError([{"field": "aggregation.value_col", "msg": f"Value column '{value_col}' not found."}])
+        # Self-grouping check
+        if value_col in group_by:
+            raise PipelineValidationError([{"field": "aggregation.group_by", "msg": "value_col cannot be part of group_by columns."}])
+    else:
+        raise PipelineValidationError([{"field": "aggregation", "msg": "If aggregation is used, provide agg_func and value_col; optionally group_by for grouped aggregation."}])
 
-    # Group-by columns existence
-    for col in group_by:
-        if col not in dataset_columns:
-            raise PipelineValidationError([{"field": "aggregation.group_by", "msg": f"Group by column '{col}' not found."}])
-
-    # Value column existence
-    if value_col not in dataset_columns:
-        raise PipelineValidationError([{"field": "aggregation.value_col", "msg": f"Value column '{value_col}' not found."}])
-
-    # Self-grouping check
-    if value_col in group_by:
-        raise PipelineValidationError([{"field": "aggregation.group_by", "msg": "value_col cannot be part of group_by columns."}])
-
-    # Aggregation function support and numeric requirement
-    dtype = column_dtypes.get(value_col)
-    if agg_func in ("SUM", "MEAN"):
-        # FIX: Use helper that returns False for None
+    # Numeric requirement for SUM, MEAN, MIN, MAX
+    if agg_func in ("SUM", "MEAN", "MIN", "MAX"):
+        dtype = column_dtypes.get(value_col)
         if not _is_numeric_dtype(dtype):
             raise PipelineValidationError([{"field": "aggregation.value_col", "msg": f"Column '{value_col}' must be numeric for {agg_func}."}])
     elif agg_func not in ("COUNT",):
-        raise PipelineValidationError([{"field": "aggregation.agg_func", "msg": f"Unsupported aggregation function: {agg_func}. Supported: COUNT, SUM, MEAN."}])
-    
+        raise PipelineValidationError([{"field": "aggregation.agg_func", "msg": f"Unsupported aggregation function: {agg_func}. Supported: COUNT, SUM, MEAN, MIN, MAX."}])
 # In validation.py, after validate_aggregation
 
 def validate_missing_config(config: MissingConfig, dataset_columns: List[str], column_dtypes: Dict[str, Any]) -> None:
