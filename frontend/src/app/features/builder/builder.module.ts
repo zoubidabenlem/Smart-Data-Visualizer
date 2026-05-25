@@ -15,6 +15,19 @@ import { DatasetUploadComponent } from './dataset-upload/dataset-upload.componen
 import { BuilderComponent } from './builder.component';
 import { SchemaRefineComponent } from './refine-schema/refine-schema.component';
 import { DashboardBuilderComponent } from '../dashboard-builder/dashboard-builder.component';
+import { TitleAdvancedStepComponent } from '../dashboard-builder/title-advanced-step/title-advanced-step.component';
+import { AggregationStepComponent } from '../dashboard-builder/aggregation-step/aggregation-step.component';
+import { FiltersStepComponent } from '../dashboard-builder/filters-step/filters-step.component';
+import { ChartTypeStepComponent } from '../dashboard-builder/chart-type-step/chart-type-step.component';
+import { MatStepperModule } from '@angular/material/stepper';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSelectModule } from '@angular/material/select';
+import { MatInputModule } from '@angular/material/input';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatChipsModule } from '@angular/material/chips';
+import { OverlayModule } from '@angular/cdk/overlay';
+import { ScrollingModule } from '@angular/cdk/scrolling';
 @NgModule({
   declarations: [
     BuilderComponent,
@@ -29,13 +42,26 @@ import { DashboardBuilderComponent } from '../dashboard-builder/dashboard-builde
     ChartTypeSelectorComponent,
     FilterBuilderComponent,
     AggregationComponent,
-    DashboardSaveComponent
+    DashboardSaveComponent,
+    ChartTypeStepComponent,
+    FiltersStepComponent,
+    AggregationStepComponent,
+    TitleAdvancedStepComponent
   ],
   imports: [
     CommonModule,
     ReactiveFormsModule,
     FormsModule,
-    BuilderRoutingModule
+    BuilderRoutingModule,
+    MatStepperModule,
+    MatFormFieldModule,
+    MatSelectModule,
+    MatInputModule,
+    MatButtonModule,
+    MatIconModule,
+    MatChipsModule,
+    OverlayModule,
+    ScrollingModule
   ]
 })
 export class BuilderModule { }

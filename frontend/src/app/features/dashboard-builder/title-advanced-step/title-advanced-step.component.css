@@ -1,0 +1,34 @@
+.full-width {
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
+.toggle-advanced {
+  margin: 0.5rem 0;
+  color: var(--color-accent);
+}
+
+.advanced-section {
+  padding: 1rem;
+  background: rgba(255,255,255,0.05);
+  border-radius: 8px;
+  margin-top: 1rem;
+}
+
+.override-row {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.override-field {
+  flex: 1;
+  min-width: 150px;
+}
+
+h4 {
+  color: var(--color-text-primary);
+  margin: 1rem 0 0.5rem;
+}

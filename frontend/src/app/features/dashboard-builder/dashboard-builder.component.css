@@ -1,0 +1,45 @@
+/* dashboard-builder.component.css */
+
+/* Stepper container adjustments */
+::ng-deep .mat-horizontal-stepper-header-container {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 16px;
+}
+
+::ng-deep .mat-step-header .mat-step-icon {
+  background-color: #3f51b5; /* or your theme primary */
+  color: white;
+}
+
+::ng-deep .mat-step-header .mat-step-label {
+  margin-top: 8px;
+  font-weight: 500;
+}
+
+/* Form field fixes – prevents label from overlapping the input value */
+.mat-form-field {
+  width: 100%;
+  margin-bottom: 16px;
+}
+
+.mat-form-field-appearance-fill .mat-form-field-flex {
+  padding-top: 1.2em;
+}
+
+.mat-form-field-appearance-outline .mat-form-field-infix {
+  padding-top: 0.8em;
+}
+
+/* Step content area */
+.step-content {
+  padding: 24px 16px;
+  min-height: 200px;
+}
+
+.step-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 0 16px 16px;
+}

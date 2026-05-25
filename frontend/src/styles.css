@@ -18,6 +18,12 @@
   /* Utility */
   --border-radius: 8px;
   --transition: 0.2s ease-in-out;
+
+  --color-secondary: #4caf50;
+  --color-bg-deep: #0a1929;
+  --color-text-primary: #ffffff;
+  --color-text-muted: #b0bec5;
+  --transition: 0.3s ease;
 }
 
 /* ===== Base Styles ===== */

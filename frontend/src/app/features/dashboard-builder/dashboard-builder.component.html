@@ -1,1 +1,70 @@
-<p>dashboard-builder works!</p>
+<!-- Full stepper wizard -->
+<mat-horizontal-stepper #stepper [linear]="true" labelPosition="bottom">
+  <!-- Step 1: Dataset (already selected via route, but we show info) -->
+  <mat-step [completed]="true">
+    <ng-template matStepLabel>Dataset</ng-template>
+    <div class="step-content">
+      <p>You are building a dashboard for dataset ID: <strong>{{ datasetId }}</strong></p>
+      <p class="hint">Columns have been loaded automatically. Click Next to continue.</p>
+    </div>
+    <div class="step-actions">
+      <button mat-button matStepperNext>Next</button>
+    </div>
+  </mat-step>
+
+  <!-- Step 2: Chart Type & Axes -->
+  <mat-step [stepControl]="state.form.get('chart_type')!" [completed]="step2Valid">
+    <ng-template matStepLabel>Chart Type & Axes</ng-template>
+    <div class="step-content">
+      <ng-container *ngIf="state.columns$ | async as columns">
+        <app-chart-type-step [form]="state.form" [columns]="columns"></app-chart-type-step>
+      </ng-container>
+    </div>
+    <div class="step-actions">
+      <button mat-button matStepperPrevious>Back</button>
+      <button mat-button matStepperNext [disabled]="!step2Valid">Next</button>
+    </div>
+  </mat-step>
+
+  <!-- Step 3: Filters (optional) -->
+  <mat-step label="Filters" [optional]="true" [completed]="step3Valid">
+    <div class="step-content">
+      <ng-container *ngIf="state.columns$ | async as columns">
+        <app-filters-step [form]="state.form" [columns]="columns"></app-filters-step>
+      </ng-container>
+    </div>
+    <div class="step-actions">
+      <button mat-button matStepperPrevious>Back</button>
+      <button mat-button matStepperNext>Next</button>
+    </div>
+  </mat-step>
+
+  <!-- Step 4: Aggregation (optional) -->
+  <mat-step label="Aggregation" [optional]="true" [completed]="step4Valid">
+    <div class="step-content">
+      <ng-container *ngIf="state.columns$ | async as columns">
+        <app-aggregation-step [form]="state.form" [columns]="columns"></app-aggregation-step>
+      </ng-container>
+    </div>
+    <div class="step-actions">
+      <button mat-button matStepperPrevious>Back</button>
+      <button mat-button matStepperNext>Next</button>
+    </div>
+  </mat-step>
+
+  <!-- Step 5: Title & Advanced -->
+  <mat-step [stepControl]="state.form.get('title')!" [completed]="step5Valid">
+    <ng-template matStepLabel>Details</ng-template>
+    <div class="step-content">
+      <ng-container *ngIf="state.columns$ | async as columns">
+        <app-title-advanced-step [form]="state.form" [columns]="columns"></app-title-advanced-step>
+      </ng-container>
+    </div>
+    <div class="step-actions">
+      <button mat-button matStepperPrevious>Back</button>
+      <button mat-raised-button color="primary" (click)="submitDashboard()" [disabled]="state.form.invalid">
+        Create Dashboard
+      </button>
+    </div>
+  </mat-step>
+</mat-horizontal-stepper>

@@ -1,0 +1,63 @@
+<div [formGroup]="form" class="step-content">
+  <mat-form-field appearance="fill" class="full-width">
+    <mat-label>Dashboard Title</mat-label>
+    <input matInput formControlName="title" placeholder="e.g., Sales Overview">
+    <mat-error *ngIf="form.get('title')?.hasError('required')">Title is required.</mat-error>
+    <mat-error *ngIf="form.get('title')?.hasError('minlength')">At least 3 characters.</mat-error>
+  </mat-form-field>
+
+  <mat-form-field appearance="fill" class="full-width">
+    <mat-label>Color Scheme (optional)</mat-label>
+    <input matInput formControlName="color_scheme" placeholder="default, dark, ocean, etc.">
+  </mat-form-field>
+
+  <button mat-button type="button" (click)="showAdvanced = !showAdvanced" class="toggle-advanced">
+    {{ showAdvanced ? 'Hide' : 'Show' }} Missing Value Configuration
+  </button>
+
+  <div *ngIf="showAdvanced" formGroupName="missing_config" class="advanced-section">
+    <h4>Default Missing Value Strategy</h4>
+    <mat-form-field appearance="fill" class="full-width">
+      <mat-label>Default Strategy</mat-label>
+      <mat-select formControlName="default">
+        <mat-option *ngFor="let d of missingDefaults" [value]="d">{{ d | titlecase }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field *ngIf="form.get('missing_config.default')?.value === 'fill'" appearance="fill" class="full-width">
+      <mat-label>Default Fill Value</mat-label>
+      <input matInput formControlName="default_fill_value">
+    </mat-form-field>
+
+    <h4>Column Overrides</h4>
+    <div formArrayName="overrides">
+      <div *ngFor="let override of overridesArray.controls; let i = index" [formGroup]="$any(override)" class="override-row">
+        <mat-form-field appearance="fill" class="override-field">
+          <mat-label>Column</mat-label>
+          <mat-select formControlName="column">
+            <mat-option *ngFor="let col of columns" [value]="col.name">{{ col.name }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="fill" class="override-field">
+          <mat-label>Strategy</mat-label>
+          <mat-select formControlName="strategy">
+            <mat-option *ngFor="let s of missingDefaults" [value]="s">{{ s | titlecase }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field *ngIf="override.get('strategy')?.value === 'fill'" appearance="fill" class="override-field">
+          <mat-label>Fill Value</mat-label>
+          <input matInput formControlName="fill_value">
+        </mat-form-field>
+
+        <button mat-icon-button color="warn" (click)="removeOverride(i)">
+          <mat-icon>delete</mat-icon>
+        </button>
+      </div>
+    </div>
+    <button mat-stroked-button type="button" (click)="addOverride()">
+      <mat-icon>add</mat-icon> Add Column Override
+    </button>
+  </div>
+</div>

@@ -55,6 +55,20 @@ export class DashboardBuilderComponent implements OnInit, OnDestroy {
     }
   });
 
+  //REMOVE THIS LATER - for testing only
+  this.datasetService.getDatasetColumns(this.datasetId).subscribe({
+  next: (response: any) => {
+    console.log('Raw columns response:', response);
+    // Adjust this extraction based on what you see in the console:
+    const columns = response.columns ?? response.data?.columns ?? response.results ?? [];
+    this.state.setColumns(columns);
+  },
+  error: (err: HttpErrorResponse) => {
+    console.error('Failed to load dataset columns', err);
+    this.router.navigate(['/builder']);
+  }
+});
+
     // 4. Subscribe to step validities from the state service
     this.state.step2Valid$.pipe(takeUntil(this.destroy$)).subscribe(v => this.step2Valid = v);
     this.state.step3Valid$.pipe(takeUntil(this.destroy$)).subscribe(v => this.step3Valid = v);

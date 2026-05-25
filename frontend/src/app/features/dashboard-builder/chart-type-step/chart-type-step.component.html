@@ -1,0 +1,26 @@
+<div [formGroup]="form" class="step-content">
+  <h3>Choose Chart Type</h3>
+  <mat-form-field appearance="fill" class="full-width">
+    <mat-label>Chart Type</mat-label>
+    <mat-select formControlName="chart_type">
+      <mat-option *ngFor="let type of chartTypes" [value]="type">{{ type | titlecase }}</mat-option>
+    </mat-select>
+  </mat-form-field>
+
+  <ng-container *ngIf="needsAxes">
+    <h3>Select Axes</h3>
+    <mat-form-field appearance="fill" class="full-width">
+      <mat-label>X Column</mat-label>
+      <mat-select formControlName="x_column">
+        <mat-option *ngFor="let col of columns" [value]="col.name">{{ col.name }} ({{ col.type }})</mat-option>
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field appearance="fill" class="full-width">
+      <mat-label>Y Column</mat-label>
+      <mat-select formControlName="y_column">
+        <mat-option *ngFor="let col of columns" [value]="col.name">{{ col.name }} ({{ col.type }})</mat-option>
+      </mat-select>
+    </mat-form-field>
+  </ng-container>
+  <p *ngIf="!needsAxes" class="hint">This chart type (pie, KPI) does not require X/Y axes.</p>
+</div>
