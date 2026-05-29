@@ -1,10 +1,11 @@
-from typing import Optional, List, Literal
+from typing import Any, Dict, Optional, List, Literal
 from pydantic import BaseModel, Field, field_validator, model_validator
 from app.schemas.pipeline import FilterCondition, MissingConfig
 
+
 ALLOWED_CHART_TYPES = {"bar", "line", "pie", "scatter", "area", "heatmap","kpi"}
 
-class DashboardConfig(BaseModel):
+class WidgetConfig(BaseModel):
     dataset_id: int
     chart_type: Literal["bar", "line", "pie", "scatter", "area", "heatmap","kpi"]
     title: str
@@ -33,7 +34,7 @@ class DashboardConfig(BaseModel):
         return v.upper() if v else None
 
     @model_validator(mode="after")
-    def check_aggregation_consistency(self) -> "DashboardConfig":
+    def check_aggregation_consistency(self) -> "WidgetConfig":
 
         if self.chart_type == "kpi":
             return self
@@ -62,32 +63,41 @@ class DashboardConfig(BaseModel):
 # API request / response models for dashboard CRUD
 # ------------------------------------------------------------------
 
+# Dashboard creation – can include initial widgets
 class DashboardCreateRequest(BaseModel):
-    """Wrapper for POST /dashboards – only needs the config."""
-    config: DashboardConfig
-
+    title: str
+    widgets: Optional[List[WidgetConfig]] = None   # optional initial widgets
 
 class DashboardUpdateRequest(BaseModel):
-    """Allowed fields for PUT /dashboards/{id}. Both are optional."""
     title: Optional[str] = None
-    config: Optional[DashboardConfig] = None
 
+# Widget creation/update
+class WidgetCreateRequest(BaseModel):
+    config: WidgetConfig
+    position: Optional[Dict[str, Any]] = None
 
-class DashboardListItem(BaseModel):
-    """Returned in GET /dashboards list."""
+class WidgetUpdateRequest(BaseModel):
+    config: Optional[WidgetConfig] = None
+    position: Optional[Dict[str, Any]] = None
+
+# Response models
+class WidgetResponse(BaseModel):
     id: int
-    title: str
-    chart_type: str
-    dataset_id: int
-    created_at: str
-
-
-class DashboardResponse(BaseModel):
-    """Returned by GET /dashboards/{id}."""
-    id: int
-    config: DashboardConfig
-    chart_data: list   # list of dicts
+    config: WidgetConfig
+    chart_data: List[Dict[str, Any]]   # result of pipeline for this widget
+    position: Optional[Dict[str, Any]] = None
     created_at: str
     updated_at: str
 
-    model_config = {"from_attributes": True}
+class DashboardResponse(BaseModel):
+    id: int
+    title: str
+    widgets: List[WidgetResponse]
+    created_at: str
+    updated_at: str
+
+class DashboardListItem(BaseModel):
+    id: int
+    title: str
+    created_at: str
+    widget_count: int

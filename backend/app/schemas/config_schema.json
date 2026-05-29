@@ -199,7 +199,9 @@
           "enum": [
             "SUM",
             "MEAN",
-            "COUNT"
+            "COUNT",
+            "MAX",
+            "MIN"
           ],
           "type": "string"
         },

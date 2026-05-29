@@ -3,7 +3,7 @@ from app.models.base import Base, engine, get_db
 from app.models.role import Role
 from app.models.user import User
 from app.models.dataset import Dataset, SourceType
-from app.models.dashboard import DashboardConfig, ChartType
+from app.models.dashboard import Dashboard, Widget
 from app.models.cache_entry import CacheEntry
 
 '''

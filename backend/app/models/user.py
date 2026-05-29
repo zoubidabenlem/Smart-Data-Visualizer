@@ -15,4 +15,4 @@ class User(Base):
     # Relationships
     role        = relationship("Role", back_populates="users")
     datasets    = relationship("Dataset", back_populates="owner")
-    dashboards  = relationship("DashboardConfig", back_populates="owner")
+    dashboards = relationship("Dashboard", back_populates="owner")

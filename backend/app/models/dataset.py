@@ -28,4 +28,4 @@ class Dataset(Base):
     refined_column_schema = Column(JSON, nullable=True)
     # Relationships
     owner      = relationship("User", back_populates="datasets")
-    dashboards = relationship("DashboardConfig", back_populates="dataset")
+    widgets = relationship("Widget", back_populates="dataset")

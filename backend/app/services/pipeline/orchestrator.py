@@ -1,5 +1,6 @@
 # app/services/pipeline/orchestrator.py
 import time
+from fastapi import params
 import pandas as pd
 from typing import List, Dict, Any
 from app.services.pipeline.missing import apply_missing_strategy_per_column
@@ -29,11 +30,11 @@ def run_pipeline(df: pd.DataFrame, params: PrepareRequest) -> List[Dict[str, Any
 
     # 3. Aggregation
     start = time.time()
-    if params.group_by and params.agg_func:
+    if params.agg_func and params.value_col:   # <-- only require agg_func and value_col
         df_clean = apply_aggregation(df_clean, params.group_by, params.agg_func, params.value_col)
     agg_time = (time.time() - start) * 1000
-    logger.info(f"Aggregation step: rows after={len(df_clean)} | elapsed={agg_time:.2f} ms")
-
+    logger.info(f"Aggregation step: output rows={len(df_clean)} | elapsed={agg_time:.2f} ms")
+    
     # 4. Serialisation
     start = time.time()
     records = dataframe_to_json_safe(df_clean)

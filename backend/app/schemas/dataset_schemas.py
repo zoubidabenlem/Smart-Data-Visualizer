@@ -22,5 +22,5 @@ class DatasetOut(BaseModel):
     uploaded_at: datetime
     model_config={"from_attributes": True}  #for pydantic to read sqlAlchemy objs
     source_path: Optional[str] = None
-    is_refined: bool                              # ← REQUIRED
+    is_refined: bool                              
     refined_column_schema: Optional[List[ColumnInfo]] = None
