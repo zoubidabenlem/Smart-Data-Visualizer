@@ -246,6 +246,6 @@
     "chart_type",
     "title"
   ],
-  "title": "DashboardConfig",
+  "title": "WidgetConfig",
   "type": "object"
 }

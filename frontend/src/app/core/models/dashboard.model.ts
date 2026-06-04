@@ -14,7 +14,7 @@ export type Column = string;
 export type Operator = "==" | "!=" | ">" | "<" | "in" | "like";
 export type Filters = FilterCondition[];
 export type GroupBy = string[] | null;
-export type AggFunc = ("SUM" | "MEAN" | "COUNT") | null;
+export type AggFunc = ("SUM" | "MEAN" | "COUNT" | "MAX" | "MIN") | null;
 export type ValueCol = string | null;
 export type Default = "drop" | "fill" | "mean";
 export type DefaultFillValue = string | number | null;
@@ -25,7 +25,7 @@ export type Strategy = "drop" | "fill" | "mean";
 export type FillValue = string | number | null;
 export type ColorScheme = string;
 
-export interface DashboardConfig {
+export interface WidgetConfig {
   dataset_id: DatasetId;
   chart_type: ChartType;
   title: Title;
@@ -63,23 +63,4 @@ export interface MissingOverride {
   strategy: Strategy;
   fill_value?: FillValue;
   [k: string]: unknown;
-}
-/**
- * Response interfaces
- */
-
-export interface DashboardListItem {
-  id: number;
-  title: string;
-  chart_type: string;
-  dataset_id: number;
-  created_at: string;   // ISO string
-}
-
-export interface DashboardResponse {
-  id: number;
-  config: DashboardConfig;
-  chart_data: any[];      // processed data ready for charting
-  created_at: string;
-  updated_at: string;
 }
