@@ -51,8 +51,10 @@ export class BuilderComponent implements OnInit {
     this.router.navigate(['/builder/refine', id]);
   }
 
-  navigateToDashboardBuilder(id: number) {
-  this.router.navigate(['/dashboard-builder', id]);
-  }
+  // src/app/features/builder/builder.component.ts
+navigateToDashboardBuilder(id: number) {
+  this.router.navigate(['/dashboard-builder'], { queryParams: { datasetId: id } });
+}
+  
 
 }

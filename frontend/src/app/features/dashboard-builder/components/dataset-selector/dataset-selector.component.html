@@ -1,0 +1,10 @@
+<mat-form-field appearance="outline" class="full-width">
+  <mat-label>Select Dataset</mat-label>
+  <mat-select [formControl]="datasetControl" [disabled]="isLoading">
+    <mat-option *ngFor="let ds of datasets" [value]="ds.id">
+      {{ ds.name }}
+    </mat-option>
+  </mat-select>
+  <mat-spinner *ngIf="isLoading" diameter="20" matSuffix></mat-spinner>
+</mat-form-field>
+<div *ngIf="error" class="error">{{ error }}</div>

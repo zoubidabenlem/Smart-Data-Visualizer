@@ -1,0 +1,110 @@
+<div class="builder-container">
+  <!-- Loading / Error state -->
+  <div *ngIf="isLoading" class="loading-overlay">
+    <mat-spinner diameter="40"></mat-spinner>
+    <p>Loading dataset...</p>
+  </div>
+  <div *ngIf="error && !isLoading" class="error-state">
+    <mat-icon>error</mat-icon>
+    <p>{{ error }}</p>
+    <button mat-raised-button (click)="router.navigate(['/datasets'])">Go to Datasets</button>
+  </div>
+
+  <!-- Main builder UI (shown only when dataset loaded) -->
+  <ng-container *ngIf="!isLoading && !error">
+    <!-- LEFT PANE -->
+    <div class="left-pane">
+      <div class="section">
+        <h3><mat-icon>info</mat-icon> Dashboard Details</h3>
+        <p>Dataset ID: {{ builderService.getCurrentState().datasetId }}</p>
+        <p>Columns: {{ datasetColumns.join(', ') }}</p>
+      </div>
+
+      <div class="section widgets-section">
+        <h3><mat-icon>dashboard</mat-icon> Widgets ({{ widgets.length }})</h3>
+        <div class="widget-list">
+          <div *ngFor="let widget of widgets"
+               class="widget-card"
+               [class.active]="activeWidget?.id === widget.id"
+               (click)="setActiveWidget(widget.id)">
+            <mat-icon>{{ getWidgetIcon(widget.chart_type) }}</mat-icon>
+            <div class="widget-info">
+              <strong>{{ widget.title }}</strong>
+              <span>{{ widget.chart_type | uppercase }}</span>
+            </div>
+            <button mat-icon-button class="delete-btn" (click)="removeWidget(widget.id, $event)">
+              <mat-icon>delete_outline</mat-icon>
+            </button>
+          </div>
+          <div *ngIf="widgets.length === 0" class="empty-message">
+            No widgets yet. Add a chart or KPI.
+          </div>
+        </div>
+        <div class="add-buttons">
+          <button mat-raised-button class="add-chart-btn" [matMenuTriggerFor]="chartMenu">
+            <mat-icon>insert_chart</mat-icon> Add Chart
+          </button>
+          <button mat-raised-button class="add-kpi-btn" (click)="addWidget('kpi')">
+            <mat-icon>numbers</mat-icon> Add KPI
+          </button>
+          <mat-menu #chartMenu="matMenu">
+            <button mat-menu-item *ngFor="let type of chartTypes" (click)="addWidget(type)">
+              <mat-icon>{{ getWidgetIcon(type) }}</mat-icon> {{ type | titlecase }}
+            </button>
+          </mat-menu>
+        </div>
+      </div>
+
+      <div class="section editor-section" *ngIf="activeWidget">
+        <h3><mat-icon>edit_note</mat-icon> Edit: {{ activeWidget.title }}</h3>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Widget Title</mat-label>
+          <input matInput [(ngModel)]="activeWidget.title" (ngModelChange)="updateActiveWidget({ title: $event })">
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Chart Type</mat-label>
+          <mat-select [value]="activeWidget.chart_type" (selectionChange)="updateActiveWidget({ chart_type: $event.value })">
+            <mat-option *ngFor="let type of allChartTypes" [value]="type">{{ type | titlecase }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+        <div class="info-note">Advanced config (axes, filters, aggregation) coming in next task.</div>
+      </div>
+      <div class="section" *ngIf="!activeWidget">
+        <p class="muted">Select a widget to edit its configuration.</p>
+      </div>
+    </div>
+
+    <!-- RIGHT PANE (Preview) -->
+    <div class="right-pane">
+      <h3><mat-icon>visibility</mat-icon> Live Preview</h3>
+      <div class="preview-area">
+        <div *ngIf="activeWidget; else noPreview">
+          <p>Previewing: <strong>{{ activeWidget.title }}</strong> ({{ activeWidget.chart_type }})</p>
+          <div class="placeholder-chart">
+            <mat-icon>bar_chart</mat-icon>
+            <span>Chart preview will appear here</span>
+          </div>
+        </div>
+        <ng-template #noPreview>
+          <div class="no-preview">
+            <mat-icon>info</mat-icon>
+            <p>Select a widget to see live preview</p>
+          </div>
+        </ng-template>
+      </div>
+    </div>
+
+    <!-- BOTTOM BAR -->
+    <div class="bottom-bar">
+      <mat-form-field appearance="outline" class="title-input">
+        <mat-label>Dashboard Title</mat-label>
+        <input matInput [(ngModel)]="title" (ngModelChange)="builderService.setTitle($event)">
+      </mat-form-field>
+      <button mat-flat-button class="save-btn" (click)="saveDashboard()" [disabled]="isSaving">
+        <mat-icon *ngIf="!isSaving">save</mat-icon>
+        <mat-spinner diameter="20" *ngIf="isSaving"></mat-spinner>
+        {{ isSaving ? 'Saving...' : 'Save Dashboard' }}
+      </button>
+    </div>
+  </ng-container>
+</div>
