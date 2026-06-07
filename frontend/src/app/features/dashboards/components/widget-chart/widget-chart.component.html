@@ -1,0 +1,10 @@
+<p>widget-chart works!</p>
+<div class="chart-container" *ngIf="widget; else noData">
+      <canvas #chartCanvas *ngIf="widget.config.chart_type !== 'kpi'"></canvas>
+      <div *ngIf="widget.config.chart_type === 'kpi'" class="kpi-value">
+        {{ kpiValue }}
+      </div>
+    </div>
+    <ng-template #noData>
+      <div class="no-chart-data">No chart data</div>
+    </ng-template>

@@ -1,18 +1,18 @@
 // src/app/features/dashboards/components/widget-config-dialog/widget-config-dialog.component.ts
 import { Component, Inject, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, FormArray, Validators, AbstractControl } from '@angular/forms';
+import { FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { DashboardService } from 'src/app/core/services/dashboard.service';
 import { DatasetService } from 'src/app/core/services/dataset.service';
-import { WidgetConfig, FilterCondition, MissingConfig, WidgetResponse } from 'src/app/core/models/dashboard.model';
+import { WidgetConfig, WidgetResponse } from 'src/app/core/models/dashboard.model';
 import { DatasetOut } from 'src/app/core/models/dataset.model';
 
 export interface WidgetDialogData {
   dashboardId: number;
-  widget?: WidgetResponse;        // if editing, pass existing widget
-  preSelectedDatasetId?: number;  // optional, from dataset list
-  defaultChartType?: 'chart' | 'kpi'; // if creating from specific button
+  widget?: WidgetResponse;
+  preSelectedDatasetId?: number;
+  defaultChartType?: 'chart' | 'kpi';
 }
 
 @Component({
@@ -23,14 +23,12 @@ export interface WidgetDialogData {
 export class WidgetConfigDialogComponent implements OnInit {
   form!: FormGroup;
   datasets: DatasetOut[] = [];
-  columns: string[] = [];          // column names for dropdowns
+  columns: string[] = [];
   isLoading = false;
   isEditMode = false;
   widgetId?: number;
 
-  // Chart types allowed (excluding kpi if needed, but we include all)
   chartTypes = ['bar', 'line', 'pie', 'scatter', 'area', 'heatmap', 'kpi'];
-
   aggregationFunctions = ['SUM', 'MEAN', 'COUNT', 'MAX', 'MIN'];
   operators = ['==', '!=', '>', '<', 'in', 'like'];
 
@@ -46,14 +44,17 @@ export class WidgetConfigDialogComponent implements OnInit {
   ngOnInit(): void {
     this.initForm();
     this.loadDatasets();
+    console.log('Dialog data:', this.data);
     if (this.data.widget) {
       this.isEditMode = true;
       this.widgetId = this.data.widget.id;
       this.patchFormWithWidget(this.data.widget.config);
     } else if (this.data.preSelectedDatasetId) {
+      // Pre-select dataset and load its columns
       this.form.patchValue({ dataset_id: this.data.preSelectedDatasetId });
       this.onDatasetChange(this.data.preSelectedDatasetId);
     }
+
     if (this.data.defaultChartType === 'kpi') {
       this.form.patchValue({ chart_type: 'kpi' });
       this.toggleFieldsBasedOnChartType('kpi');
@@ -74,20 +75,18 @@ export class WidgetConfigDialogComponent implements OnInit {
       missing_config: this.fb.group({
         default: ['drop'],
         default_fill_value: [null],
-        overrides: this.fb.group({})  // will be dynamic if needed; for simplicity we keep as object
+        overrides: this.fb.group({})
       }),
       color_scheme: ['default']
     });
 
-    // Add one empty filter row by default
-    this.addFilter();
+    this.addFilter(); // start with one empty filter
 
-    // Watch chart_type changes to show/hide axis fields
     this.form.get('chart_type')?.valueChanges.subscribe(ct => this.toggleFieldsBasedOnChartType(ct));
 
-    // Watch aggregation fields to enforce all-or-none
-    const aggGroup = ['group_by', 'agg_func', 'value_col'];
-    aggGroup.forEach(field => {
+    // Aggregation validation
+    const aggFields = ['group_by', 'agg_func', 'value_col'];
+    aggFields.forEach(field => {
       this.form.get(field)?.valueChanges.subscribe(() => this.validateAggregation());
     });
   }
@@ -124,7 +123,6 @@ export class WidgetConfigDialogComponent implements OnInit {
     }
   }
 
-  // Filters FormArray handling
   get filtersArray(): FormArray {
     return this.form.get('filters') as FormArray;
   }
@@ -142,7 +140,6 @@ export class WidgetConfigDialogComponent implements OnInit {
     this.filtersArray.removeAt(index);
   }
 
-  // Load datasets for dropdown
   private loadDatasets(): void {
     this.datasetService.getDatasets().subscribe({
       next: (ds) => this.datasets = ds,
@@ -150,25 +147,43 @@ export class WidgetConfigDialogComponent implements OnInit {
     });
   }
 
+  // Called when dataset selection changes (dropdown or programmatically)
   onDatasetChange(datasetId: number): void {
-    if (!datasetId) return;
-    this.datasetService.getDatasetColumns(datasetId).subscribe({
-      next: (cols: any[]) => {
-        this.columns = cols.map(c => c.name || c.column_name);
-        // Reset dependent fields
-        this.form.patchValue({
-          x_column: null,
-          y_column: null,
-          group_by: null,
-          value_col: null
-        });
-        // Clear filters
-        while (this.filtersArray.length) this.filtersArray.removeAt(0);
-        this.addFilter();
-      },
-      error: (err) => console.error('Failed to load columns', err)
-    });
+  if (!datasetId) {
+    this.columns = [];
+    return;
   }
+  console.log('Loading columns for dataset ID:', datasetId);
+  this.datasetService.getDatasetColumns(datasetId).subscribe({
+    next: (response: any) => {
+      console.log('Raw columns response:', response);
+      // Extract the columns array from the response object
+      const colsArray = response?.columns || [];
+      console.log('Columns array:', colsArray);
+      // Map to column names (adjust property names as needed)
+      this.columns = colsArray.map((col: any) => col.name || col.column_name);
+      console.log('Mapped column names:', this.columns);
+      if (this.columns.length === 0) {
+        this.snackBar.open('No columns found for this dataset', 'Close', { duration: 3000 });
+      }
+      // Reset dependent fields
+      this.form.patchValue({
+        x_column: null,
+        y_column: null,
+        group_by: null,
+        value_col: null
+      });
+      // Reset filters (optional)
+      while (this.filtersArray.length) this.filtersArray.removeAt(0);
+      this.addFilter();
+    },
+    error: (err) => {
+      console.error('Failed to load columns', err);
+      this.columns = [];
+      this.snackBar.open('Could not load columns', 'Close', { duration: 3000 });
+    }
+  });
+}
 
   private patchFormWithWidget(config: WidgetConfig): void {
     this.form.patchValue({
@@ -177,7 +192,7 @@ export class WidgetConfigDialogComponent implements OnInit {
       title: config.title,
       x_column: config.x_column,
       y_column: config.y_column,
-      group_by: config.group_by,
+      group_by: config.group_by ? config.group_by[0] : null, // assuming group_by is array with single value
       agg_func: config.agg_func,
       value_col: config.value_col,
       color_scheme: config.color_scheme || 'default'
@@ -197,7 +212,7 @@ export class WidgetConfigDialogComponent implements OnInit {
         this.filtersArray.push(fg);
       });
     }
-    // Load columns for the dataset
+    // Load columns for the dataset after patching the dataset_id
     this.onDatasetChange(config.dataset_id);
   }
 
@@ -208,7 +223,6 @@ export class WidgetConfigDialogComponent implements OnInit {
     }
 
     const rawValue = this.form.getRawValue();
-    // Build WidgetConfig object
     const config: WidgetConfig = {
       dataset_id: rawValue.dataset_id,
       chart_type: rawValue.chart_type,
@@ -216,22 +230,23 @@ export class WidgetConfigDialogComponent implements OnInit {
       x_column: rawValue.x_column || null,
       y_column: rawValue.y_column || null,
       filters: rawValue.filters.filter((f: any) => f.column && f.operator && f.value !== undefined),
-      group_by: rawValue.group_by ? [rawValue.group_by] : null,   // backend expects array or null
+      group_by: rawValue.group_by ? [rawValue.group_by] : null,
       agg_func: rawValue.agg_func || null,
       value_col: rawValue.value_col || null,
       missing_config: rawValue.missing_config,
       color_scheme: rawValue.color_scheme
     };
 
-    // Aggregation validation already done by form error, but double-check
-    if (config.group_by && config.agg_func && config.value_col) {
-      // ok
-    } else if (!config.group_by && !config.agg_func && !config.value_col) {
-      // ok
-    } else {
+    // Aggregation validation
+    if (config.chart_type !== 'kpi') {
+    const hasGroup = !!config.group_by;
+    const hasAgg = !!config.agg_func;
+    const hasValue = !!config.value_col;
+    if ((hasGroup || hasAgg || hasValue) && !(hasGroup && hasAgg && hasValue)) {
       this.snackBar.open('Aggregation must be all three or none', 'Close', { duration: 3000 });
       return;
     }
+  }
 
     this.isLoading = true;
     if (this.isEditMode && this.widgetId) {

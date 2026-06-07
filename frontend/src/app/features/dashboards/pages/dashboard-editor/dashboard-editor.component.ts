@@ -7,11 +7,11 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { DashboardEditorService } from '../../services/dashboard-editor.service';
 import { DatasetService } from 'src/app/core/services/dataset.service';
 
-import MatDialog from '@angular/material/dialog';
-import WidgetConfigDialogComponent, { WidgetDialogData } from '../../components/widget-config-dialog/widget-config-dialog.component';
 
 import { WidgetResponse } from 'src/app/core/models/dashboard.model';
 import { DatasetOut } from 'src/app/core/models/dataset.model';
+import { WidgetConfigDialogComponent } from '../../components/widget-config-dialog/widget-config-dialog.component';
+import { MatDialog } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-dashboard-editor',
@@ -147,7 +147,7 @@ private openWidgetDialog(widget?: WidgetResponse, defaultType?: 'chart' | 'kpi')
   
   // Take the snapshot value synchronously from the public observable stream
   this.selectedDatasetId$.subscribe(id => datasetIdSnapshot = id).unsubscribe();
-
+console.log('[DEBUG] Opening widget dialog with dataset ID snapshot:', datasetIdSnapshot);
   const dialogRef = this.dialog.open(WidgetConfigDialogComponent, {
     width: '800px',
     data: {

@@ -22,8 +22,8 @@ import { DashboardListComponent } from './pages/dashboard-list/dashboard-list.co
 import { DashboardEditorService } from './services/dashboard-editor.service';
 import { MatSelectModule } from '@angular/material/select';
 import { DashboardEditorComponent } from './pages/dashboard-editor/dashboard-editor.component';
-import { MatOptionModule } from '@angular/material/core';
 import { WidgetConfigDialogComponent } from './components/widget-config-dialog/widget-config-dialog.component';
+import { WidgetChartComponent } from './components/widget-chart/widget-chart.component';
 
 
 @NgModule({
@@ -31,7 +31,8 @@ import { WidgetConfigDialogComponent } from './components/widget-config-dialog/w
     DashboardListComponent,
     CreateDashboardDialogComponent,
     DashboardEditorComponent,
-    WidgetConfigDialogComponent
+    WidgetConfigDialogComponent,
+    WidgetChartComponent
   ],
   imports: [
     CommonModule,
@@ -50,8 +51,6 @@ import { WidgetConfigDialogComponent } from './components/widget-config-dialog/w
     MatSelectModule,
     MatListModule,
     MatTooltipModule,
-        MatOptionModule,
-
   ],
   providers: [DashboardEditorService],
 })

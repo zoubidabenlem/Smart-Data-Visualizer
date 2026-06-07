@@ -99,25 +99,22 @@
     </div>
 
     <!-- Static widget preview grid (no drag & drop, no edit/delete buttons here) -->
-    <div class="widget-preview-grid">
-      <div *ngFor="let widget of widgets$ | async" class="preview-card">
-        <div class="preview-header">
-          <span>{{ widget.config.title }}</span>
-          <mat-icon>{{ getWidgetIcon(widget.config.chart_type) }}</mat-icon>
-        </div>
-        <div class="preview-content">
-          <!-- Placeholder: later we will render the actual chart using chart_data -->
-          <div class="placeholder-chart">
-            <mat-icon>show_chart</mat-icon>
-            <p>{{ widget.config.chart_type }} preview</p>
-          </div>
-        </div>
-      </div>
-      <div *ngIf="(widgets$ | async)?.length === 0" class="empty-previews">
-        <mat-icon>insight</mat-icon>
-        <p>No widgets to display. Add one from the left pane.</p>
-      </div>
+    <!-- Right pane: widget preview grid -->
+<div class="widget-preview-grid">
+  <div *ngFor="let widget of widgets$ | async" class="preview-card">
+    <div class="preview-header">
+      <span>{{ widget.config.title }}</span>
+      <mat-icon>{{ getWidgetIcon(widget.config.chart_type) }}</mat-icon>
     </div>
+    <div class="preview-content">
+      <app-widget-chart [widget]="widget"></app-widget-chart>
+    </div>
+  </div>
+  <div *ngIf="(widgets$ | async)?.length === 0" class="empty-previews">
+    <mat-icon>insight</mat-icon>
+    <p>No widgets to display. Add one from the left pane.</p>
+  </div>
+</div>
   </div>
 </div>
 
