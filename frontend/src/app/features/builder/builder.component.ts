@@ -22,6 +22,13 @@ export class BuilderComponent implements OnInit {
 ) {}
 
   ngOnInit(): void {
+    // Check a session flag to avoid an infinite reload loop
+    if (!sessionStorage.getItem('pageRefreshed')) {
+      sessionStorage.setItem('pageRefreshed', 'true');
+      window.location.reload(); // Performs the hard refresh
+    } else {
+      sessionStorage.removeItem('pageRefreshed');
+    }
     this.loadDatasets();
   }
 

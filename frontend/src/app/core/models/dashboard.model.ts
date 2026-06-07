@@ -64,3 +64,48 @@ export interface MissingOverride {
   fill_value?: FillValue;
   [k: string]: unknown;
 }
+
+// --- New interfaces for Dashboard API ---
+
+export interface DashboardCreateRequest {
+  title: string;
+  widgets?: WidgetConfig[] | null;
+}
+
+export interface DashboardUpdateRequest {
+  title?: string | null;
+}
+
+export interface WidgetCreateRequest {
+  config: WidgetConfig;
+  position?: { [key: string]: any } | null;
+}
+
+export interface WidgetUpdateRequest {
+  config?: WidgetConfig | null;
+  position?: { [key: string]: any } | null;
+}
+
+export interface WidgetResponse {
+  id: number;
+  config: WidgetConfig;
+  chart_data: Array<{ [key: string]: any }>;
+  position?: { [key: string]: any } | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DashboardResponse {
+  id: number;
+  title: string;
+  widgets: WidgetResponse[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DashboardListItem {
+  id: number;
+  title: string;
+  created_at: string;
+  widget_count: number;
+}

@@ -1,0 +1,112 @@
+.dashboard-list-container {
+  padding: 2rem;
+  background: #f2eefa;   /* very soft lavender hint */
+  min-height: 100vh;
+  font-family: 'Inter', Roboto, sans-serif;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.header h1 {
+  font-weight: 600;
+  color: #2C3E66;
+  margin: 0;
+  letter-spacing: -0.3px;
+}
+
+.loading-spinner {
+  display: flex;
+  justify-content: center;
+  margin-top: 3rem;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 3rem;
+  background: #ffffff;
+  border-radius: 28px;
+  box-shadow: 0 6px 14px rgba(108, 139, 176, 0.08);
+  color: #7A6A8F;
+}
+
+.empty-state mat-icon {
+  font-size: 64px;
+  width: 64px;
+  height: 64px;
+  color: #B9A9D4;   /* muted purple */
+  margin-bottom: 1rem;
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.dashboard-card {
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  border-radius: 24px;
+  border: 1px solid #E5DCF0;
+  background: #ffffff;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+}
+
+.dashboard-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 16px 28px -8px rgba(108, 139, 176, 0.2);
+  border-color: #DBC8F0;   /* subtle pinkish-purple */
+}
+
+mat-card-header mat-icon {
+  color:#D96C9E ;   /* soft purple – never black */
+}
+
+mat-card-title {
+  font-weight: 600;
+  color: #2C3E66;
+}
+
+mat-card-subtitle {
+  color: #8F7DAC;
+}
+
+mat-card-content p {
+  color: #6B5B82;
+  font-weight: 500;
+  margin: 0;
+}
+
+mat-card-actions button {
+  transition: color 0.2s;
+    color: #D96C9E; 
+
+}
+
+mat-card-actions button:hover {
+    color:crimson;
+    
+  /* subtle pink on hover */
+}
+
+.create-dashboard-btn {
+  color: #f2eefa !important;
+  background-color: #6B5B82 !important;   /* soft purple */
+  border-radius: 24px;
+  padding: 0.5rem 1.5rem;
+  font-weight: 600;
+  transition: background-color 0.2s;
+}
+.create-dashboard-btn:hover {
+  background-color: #D96C9E !important;   /* soft purple on hover */
+   transform: translateY(-5px);
+  box-shadow: 0 16px 28px -8px rgba(108, 139, 176, 0.2);
+  border-color: #DBC8F0; 
+}

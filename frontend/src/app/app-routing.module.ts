@@ -20,12 +20,12 @@ const routes: Routes = [
   data: { roles: ['admin'] },
   loadChildren: () => import('./features/builder/builder.module').then(m => m.BuilderModule)
 },
-///////////////DASHBOARD BUILDER route — protected by BOTH guards, run in order
+///////////////DASHBOARD  routes — protected by BOTH guards, run in order
   {
-  path: 'dashboard-builder',
+  path: 'dashboards',
   canActivate: [authGuard, roleGuard],
   data: { roles: ['admin'] },
-  loadChildren: () => import('./features/dashboard-builder/dashboard-builder.module').then(m => m.DashboardBuilderModule)
+  loadChildren: () => import('./features/dashboards/dashboards.module').then(m => m.DashboardsModule)
 },
 
   // Viewer route — protected by AuthGuard

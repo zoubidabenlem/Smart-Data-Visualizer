@@ -1,0 +1,144 @@
+<!-- src/app/features/dashboards/components/widget-config-dialog/widget-config-dialog.component.html -->
+<h2 mat-dialog-title>{{ isEditMode ? 'Edit Widget' : 'Create Widget' }}</h2>
+<form [formGroup]="form" (ngSubmit)="onSubmit()">
+  <mat-dialog-content class="dialog-content">
+    <!-- Basic Info -->
+    <div class="form-section">
+      <h3>Basic Information</h3>
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Title</mat-label>
+        <input matInput formControlName="title" required>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Chart Type</mat-label>
+        <mat-select formControlName="chart_type" required>
+          <mat-option *ngFor="let type of chartTypes" [value]="type">{{ type | uppercase }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Dataset</mat-label>
+        <mat-select formControlName="dataset_id" required (selectionChange)="onDatasetChange($event.value)">
+          <mat-option *ngFor="let ds of datasets" [value]="ds.id">{{ ds.filename }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Color Scheme</mat-label>
+        <mat-select formControlName="color_scheme">
+          <mat-option value="default">Default</mat-option>
+          <mat-option value="pastel">Pastel</mat-option>
+          <mat-option value="dark">Dark</mat-option>
+          <!-- add more as needed -->
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <!-- Axes (only for non-KPI) -->
+    <div class="form-section" *ngIf="form.get('chart_type')?.value !== 'kpi'">
+      <h3>Axes</h3>
+      <div class="two-columns">
+        <mat-form-field appearance="outline">
+          <mat-label>X Column</mat-label>
+          <mat-select formControlName="x_column">
+            <mat-option [value]="null">None</mat-option>
+            <mat-option *ngFor="let col of columns" [value]="col">{{ col }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Y Column</mat-label>
+          <mat-select formControlName="y_column">
+            <mat-option [value]="null">None</mat-option>
+            <mat-option *ngFor="let col of columns" [value]="col">{{ col }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="form-section">
+      <h3>Filters <button type="button" mat-icon-button (click)="addFilter()"><mat-icon>add</mat-icon></button></h3>
+      <div formArrayName="filters">
+        <div *ngFor="let filter of filtersArray.controls; let i = index" [formGroupName]="i" class="filter-row">
+          <mat-form-field appearance="outline">
+            <mat-label>Column</mat-label>
+            <mat-select formControlName="column">
+              <mat-option *ngFor="let col of columns" [value]="col">{{ col }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Operator</mat-label>
+            <mat-select formControlName="operator">
+              <mat-option *ngFor="let op of operators" [value]="op">{{ op }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Value</mat-label>
+            <input matInput formControlName="value">
+          </mat-form-field>
+          <button type="button" mat-icon-button (click)="removeFilter(i)"><mat-icon>delete</mat-icon></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Aggregation -->
+    <div class="form-section">
+      <h3>Aggregation (optional – all or none)</h3>
+      <div class="two-columns">
+        <mat-form-field appearance="outline">
+          <mat-label>Group By (column)</mat-label>
+          <mat-select formControlName="group_by">
+            <mat-option [value]="null">None</mat-option>
+            <mat-option *ngFor="let col of columns" [value]="col">{{ col }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Aggregation Function</mat-label>
+          <mat-select formControlName="agg_func">
+            <mat-option [value]="null">None</mat-option>
+            <mat-option *ngFor="let func of aggregationFunctions" [value]="func">{{ func }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Value Column</mat-label>
+          <mat-select formControlName="value_col">
+            <mat-option [value]="null">None</mat-option>
+            <mat-option *ngFor="let col of columns" [value]="col">{{ col }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+      <mat-error *ngIf="form.hasError('aggregationInvalid')">
+        Aggregation must be all three fields provided or none at all.
+      </mat-error>
+    </div>
+
+    <!-- Missing Value Configuration (simplified) -->
+    <div class="form-section" formGroupName="missing_config">
+      <h3>Missing Values</h3>
+      <div class="two-columns">
+        <mat-form-field appearance="outline">
+          <mat-label>Default Strategy</mat-label>
+          <mat-select formControlName="default">
+            <mat-option value="drop">Drop rows</mat-option>
+            <mat-option value="fill">Fill with value</mat-option>
+            <mat-option value="mean">Fill with mean</mat-option>
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field appearance="outline" *ngIf="form.get('missing_config.default')?.value === 'fill'">
+          <mat-label>Default Fill Value</mat-label>
+          <input matInput formControlName="default_fill_value" type="text">
+        </mat-form-field>
+      </div>
+      <!-- Overrides can be added later; for now we omit for simplicity -->
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button type="button" (click)="onCancel()">Cancel</button>
+    <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid || isLoading">
+      {{ isEditMode ? 'Update' : 'Create' }}
+      <mat-icon *ngIf="isLoading">refresh</mat-icon>
+    </button>
+  </mat-dialog-actions>
+</form>

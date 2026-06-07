@@ -1,0 +1,89 @@
+/* create-dashboard-dialog.component.css – match dashboard list theme */
+::ng-deep .mat-dialog-container {
+  border-radius: 28px !important;
+  padding: 0 !important;
+  background: #FDF9FF;
+  box-shadow: 0 20px 30px -12px rgba(108, 139, 176, 0.2);
+  border: 1px solid #EDE4F5;
+}
+
+::ng-deep .mat-dialog-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #2C3E66;
+  padding: 1.25rem 1.5rem 0 1.5rem;
+  margin: 0;
+  background: transparent;
+}
+
+::ng-deep .mat-dialog-content {
+  padding: 0.5rem 1.5rem 0.5rem 1.5rem;
+  margin: 0;
+  color: #5A4B72;
+  background: transparent;
+}
+
+::ng-deep .mat-dialog-actions {
+  padding: 0.75rem 1.5rem 1.5rem 1.5rem;
+  margin: 0;
+  background: transparent;
+}
+
+.full-width {
+  width: 100%;
+  min-width: 300px;
+}
+
+/* style mat-form-field to match theme */
+::ng-deep .mat-form-field-outline {
+  color: #D0BCEA;
+}
+
+::ng-deep .mat-form-field-label {
+  color: #9B87B5 !important;
+}
+
+::ng-deep .mat-input-element {
+  color: #2C3E66;
+  caret-color: #B28BCB;
+}
+
+::ng-deep .mat-form-field.mat-focused .mat-form-field-outline {
+  color: #B28BCB;
+}
+
+::ng-deep .mat-form-field.mat-focused .mat-form-field-label {
+  color: #B28BCB !important;
+}
+
+/* buttons inside dialog */
+::ng-deep .mat-dialog-actions button.mat-button {
+  color: #9B87B5;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+::ng-deep .mat-dialog-actions button.mat-button:hover {
+  color: #E984B0;
+  background: rgba(217, 108, 158, 0.08);
+}
+
+::ng-deep .mat-dialog-actions button.mat-raised-button[color="primary"] {
+  background-color: #D96C9E;
+  color: white;
+  border-radius: 40px;
+  padding: 0.25rem 1.5rem;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+::ng-deep .mat-dialog-actions button.mat-raised-button[color="primary"]:hover:not([disabled]) {
+  background-color: #C95A8A;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px -6px rgba(108, 139, 176, 0.3);
+}
+
+::ng-deep .mat-dialog-actions button.mat-raised-button[color="primary"][disabled] {
+  background-color: #E0D4EE;
+  color: #BAA7CF;
+}

@@ -1,0 +1,35 @@
+<div class="dashboard-list-container">
+  <div class="header">
+    <h1>My Dashboards</h1>
+    <button mat-raised-button class="create-dashboard-btn" (click)="openCreateDialog()">
+      <mat-icon>add</mat-icon> New Dashboard
+    </button>
+  </div>
+
+  <div *ngIf="isLoading" class="loading-spinner">
+    <mat-spinner diameter="40"></mat-spinner>
+  </div>
+
+  <div *ngIf="!isLoading && dashboards.length === 0" class="empty-state">
+    <mat-icon>dashboard</mat-icon>
+    <p>No dashboards yet. Click "New Dashboard" to create one.</p>
+  </div>
+
+  <div class="dashboard-grid" *ngIf="!isLoading && dashboards.length > 0">
+    <mat-card *ngFor="let dash of dashboards" class="dashboard-card" (click)="editDashboard(dash.id)">
+      <mat-card-header>
+        <mat-icon mat-card-avatar>dashboard</mat-icon>
+        <mat-card-title>{{ dash.title }}</mat-card-title>
+        <mat-card-subtitle>Created {{ dash.created_at | date:'mediumDate' }}</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <p>{{ dash.widget_count }} widget{{ dash.widget_count !== 1 ? 's' : '' }}</p>
+      </mat-card-content>
+      <mat-card-actions align="end">
+        <button mat-icon-button color="warn" (click)="deleteDashboard(dash.id, dash.title, $event)">
+          <mat-icon>delete</mat-icon>
+        </button>
+      </mat-card-actions>
+    </mat-card>
+  </div>
+</div>
