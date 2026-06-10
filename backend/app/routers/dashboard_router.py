@@ -14,6 +14,7 @@ from app.schemas.dashboard_schemas import (
     DashboardResponse,
     DashboardListItem,
     WidgetCreateRequest,
+    WidgetPositionUpdate,
     WidgetUpdateRequest,
     WidgetResponse,
     WidgetConfig,
@@ -22,7 +23,7 @@ from app.schemas.pipeline import PrepareRequest
 from app.services.pipeline.orchestrator import run_pipeline
 from app.core.cache import get_cache, set_cache, invalidate_cache, refined_df_cache
 from app.core.logging_config import logger
-from app.services.pipeline.utils import _load_dataframe  
+from app.services.pipeline.utils import _load_dataframe, format_chart_data  
 
 router = APIRouter(prefix="/dashboards", tags=["dashboards"])
 
@@ -168,6 +169,8 @@ def _get_widget_data(widget_id: int, db: Session, current_user: User) -> dict:
         raise HTTPException(status_code=400, detail="Dataset file unavailable")
 
     chart_data = run_pipeline(df, prepare_params)
+    chart_data = format_chart_data(chart_data)   # <-- add this line
+
 
     response = {
         "id": widget.id,
@@ -258,3 +261,37 @@ def delete_widget(
     db.commit()
     invalidate_cache(f"widget:{widget_id}")
     return {"message": "Widget deleted"}
+
+from typing import List, Dict, Any
+
+
+@router.put("/{dashboard_id}/widgets/positions")
+def update_widget_positions(
+    dashboard_id: int,
+    updates: List[WidgetPositionUpdate],
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin),
+):
+    # Verify dashboard ownership
+    dash = db.query(Dashboard).filter(
+        Dashboard.id == dashboard_id,
+        Dashboard.user_id == current_user.id
+    ).first()
+    if not dash:
+        raise HTTPException(status_code=404, detail="Dashboard not found")
+
+    # Process each update
+    for upd in updates:
+        widget = db.query(Widget).filter(
+            Widget.id == upd.widget_id,
+            Widget.dashboard_id == dashboard_id
+        ).first()
+        if not widget:
+            raise HTTPException(status_code=404, detail=f"Widget {upd.widget_id} not found")
+        widget.position = upd.position
+
+    db.commit()
+    # Invalidate all widget caches on this dashboard (optional, but safe)
+    for upd in updates:
+        invalidate_cache(f"widget:{upd.widget_id}")
+    return {"message": f"Updated {len(updates)} widget positions"}

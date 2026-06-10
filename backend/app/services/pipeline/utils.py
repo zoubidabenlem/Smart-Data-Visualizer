@@ -107,3 +107,24 @@ def _load_dataframe(dataset, refined_df_cache) -> pd.DataFrame:
     logger.info(f"Loaded original DataFrame for dataset {dataset.id}, rows={len(df)}")
     return df
 
+# Add this helper near the top of dashboard_router.py
+def format_chart_data(data: List[dict], decimals: int = 2) -> List[dict]:
+    """Recursively round float values in chart_data to given decimals."""
+    if not data:
+        return data
+    formatted = []
+    for row in data:
+        new_row = {}
+        for k, v in row.items():
+            if isinstance(v, float):
+                # Round, but keep as float (frontend can still format further)
+                new_row[k] = round(v, decimals)
+            elif isinstance(v, dict):
+                new_row[k] = format_chart_data([v], decimals)[0]
+            elif isinstance(v, list):
+                new_row[k] = [format_chart_data([item], decimals)[0] if isinstance(item, dict) else item for item in v]
+            else:
+                new_row[k] = v
+        formatted.append(new_row)
+    return formatted
+

@@ -58,6 +58,9 @@ class WidgetConfig(BaseModel):
         "extra": "forbid",
         "str_strip_whitespace": True,
     }
+class WidgetPositionUpdate(BaseModel):
+    widget_id: int
+    position: Dict[str, Any]   # e.g., {"x": 0, "y": 0, "w": 4, "h": 3}
 
 # ------------------------------------------------------------------
 # API request / response models for dashboard CRUD
