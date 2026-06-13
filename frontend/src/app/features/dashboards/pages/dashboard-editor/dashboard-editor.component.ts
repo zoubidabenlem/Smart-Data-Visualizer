@@ -12,6 +12,8 @@ import { WidgetResponse } from 'src/app/core/models/dashboard.model';
 import { DatasetOut } from 'src/app/core/models/dataset.model';
 import { WidgetConfigDialogComponent } from '../../components/widget-config-dialog/widget-config-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
+import { GridsterService } from '../../services/gridster.service';
+import { WidgetPopupComponent } from '../../components/widget-popup/widget-popup.component';
 
 @Component({
   selector: 'app-dashboard-editor',
@@ -56,7 +58,8 @@ public isLeftPaneCollapsed = false;
     private editorService: DashboardEditorService,
     private datasetService: DatasetService,
     private snackBar: MatSnackBar,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    public gridService : GridsterService
   ) {}
 
   ngOnInit(): void {
@@ -178,6 +181,28 @@ console.log('[DEBUG] Opening widget dialog with dataset ID snapshot:', datasetId
   // Helper to get icon from service
   getWidgetIcon(chartType: string): string {
     return this.editorService.getWidgetIcon(chartType);
+  }
+  
+  openPopup(widget: WidgetResponse): void {
+  this.dialog.open(WidgetPopupComponent, {
+    data: { widget },
+    width: 'auto',
+    height: 'auto',
+    maxWidth: '90vw',
+    maxHeight: '90vh',
+    panelClass: 'enlarged-chart-dialog',
+    disableClose: false,
+    autoFocus: false
+  });
+}
+  saveDashboard(): void {
+    // Optional: show confirmation or auto-save any pending changes
+    
+    this.snackBar.open('Saving dashboard & opening viewer...', 'Close', { duration: 2000 });
+    this.editorService.refreshDashboard().subscribe(() => {
+    this.router.navigate(['/dashboards', 'view', this.dashboardId]);
+  });
+
   }
   
 

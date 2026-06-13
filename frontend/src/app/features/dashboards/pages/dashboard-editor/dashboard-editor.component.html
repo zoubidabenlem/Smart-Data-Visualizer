@@ -24,7 +24,7 @@
           </div>
           <mat-list dense class="columns-list">
             <mat-list-item *ngFor="let col of columns$ | async">
-              <mat-icon mat-list-icon>view_column</mat-icon>
+              <mat-icon mat-list-icon class="colIco">view_column</mat-icon>
               <span class="col-name">{{ col.name }}</span>
               <span class="col-type">{{ col.type }}</span>
             </mat-list-item>
@@ -87,6 +87,9 @@
         <button mat-icon-button (click)="startEditTitle()" class="edit-title-btn">
           <mat-icon>edit</mat-icon>
         </button>
+        <button mat-raised-button color="primary" class="save-view-btn" (click)="saveDashboard()">
+        <mat-icon>visibility</mat-icon> Save & View
+      </button>
       </div>
       <ng-template #titleEditor>
         <div class="title-editor">
@@ -100,8 +103,11 @@
 
     <!-- Static widget preview grid (no drag & drop, no edit/delete buttons here) -->
     <!-- Right pane: widget preview grid -->
+<!-- Static widget preview grid (click to enlarge) -->
 <div class="widget-preview-grid">
-  <div *ngFor="let widget of widgets$ | async" class="preview-card">
+  <div *ngFor="let widget of widgets$ | async"
+       class="preview-card"
+       (click)="openPopup(widget)">
     <div class="preview-header">
       <span>{{ widget.config.title }}</span>
       <mat-icon>{{ getWidgetIcon(widget.config.chart_type) }}</mat-icon>

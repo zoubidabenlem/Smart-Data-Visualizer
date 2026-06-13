@@ -1,0 +1,11 @@
+<div class="popup-wrapper">
+  <div class="popup-header">
+    <h2 class="popup-title">{{ widget.config.title }}</h2>
+    <button mat-icon-button class="close-btn" (click)="close()">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+  <div class="popup-body">
+    <app-widget-chart [widget]="widget" class="enlarged-chart"></app-widget-chart>
+  </div>
+</div>

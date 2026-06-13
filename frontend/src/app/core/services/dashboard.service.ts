@@ -59,4 +59,7 @@ export class DashboardService {
   deleteWidget(dashboardId: number, widgetId: number): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/${dashboardId}/widgets/${widgetId}`);
   }
+  updateWidgetPositions(dashboardId: number, updates: { widget_id: number, position: any }[]): Observable<void> {
+  return this.http.put<void>(`${this.baseUrl}/${dashboardId}/widgets/positions`, updates);
+}
 }

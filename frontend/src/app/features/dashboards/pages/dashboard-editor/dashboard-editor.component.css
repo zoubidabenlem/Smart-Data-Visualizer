@@ -92,9 +92,17 @@
 }
 
 .col-name {
+  padding-left: 8px;
   flex: 1;
   font-weight: 500;
   color: #2C3E66;
+}
+.colIco{
+    color: #2C3E66;
+    height:20px;
+    width:15px;
+    padding-right:10px;
+
 }
 
 .col-type {
@@ -400,3 +408,15 @@
 ::ng-deep app-footer {
   display: none !important;
 }
+
+.save-view-btn {
+  border-radius: 40px;
+  background: linear-gradient(135deg, #2C3E66, #6F5290);
+  color: white;
+  transition: transform 0.2s;
+}
+
+.save-view-btn:hover {
+  transform: translateY(-2px);
+}
+

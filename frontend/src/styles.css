@@ -60,3 +60,13 @@ a, button {
   max-width: 1200px;
   margin: 0 auto;
 }
+
+.enlarged-chart-dialog .mat-dialog-container {
+  padding: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  overflow: visible !important;   /* allow Chart.js tooltip to appear above the dialog */
+  border-radius: 20px;
+  overflow: visible;   /* allow tooltip to overflow */
+
+}

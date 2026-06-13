@@ -4,6 +4,7 @@ import { authGuard } from './core/auth/auth.guard';
 import { roleGuard } from './core/auth/role.guard';
 
 import { UnauthorizedComponent } from './core/unauthorized/unauthorized.component';
+import { DashboardViewerComponent } from './features/dashboards/pages/dashboard-viewer/dashboard-viewer.component';
 const routes: Routes = [
   // Landing page (public)
   { path: '', loadChildren: () => import('./features/landing/landing.module').then(m => m.LandingModule) },

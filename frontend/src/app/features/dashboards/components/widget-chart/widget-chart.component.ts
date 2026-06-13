@@ -104,14 +104,24 @@ export class WidgetChartComponent implements OnChanges, OnDestroy, AfterViewInit
         tooltip: {
           callbacks: {
             label: (ctx: any) => {
-              let label = ctx.dataset.label || '';
-              let value = ctx.parsed.y;
+              // Pie / Doughnut: use ctx.label (category) and ctx.parsed (value)
+            if (this.widget.config.chart_type === 'pie' ) {
+              const label = ctx.label || '';
+              const value = ctx.parsed;          // or ctx.raw
               if (typeof value === 'number') {
-                value = value.toLocaleString(undefined, { maximumFractionDigits: 2 });
+                return `${label}: ${value.toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
               }
               return `${label}: ${value}`;
             }
+            // Bar, Line, Area, Scatter, etc.
+            let label = ctx.dataset.label || '';
+            let value = ctx.parsed.y;
+            if (typeof value === 'number') {
+              value = value.toLocaleString(undefined, { maximumFractionDigits: 2 });
+            }
+            return `${label}: ${value}`;
           }
+        }
         }
       },
       scales: {

@@ -24,6 +24,9 @@ import { MatSelectModule } from '@angular/material/select';
 import { DashboardEditorComponent } from './pages/dashboard-editor/dashboard-editor.component';
 import { WidgetConfigDialogComponent } from './components/widget-config-dialog/widget-config-dialog.component';
 import { WidgetChartComponent } from './components/widget-chart/widget-chart.component';
+import { GridsterModule } from 'angular-gridster2';
+import { WidgetPopupComponent } from './components/widget-popup/widget-popup.component';
+import { DashboardViewerComponent } from './pages/dashboard-viewer/dashboard-viewer.component';
 
 
 @NgModule({
@@ -32,11 +35,14 @@ import { WidgetChartComponent } from './components/widget-chart/widget-chart.com
     CreateDashboardDialogComponent,
     DashboardEditorComponent,
     WidgetConfigDialogComponent,
-    WidgetChartComponent
+    WidgetChartComponent,
+    WidgetPopupComponent,
+    DashboardViewerComponent
   ],
   imports: [
     CommonModule,
     ReactiveFormsModule,
+    GridsterModule,
     FormsModule,
     RouterModule,
     DashboardsRoutingModule,

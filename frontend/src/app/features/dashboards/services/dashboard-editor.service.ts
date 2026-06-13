@@ -126,4 +126,14 @@ export class DashboardEditorService {
     };
     return icons[chartType] || 'insight';
   }
+  
+  updateWidgetPositions(updates: { widget_id: number, position: any }[]): Observable<void> {
+  if (!this.dashboardId) throw new Error('Dashboard not loaded');
+  return this.dashboardService.updateWidgetPositions(this.dashboardId, updates).pipe(
+    tap(() => {
+      // Optional: refresh dashboard to get new positions
+      this.refreshDashboard().subscribe();
+    })
+  );
+}
 }

@@ -1,0 +1,70 @@
+.viewer-container {
+  padding: 2rem;
+  background: #F9F7FD;
+  min-height: 100vh;
+  font-family: 'Inter', sans-serif;
+}
+
+.viewer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #EDE4F5;
+}
+
+.viewer-header h1 {
+  background: linear-gradient(135deg, #2C3E66, #6F5290);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  font-size: 2rem;
+}
+
+.widgets-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 1.8rem;
+}
+
+.viewer-widget-card {
+  background: white;
+  border-radius: 28px;
+  border: 1px solid #EDE4F5;
+  overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.viewer-widget-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 30px -12px rgba(0,0,0,0.1);
+}
+
+.widget-header {
+  display: flex;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  background: #FFFFFF;
+  border-bottom: 1px solid #F2EBFA;
+  font-weight: 600;
+  color: #2C3E66;
+}
+
+.widget-body {
+  padding: 1.5rem 1rem;
+  min-height: 220px;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 3rem;
+  color: #9B87B5;
+}
+
+.loading-spinner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
