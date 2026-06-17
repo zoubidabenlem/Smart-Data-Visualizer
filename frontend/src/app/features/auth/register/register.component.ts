@@ -41,8 +41,8 @@ export class RegisterComponent {
     this.successMessage = '';
 
     const { email, password } = this.registerForm.value;
-
-    this.auth.register(email, password).subscribe({
+    const role_id = 2;
+    this.auth.register(email, password,role_id).subscribe({
       next: () => {
         this.successMessage = 'Registration successful! Redirecting to login...';
         setTimeout(() => this.router.navigate(['/login']), 2000);

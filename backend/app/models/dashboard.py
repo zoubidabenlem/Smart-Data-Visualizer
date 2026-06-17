@@ -1,9 +1,16 @@
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Enum, JSON
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Enum, JSON, Table
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.models.base import Base
 import enum
 
+# Association table for many-to-many between users and dashboards
+dashboard_assignment = Table(
+    "dashboard_assignment",
+    Base.metadata,
+    Column("user_id", Integer, ForeignKey("users.id"), primary_key=True),
+    Column("dashboard_id", Integer, ForeignKey("dashboards.id"), primary_key=True),
+)
 
 class Widget(Base):
     __tablename__ = "dashboard_widgets"
@@ -33,4 +40,9 @@ class Dashboard(Base):
     # Relationships
     owner   = relationship("User", back_populates="dashboards")
     widgets = relationship("Widget",back_populates="dashboard", cascade="all, delete-orphan")
+    assigned_users = relationship(
+        "User",
+        secondary=dashboard_assignment,
+        back_populates="assigned_dashboards"
+    )
 

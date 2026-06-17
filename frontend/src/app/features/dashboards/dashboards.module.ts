@@ -23,10 +23,10 @@ import { DashboardEditorService } from './services/dashboard-editor.service';
 import { MatSelectModule } from '@angular/material/select';
 import { DashboardEditorComponent } from './pages/dashboard-editor/dashboard-editor.component';
 import { WidgetConfigDialogComponent } from './components/widget-config-dialog/widget-config-dialog.component';
-import { WidgetChartComponent } from './components/widget-chart/widget-chart.component';
 import { GridsterModule } from 'angular-gridster2';
 import { WidgetPopupComponent } from './components/widget-popup/widget-popup.component';
 import { DashboardViewerComponent } from './pages/dashboard-viewer/dashboard-viewer.component';
+import { SharedModule } from 'src/app/shared/shared.module';
 
 
 @NgModule({
@@ -35,29 +35,19 @@ import { DashboardViewerComponent } from './pages/dashboard-viewer/dashboard-vie
     CreateDashboardDialogComponent,
     DashboardEditorComponent,
     WidgetConfigDialogComponent,
-    WidgetChartComponent,
     WidgetPopupComponent,
-    DashboardViewerComponent
+    DashboardViewerComponent,
   ],
   imports: [
     CommonModule,
     ReactiveFormsModule,
     GridsterModule,
     FormsModule,
-    RouterModule,
     DashboardsRoutingModule,
-    MatButtonModule,
-    MatCardModule,
-    MatDialogModule,
-    MatFormFieldModule,
-    MatIconModule,
-    MatInputModule,
-    MatProgressSpinnerModule,
-    MatSnackBarModule,
-    MatSelectModule,
-    MatListModule,
-    MatTooltipModule,
+   RouterModule,
+    SharedModule,
   ],
   providers: [DashboardEditorService],
+  
 })
 export class DashboardsModule { }

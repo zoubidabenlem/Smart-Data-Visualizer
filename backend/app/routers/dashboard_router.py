@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Dict, Any
 import pandas as pd
 
 from app.dependencies.auth_dependencies import get_current_user, require_admin
@@ -24,10 +24,12 @@ from app.services.pipeline.orchestrator import run_pipeline
 from app.core.cache import get_cache, set_cache, invalidate_cache, refined_df_cache
 from app.core.logging_config import logger
 from app.services.pipeline.utils import _load_dataframe, format_chart_data  
+from app.models.dashboard import dashboard_assignment  # add this line
 
 router = APIRouter(prefix="/dashboards", tags=["dashboards"])
 
-# ---------- Dashboard CRUD ----------
+# ---------- Dashboard CRUD -------_----------------------------------------------------------------
+########################################################################################################################
 @router.post("/", response_model=dict, status_code=201)
 def create_dashboard(
     payload: DashboardCreateRequest,
@@ -66,7 +68,13 @@ def list_dashboards(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    dashboards = db.query(Dashboard).filter(Dashboard.user_id == current_user.id).all()
+    if current_user.role.name == "admin":
+        dashboards = db.query(Dashboard).all()
+    else:
+        dashboards = db.query(Dashboard).filter(
+            Dashboard.assigned_users.any(id=current_user.id)
+        ).all()
+
     return [
         {
             "id": d.id,
@@ -83,13 +91,21 @@ def get_dashboard(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    dash = db.query(Dashboard).filter(
-        Dashboard.id == dashboard_id,
-        Dashboard.user_id == current_user.id
-    ).first()
+    dash = db.query(Dashboard).filter(Dashboard.id == dashboard_id).first()
     if not dash:
-        raise HTTPException(status_code=404, detail="Dashboard not found")
+        raise HTTPException(404, "Dashboard not found")
 
+    # Admin: can view any dashboard
+    # Viewer: can view only if assigned
+    print(current_user.role.name)
+     # Admin: can view any dashboard
+    if current_user.role.name != "admin":
+        accessible = db.query(Dashboard).filter(
+            Dashboard.id == dashboard_id,
+            Dashboard.assigned_users.any(id=current_user.id)
+        ).first()
+        if not accessible:
+            raise HTTPException(403, "Access denied")
     widgets_responses = []
     for widget in dash.widgets:
         # Compute chart data for each widget (with caching)
@@ -132,7 +148,51 @@ def delete_dashboard(
     db.commit()
     return {"message": "Dashboard deleted"}
 
-# ---------- Widget CRUD ----------
+# Assignment endpoints (admin only) --------------------
+
+@router.post("/{dashboard_id}/assign/{user_id}", status_code=200)
+def assign_dashboard_to_user(
+    dashboard_id: int,
+    user_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin),   # only admin
+):
+    dashboard = db.query(Dashboard).filter(Dashboard.id == dashboard_id).first()
+    if not dashboard:
+        raise HTTPException(404, "Dashboard not found")
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(404, "User not found")
+
+    if user in dashboard.assigned_users:
+        raise HTTPException(400, "Already assigned")
+    dashboard.assigned_users.append(user)
+    db.commit()
+    return {"message": f"Dashboard {dashboard_id} assigned to user {user_id}"}
+
+@router.delete("/{dashboard_id}/unassign/{user_id}", status_code=200)
+def unassign_dashboard_from_user(
+    dashboard_id: int,
+    user_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin),
+):
+    dashboard = db.query(Dashboard).filter(Dashboard.id == dashboard_id).first()
+    if not dashboard:
+        raise HTTPException(404, "Dashboard not found")
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(404, "User not found")
+
+    if user not in dashboard.assigned_users:
+        raise HTTPException(400, "Not assigned")
+    dashboard.assigned_users.remove(user)
+    db.commit()
+    return {"message": "Unassigned"}
+
+
+# ---------- Widget CRUD ----_--------------------------------------------------------------------------------------
+######################################################################################################################
 def _get_widget_data(widget_id: int, db: Session, current_user: User) -> dict:
     """Helper to fetch a widget with its chart_data (cached)."""
     cache_key = f"widget:{widget_id}"
@@ -147,9 +207,14 @@ def _get_widget_data(widget_id: int, db: Session, current_user: User) -> dict:
 
     # Verify dashboard ownership
     dashboard = widget.dashboard
-    if dashboard.user_id != current_user.id:
-        raise HTTPException(status_code=403, detail="Access denied")
-
+    if current_user.role.name != "admin":
+        has_access = db.query(Dashboard).filter(
+            Dashboard.id == dashboard.id,
+            Dashboard.assigned_users.any(id=current_user.id)
+        ).first() is not None
+        if not has_access:
+            raise HTTPException(status_code=403, detail="Access denied")
+        
     dataset = db.query(Dataset).get(widget.dataset_id)
     if not dataset:
         raise HTTPException(status_code=400, detail="Dataset not found")
@@ -261,9 +326,6 @@ def delete_widget(
     db.commit()
     invalidate_cache(f"widget:{widget_id}")
     return {"message": "Widget deleted"}
-
-from typing import List, Dict, Any
-
 
 @router.put("/{dashboard_id}/widgets/positions")
 def update_widget_positions(

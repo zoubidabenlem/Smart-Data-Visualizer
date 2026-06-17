@@ -20,6 +20,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatChipsModule } from '@angular/material/chips';
 import { OverlayModule } from '@angular/cdk/overlay';
 import { ScrollingModule } from '@angular/cdk/scrolling';
+import { SharedModule } from 'src/app/shared/shared.module';
 @NgModule({
   declarations: [
     BuilderComponent,
@@ -43,7 +44,7 @@ import { ScrollingModule } from '@angular/cdk/scrolling';
     MatIconModule,
     MatChipsModule,
     OverlayModule,
-    ScrollingModule
-  ],
+    ScrollingModule,
+    SharedModule,],
 })
 export class BuilderModule { }

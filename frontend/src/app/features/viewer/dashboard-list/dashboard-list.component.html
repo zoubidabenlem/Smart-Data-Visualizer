@@ -1,1 +1,19 @@
-<p>dashboard-list works!</p>
+<div class="dash-list-container">
+  <h1 class="neon-title">My Dashboards</h1>
+
+  <div class="grid" *ngIf="!isLoading">
+    <div *ngFor="let dash of dashboards" class="card neon-card">
+      <h3>{{ dash.title }}</h3>
+      <p>{{ dash.widget_count }} widget{{ dash.widget_count !== 1 ? 's' : '' }}</p>
+      <button class="neon-btn" [routerLink]="['/viewer/dashboards', dash.id]">
+        Open Fullscreen
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="dashboards.length === 0 && !isLoading" class="empty-message">
+    <p>You don't have any dashboards assigned yet.</p>
+  </div>
+
+  <div *ngIf="isLoading" class="loading">Loading...</div>
+</div>

@@ -43,6 +43,7 @@ export class DashboardService {
     return this.http.delete<void>(`${this.baseUrl}/${id}`);
   }
 
+  
   // ---------- Widget CRUD ----------
   addWidget(dashboardId: number, payload: WidgetCreateRequest): Observable<{ id: number }> {
     return this.http.post<{ id: number }>(`${this.baseUrl}/${dashboardId}/widgets`, payload);
@@ -62,4 +63,5 @@ export class DashboardService {
   updateWidgetPositions(dashboardId: number, updates: { widget_id: number, position: any }[]): Observable<void> {
   return this.http.put<void>(`${this.baseUrl}/${dashboardId}/widgets/positions`, updates);
 }
+
 }

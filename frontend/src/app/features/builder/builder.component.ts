@@ -22,13 +22,7 @@ export class BuilderComponent implements OnInit {
 ) {}
 
   ngOnInit(): void {
-    // Check a session flag to avoid an infinite reload loop
-    if (!sessionStorage.getItem('pageRefreshed')) {
-      sessionStorage.setItem('pageRefreshed', 'true');
-      window.location.reload(); // Performs the hard refresh
-    } else {
-      sessionStorage.removeItem('pageRefreshed');
-    }
+    
     this.loadDatasets();
   }
 
@@ -59,8 +53,12 @@ export class BuilderComponent implements OnInit {
   }
 
   // src/app/features/builder/builder.component.ts
-navigateToDashboardBuilder(id: number) {
+  navigateToDashboardBuilder(id: number) {
   this.router.navigate(['/dashboard-builder'], { queryParams: { datasetId: id } });
+}
+
+ navigateToUserManagement(id: number) {
+  this.router.navigate(['/admin/user'], { queryParams: { datasetId: id } });
 }
   
 

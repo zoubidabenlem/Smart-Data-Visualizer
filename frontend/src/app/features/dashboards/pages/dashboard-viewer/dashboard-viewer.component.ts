@@ -34,6 +34,6 @@ export class DashboardViewerComponent implements OnInit {
 
   // Add this method to navigate back to the editor
   goBack(): void {
-this.router.navigate(['/dashboards', this.dashboardId,'edit']);
+    this.router.navigate(['/dashboards', this.dashboardId, 'edit']);
   }
 }

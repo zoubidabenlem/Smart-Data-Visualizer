@@ -94,16 +94,17 @@ smart-data-visualizer/
 ```
 ### Project Status
 This project is currently under active development as part of an academic MVP.
+
 ```
 Smart-Data-Visualizer
 ├─ backend
 │  ├─ app
-│  │  ├─ api
-│  │  │  └─ __init__.py
 │  │  ├─ core
 │  │  │  ├─ cache.py
 │  │  │  ├─ config.py
+│  │  │  ├─ exception_handlers.py
 │  │  │  ├─ logging_config.py
+│  │  │  ├─ logging_middleware.py
 │  │  │  ├─ security.py
 │  │  │  └─ __init__.py
 │  │  ├─ db
@@ -112,8 +113,6 @@ Smart-Data-Visualizer
 │  │  │  └─ __init__.py
 │  │  ├─ dependencies
 │  │  │  ├─ auth_dependencies.py
-│  │  │  └─ __init__.py
-│  │  ├─ endpoints
 │  │  │  └─ __init__.py
 │  │  ├─ models
 │  │  │  ├─ base.py
@@ -125,11 +124,15 @@ Smart-Data-Visualizer
 │  │  │  └─ __init__.py
 │  │  ├─ routers
 │  │  │  ├─ auth_router.py
+│  │  │  ├─ dashboard_router.py
 │  │  │  ├─ dataset_router.py
 │  │  │  ├─ task_router.py
+│  │  │  ├─ user_router.py
 │  │  │  └─ __init__.py
 │  │  ├─ schemas
 │  │  │  ├─ auth_schemas.py
+│  │  │  ├─ config_schema.json
+│  │  │  ├─ dashboard_schemas.py
 │  │  │  ├─ dataset_schemas.py
 │  │  │  ├─ pipeline.py
 │  │  │  ├─ refine_schema.py
@@ -151,6 +154,7 @@ Smart-Data-Visualizer
 │  │  │  └─ __init__.py
 │  │  └─ __init__.py
 │  ├─ Dockerfile
+│  ├─ generate_schema.py
 │  ├─ logs
 │  ├─ main.py
 │  ├─ pipeline_test_output
@@ -171,10 +175,10 @@ Smart-Data-Visualizer
 │  └─ __init__.py
 ├─ docker-compose.yml
 ├─ docs
-│  └─ .project_structure_ignore
 ├─ frontend
 │  ├─ .editorconfig
 │  ├─ angular.json
+│  ├─ config_schema.json
 │  ├─ Dockerfile
 │  ├─ nginx.conf
 │  ├─ package.json
@@ -204,16 +208,17 @@ Smart-Data-Visualizer
 │  │  │  │  │  ├─ jwt.interceptor.spec.ts
 │  │  │  │  │  └─ jwt.interceptor.ts
 │  │  │  │  ├─ models
+│  │  │  │  │  ├─ dashboard.model.ts
 │  │  │  │  │  ├─ dataset.model.ts
 │  │  │  │  │  └─ user.model.ts
 │  │  │  │  ├─ services
 │  │  │  │  │  ├─ builder-state.service.ts
-│  │  │  │  │  ├─ chart-builder-state.service.ts
 │  │  │  │  │  ├─ dashboard.service.spec.ts
 │  │  │  │  │  ├─ dashboard.service.ts
 │  │  │  │  │  ├─ dataset.service.spec.ts
 │  │  │  │  │  ├─ dataset.service.ts
-│  │  │  │  │  └─ services.module.ts
+│  │  │  │  │  ├─ services.module.ts
+│  │  │  │  │  └─ user.service.ts
 │  │  │  │  └─ unauthorized
 │  │  │  │     ├─ unauthorized.component.css
 │  │  │  │     ├─ unauthorized.component.html
@@ -234,51 +239,26 @@ Smart-Data-Visualizer
 │  │  │  │  │     ├─ register.component.spec.ts
 │  │  │  │  │     └─ register.component.ts
 │  │  │  │  ├─ builder
-│  │  │  │  │  ├─ aggregation
-│  │  │  │  │  │  ├─ aggregation.component.css
-│  │  │  │  │  │  ├─ aggregation.component.html
-│  │  │  │  │  │  ├─ aggregation.component.spec.ts
-│  │  │  │  │  │  └─ aggregation.component.ts
 │  │  │  │  │  ├─ builder-routing.module.ts
 │  │  │  │  │  ├─ builder.component.css
 │  │  │  │  │  ├─ builder.component.html
 │  │  │  │  │  ├─ builder.component.ts
 │  │  │  │  │  ├─ builder.module.ts
-│  │  │  │  │  ├─ chart-type-selector
-│  │  │  │  │  │  ├─ chart-type-selector.component.css
-│  │  │  │  │  │  ├─ chart-type-selector.component.html
-│  │  │  │  │  │  ├─ chart-type-selector.component.spec.ts
-│  │  │  │  │  │  └─ chart-type-selector.component.ts
 │  │  │  │  │  ├─ column-picker
 │  │  │  │  │  │  ├─ column-picker.component.css
 │  │  │  │  │  │  ├─ column-picker.component.html
 │  │  │  │  │  │  ├─ column-picker.component.spec.ts
 │  │  │  │  │  │  └─ column-picker.component.ts
-│  │  │  │  │  ├─ dashboard-save
-│  │  │  │  │  │  ├─ dashboard-save.component.css
-│  │  │  │  │  │  ├─ dashboard-save.component.html
-│  │  │  │  │  │  ├─ dashboard-save.component.spec.ts
-│  │  │  │  │  │  └─ dashboard-save.component.ts
 │  │  │  │  │  ├─ dataset-list
 │  │  │  │  │  │  ├─ dataset-list.component.css
 │  │  │  │  │  │  ├─ dataset-list.component.html
 │  │  │  │  │  │  ├─ dataset-list.component.spec.ts
 │  │  │  │  │  │  └─ dataset-list.component.ts
-│  │  │  │  │  ├─ dataset-selector
-│  │  │  │  │  │  ├─ dataset-selector.component.css
-│  │  │  │  │  │  ├─ dataset-selector.component.html
-│  │  │  │  │  │  ├─ dataset-selector.component.spec.ts
-│  │  │  │  │  │  └─ dataset-selector.component.ts
 │  │  │  │  │  ├─ dataset-upload
 │  │  │  │  │  │  ├─ dataset-upload.component.css
 │  │  │  │  │  │  ├─ dataset-upload.component.html
 │  │  │  │  │  │  ├─ dataset-upload.component.spec.ts
 │  │  │  │  │  │  └─ dataset-upload.component.ts
-│  │  │  │  │  ├─ filter-builder
-│  │  │  │  │  │  ├─ filter-builder.component.css
-│  │  │  │  │  │  ├─ filter-builder.component.html
-│  │  │  │  │  │  ├─ filter-builder.component.spec.ts
-│  │  │  │  │  │  └─ filter-builder.component.ts
 │  │  │  │  │  ├─ preview-modal
 │  │  │  │  │  │  ├─ preview-modal.component.css
 │  │  │  │  │  │  ├─ preview-modal.component.html
@@ -288,6 +268,43 @@ Smart-Data-Visualizer
 │  │  │  │  │     ├─ refine-schema.component.css
 │  │  │  │  │     ├─ refine-schema.component.html
 │  │  │  │  │     └─ refine-schema.component.ts
+│  │  │  │  ├─ dashboards
+│  │  │  │  │  ├─ components
+│  │  │  │  │  │  ├─ create-dashboard-dialog
+│  │  │  │  │  │  │  ├─ create-dashboard-dialog.component.css
+│  │  │  │  │  │  │  ├─ create-dashboard-dialog.component.html
+│  │  │  │  │  │  │  ├─ create-dashboard-dialog.component.spec.ts
+│  │  │  │  │  │  │  └─ create-dashboard-dialog.component.ts
+│  │  │  │  │  │  ├─ widget-config-dialog
+│  │  │  │  │  │  │  ├─ widget-config-dialog.component.css
+│  │  │  │  │  │  │  ├─ widget-config-dialog.component.html
+│  │  │  │  │  │  │  ├─ widget-config-dialog.component.spec.ts
+│  │  │  │  │  │  │  └─ widget-config-dialog.component.ts
+│  │  │  │  │  │  └─ widget-popup
+│  │  │  │  │  │     ├─ widget-popup.component.css
+│  │  │  │  │  │     ├─ widget-popup.component.html
+│  │  │  │  │  │     ├─ widget-popup.component.spec.ts
+│  │  │  │  │  │     └─ widget-popup.component.ts
+│  │  │  │  │  ├─ dashboards-routing.module.ts
+│  │  │  │  │  ├─ dashboards.module.ts
+│  │  │  │  │  ├─ pages
+│  │  │  │  │  │  ├─ dashboard-editor
+│  │  │  │  │  │  │  ├─ dashboard-editor.component.css
+│  │  │  │  │  │  │  ├─ dashboard-editor.component.html
+│  │  │  │  │  │  │  ├─ dashboard-editor.component.spec.ts
+│  │  │  │  │  │  │  └─ dashboard-editor.component.ts
+│  │  │  │  │  │  ├─ dashboard-list
+│  │  │  │  │  │  │  ├─ dashboard-list.component.css
+│  │  │  │  │  │  │  ├─ dashboard-list.component.html
+│  │  │  │  │  │  │  ├─ dashboard-list.component.spec.ts
+│  │  │  │  │  │  │  └─ dashboard-list.component.ts
+│  │  │  │  │  │  └─ dashboard-viewer
+│  │  │  │  │  │     ├─ dashboard-viewer.component.css
+│  │  │  │  │  │     ├─ dashboard-viewer.component.html
+│  │  │  │  │  │     └─ dashboard-viewer.component.ts
+│  │  │  │  │  └─ services
+│  │  │  │  │     ├─ dashboard-editor.service.ts
+│  │  │  │  │     └─ gridster.service.ts
 │  │  │  │  ├─ landing
 │  │  │  │  │  ├─ landing-page.component.css
 │  │  │  │  │  ├─ landing-page.component.html
@@ -295,6 +312,15 @@ Smart-Data-Visualizer
 │  │  │  │  │  ├─ landing-page.component.ts
 │  │  │  │  │  ├─ landing-routing.module.ts
 │  │  │  │  │  └─ landing.module.ts
+│  │  │  │  ├─ user-management
+│  │  │  │  │  ├─ assign-dashboards-dialog
+│  │  │  │  │  │  ├─ assign-dashboards-dialog.component.css
+│  │  │  │  │  │  ├─ assign-dashboards-dialog.component.html
+│  │  │  │  │  │  └─ assign-dashboards-dialog.component.ts
+│  │  │  │  │  ├─ user-management.component.css
+│  │  │  │  │  ├─ user-management.component.html
+│  │  │  │  │  ├─ user-management.component.ts
+│  │  │  │  │  └─ user-management.module.ts
 │  │  │  │  └─ viewer
 │  │  │  │     ├─ dashboard-list
 │  │  │  │     │  ├─ dashboard-list.component.css
@@ -306,26 +332,30 @@ Smart-Data-Visualizer
 │  │  │  │     │  ├─ dashboard-view.component.html
 │  │  │  │     │  ├─ dashboard-view.component.spec.ts
 │  │  │  │     │  └─ dashboard-view.component.ts
+│  │  │  │     ├─ profile
+│  │  │  │     │  ├─ profile.component.css
+│  │  │  │     │  ├─ profile.component.html
+│  │  │  │     │  └─ profile.component.ts
 │  │  │  │     ├─ viewer-routing.module.ts
 │  │  │  │     └─ viewer.module.ts
 │  │  │  └─ shared
 │  │  │     ├─ components
-│  │  │     │  ├─ chart
-│  │  │     │  │  ├─ chart.component.css
-│  │  │     │  │  ├─ chart.component.html
-│  │  │     │  │  ├─ chart.component.spec.ts
-│  │  │     │  │  └─ chart.component.ts
 │  │  │     │  ├─ components.module.ts
 │  │  │     │  ├─ footer
 │  │  │     │  │  ├─ footer.component.css
 │  │  │     │  │  ├─ footer.component.html
 │  │  │     │  │  ├─ footer.component.spec.ts
 │  │  │     │  │  └─ footer.component.ts
-│  │  │     │  └─ header
-│  │  │     │     ├─ header.component.css
-│  │  │     │     ├─ header.component.html
-│  │  │     │     ├─ header.component.spec.ts
-│  │  │     │     └─ header.component.ts
+│  │  │     │  ├─ header
+│  │  │     │  │  ├─ header.component.css
+│  │  │     │  │  ├─ header.component.html
+│  │  │     │  │  ├─ header.component.spec.ts
+│  │  │     │  │  └─ header.component.ts
+│  │  │     │  └─ widget-chart
+│  │  │     │     ├─ widget-chart.component.css
+│  │  │     │     ├─ widget-chart.component.html
+│  │  │     │     ├─ widget-chart.component.spec.ts
+│  │  │     │     └─ widget-chart.component.ts
 │  │  │     ├─ models
 │  │  │     │  └─ models.module.ts
 │  │  │     └─ shared.module.ts

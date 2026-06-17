@@ -2,6 +2,7 @@ from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.models.base import Base
+from app.models.dashboard import dashboard_assignment  # import the association table
 
 class User(Base):
     __tablename__ = 'users'
@@ -16,3 +17,8 @@ class User(Base):
     role        = relationship("Role", back_populates="users")
     datasets    = relationship("Dataset", back_populates="owner")
     dashboards = relationship("Dashboard", back_populates="owner")
+    assigned_dashboards = relationship(
+        "Dashboard",
+        secondary=dashboard_assignment,
+        back_populates="assigned_users"
+    )

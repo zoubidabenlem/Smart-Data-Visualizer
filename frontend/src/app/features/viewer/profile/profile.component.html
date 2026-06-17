@@ -1,0 +1,54 @@
+<div class="profile-page">
+  <div class="profile-card-wrapper">
+    <mat-card class="profile-card">
+
+      <!-- Loading spinner -->
+      <div *ngIf="loading" class="loading-spinner">
+        <mat-spinner diameter="40"></mat-spinner>
+      </div>
+
+      <ng-container *ngIf="!loading">
+        <!-- Header -->
+        <mat-card-header>
+          <div class="header-content">
+            <mat-icon class="profile-icon">account_circle</mat-icon>
+            <h2>Profile</h2>
+          </div>
+        </mat-card-header>
+
+        <!-- Content: all available fields -->
+        <mat-card-content>
+          <div class="info-row">
+            <span class="label">User ID</span>
+            <span class="value">{{ user?.id }}</span>
+          </div>
+
+          <div class="info-row">
+            <span class="label">Email</span>
+            <span class="value">{{ user?.email || '—' }}</span>
+          </div>
+
+          <div class="info-row">
+            <span class="label">Role</span>
+            <span class="value">{{ getRoleName() }}</span>
+          </div>
+
+          <div class="info-row">
+            <span class="label">Status</span>
+            <span class="value">
+              <span class="status-badge" [class.active]="user?.is_active">
+                {{ user?.is_active ? 'Active' : 'Inactive' }}
+              </span>
+            </span>
+          </div>
+
+          <!-- Logout button -->
+          <button mat-raised-button class="logout-btn" (click)="logout()">
+            <mat-icon>logout</mat-icon> Logout
+          </button>
+        </mat-card-content>
+      </ng-container>
+
+    </mat-card>
+  </div>
+</div>

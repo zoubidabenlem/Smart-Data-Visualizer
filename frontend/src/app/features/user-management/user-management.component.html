@@ -1,0 +1,37 @@
+<div class="admin-container">
+  <h1 class="neon-title">User Management</h1>
+  <button class="neon-btn" routerLink="/login/register">Create New User</button>
+
+  <table class="neon-table">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Email</th>
+        <th>Role</th>
+        <th>Active</th>
+        <th>Dashboards</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let user of users">
+        <td>{{ user.id }}</td>
+        <td>{{ user.email }}</td>
+        <td>{{ user.role_id }}</td>
+        <td>{{ user.is_active ? 'Yes' : 'No' }}</td>
+        <td>{{ user.dashboard_count || 0 }}</td>
+        <td class="action-cell">
+          <button class="neon-btn-sm" (click)="toggleActive(user)">
+            {{ user.is_active ? 'Deactivate' : 'Activate' }}
+          </button>
+          <button class="neon-btn-sm danger" (click)="deleteUser(user.id)">Delete</button>
+
+          <!-- New assign button that opens the dialog -->
+          <button class="neon-btn-sm" (click)="openAssignDialog(user)">
+            Manage Dashboards
+          </button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>

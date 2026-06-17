@@ -11,7 +11,7 @@ import { RegisterComponent } from './register/register.component';
 const routes: Routes = [
   //no /login  :AppRoutingModule already handles the 'login' prefix. This module only needs to know what to render at the root of its own path
   {path: '',component:LoginComponent},
-  { path: 'login/register', component: RegisterComponent }
+  { path: 'register', component: RegisterComponent }
 
 ]
 @NgModule({
@@ -26,6 +26,5 @@ const routes: Routes = [
     RouterModule.forChild(routes), // for child is called every feauture module, registers additional routes without creating a new router instance
     ReactiveFormsModule  // FormGroup, FormControl, Validators
   ],
-  providers: [AuthService]  // <-- ADD?
 })
 export class AuthModule { }

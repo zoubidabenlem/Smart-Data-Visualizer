@@ -41,3 +41,16 @@ class TokenData(BaseModel):
     """Decoded JWT payload — used internally by dependencies"""
     user_id: Optional[int] = None
     role: Optional[str] = None
+
+# ------ New schemas for user management ------
+
+class UserUpdate(BaseModel):
+    """Fields the admin may change (all optional)"""
+    email: Optional[EmailStr] = None
+    role_id: Optional[int] = None
+    is_active: Optional[bool] = None
+
+
+class DashboardAssignment(BaseModel):
+    """Body for POST /users/{id}/dashboards"""
+    dashboard_id: int

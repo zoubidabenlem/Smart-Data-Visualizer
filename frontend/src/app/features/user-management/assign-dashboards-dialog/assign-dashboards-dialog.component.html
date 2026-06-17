@@ -1,0 +1,17 @@
+ <h2 mat-dialog-title>Assign Dashboards to {{data.user.email}}</h2>
+    <mat-dialog-content>
+      <mat-form-field appearance="fill" style="width: 100%">
+        <mat-label>Search dashboards</mat-label>
+        <input matInput [formControl]="searchControl" placeholder="Type to filter...">
+      </mat-form-field>
+
+      <mat-selection-list #dashList [(ngModel)]="selectedDashboards">
+        <mat-list-option *ngFor="let dash of filteredDashboards" [value]="dash.id">
+          {{ dash.title }}
+        </mat-list-option>
+      </mat-selection-list>
+    </mat-dialog-content>
+    <mat-dialog-actions align="end">
+      <button mat-button (click)="cancel()">Cancel</button>
+      <button mat-raised-button color="primary" (click)="save()" [disabled]="saving">Save</button>
+    </mat-dialog-actions>

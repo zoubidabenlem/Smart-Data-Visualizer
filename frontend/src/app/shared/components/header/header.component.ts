@@ -15,13 +15,15 @@ export class HeaderComponent implements OnInit, OnDestroy {
   constructor(
     private auth: AuthService,
     private cdr: ChangeDetectorRef
-  ) {}
+  ) {  console.log('HeaderComponent CONSTRUCTOR');
+}
 
   ngOnInit(): void {
-    this.userSub = this.auth.currentUser$.subscribe(user => {
-      this.currentUser = user;
-      this.cdr.markForCheck();   // Forces immediate template update
-    });
+    console.log('HeaderComponent ngOnInit - subscribing');
+  this.userSub = this.auth.currentUser$.subscribe(user => {
+    console.log('Header received user:', user);
+    this.currentUser = user;
+  });
   }
 
   logout(): void {
@@ -29,6 +31,8 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    console.log('HeaderComponent DESTROYED');
+
     this.userSub?.unsubscribe();
 
   }

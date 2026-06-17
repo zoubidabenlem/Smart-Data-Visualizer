@@ -1,1 +1,25 @@
-<p>dashboard-view works!</p>
+<div *ngIf="dashboard; else loading" class="viewer-container">
+  <div class="viewer-header">
+    <h1>{{ dashboard.title }}</h1>
+  </div>
+
+  <div class="widgets-grid">
+    <div *ngFor="let widget of dashboard.widgets" class="viewer-widget-card">
+      <div class="widget-header">
+        <span>{{ widget.config.title }}</span>
+        <mat-icon>{{ getWidgetIcon(widget.config.chart_type) }}</mat-icon>
+      </div>
+      <div class="widget-body">
+        <app-widget-chart [widget]="widget"></app-widget-chart>
+      </div>
+    </div>
+    <div *ngIf="dashboard.widgets.length === 0" class="empty-state">
+      <mat-icon>dashboard</mat-icon>
+      <p>No widgets added yet.</p>
+    </div>
+  </div>
+</div>
+
+<ng-template #loading>
+  <div class="loading-spinner"><mat-spinner diameter="50"></mat-spinner></div>
+</ng-template>

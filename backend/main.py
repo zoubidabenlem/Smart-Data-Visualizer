@@ -18,6 +18,7 @@ from app.core.exception_handlers import (
 from pydantic import ValidationError
 from app.services.pipeline.validation import PipelineValidationError
 from app.core.logging_middleware import LoggingMiddleware
+from app.routers import user_router
 
 app = FastAPI(
     title="Smart Data Visualizer API",
@@ -47,6 +48,8 @@ app.include_router(auth_router.router)
 
 # (Phase 2+) Add datasetrouters here
 app.include_router(dataset_router.router)
+# (Phase 3) user management router (admin-only)
+app.include_router(user_router.router)  # Admin-only user management endpoints
 #app.include_router(mysql_router.router)
 app.include_router(task_router.router)
  # PHASE 4 dashboard router

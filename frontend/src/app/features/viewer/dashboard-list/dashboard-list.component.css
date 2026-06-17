@@ -1,0 +1,81 @@
+/* -----------------------------------------------------
+   Softer, more polished "neon" card grid
+------------------------------------------------------ */
+.dash-list-container {
+  padding: 3rem 2rem;
+  background: #faf9fe;               /* soft off-white instead of pure white */
+  min-height: 100vh;
+  color: #2d2a3e;
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+/* Title – gradient still there but with a gentle glow */
+.neon-title {
+  font-size: 2.25rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #7c3aed, #db2777);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  margin-bottom: 2rem;
+  letter-spacing: -0.5px;
+  /* replaced heavy text-shadow with subtle blur glow */
+  filter: drop-shadow(0 2px 8px rgba(219, 39, 119, 0.15));
+}
+
+/* Grid – using CSS grid for better spacing and alignment */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Card – lighter, airier, with a subtle floating look */
+.neon-card {
+  background: #ffffff;
+  border: 1px solid rgba(219, 39, 119, 0.15);  /* very soft border */
+  border-radius: 16px;                         /* more rounded, less blocky */
+  padding: 1.75rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0,0,0,0.02);
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  backdrop-filter: blur(2px);
+}
+
+.neon-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(219, 39, 119, 0.1), 0 2px 8px rgba(0,0,0,0.04);
+  border-color: rgba(219, 39, 119, 0.3);
+}
+
+/* Button – clean, modern, with a solid fill on hover */
+.neon-btn {
+  background: transparent;
+  border: 2px solid #db2777;
+  color: #db2777;
+  padding: 0.5rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  margin-top: auto;                /* pushes button to bottom in flex card */
+  align-self: flex-start;
+  letter-spacing: 0.3px;
+  /* no text-shadow – cleaner */
+}
+
+.neon-btn:hover {
+  background: #db2777;
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(219, 39, 119, 0.35);
+  transform: translateY(-1px);
+}
+
+.neon-btn:active {
+  transform: translateY(0);
+  box-shadow: none;
+}

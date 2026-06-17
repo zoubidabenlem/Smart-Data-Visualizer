@@ -14,6 +14,7 @@ const routes: Routes = [
     path: 'login',
     loadChildren: () => import('./features/auth/auth.module').then(m => m.AuthModule)
   },
+  //Register (public)
   // Builder route — protected by BOTH guards, run in order
   {
   path: 'builder',
@@ -28,7 +29,14 @@ const routes: Routes = [
   data: { roles: ['admin'] },
   loadChildren: () => import('./features/dashboards/dashboards.module').then(m => m.DashboardsModule)
 },
-
+/// user management route — protected by BOTH guards, run in order
+  {
+  path: 'admin/users',
+  canActivate: [authGuard, roleGuard],
+  data: { roles: ['admin'] },
+  loadChildren: () => import('./features/user-management/user-management.module')
+                           .then(m => m.UserManagementModule)
+},
   // Viewer route — protected by AuthGuard
   {
     path: 'viewer',

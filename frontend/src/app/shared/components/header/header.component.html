@@ -11,10 +11,19 @@
         <span class="user-greeting">Welcome, {{ currentUser!.role }}</span>
         <button (click)="logout()" class="btn-logout">Sign Out</button>
 
-        <a *ngIf="currentUser!.role === 'admin'" routerLink="/builder">Builder</a>
-        <a *ngIf="currentUser!.role === 'admin'" routerLink="/dashboards">Dashboard</a>
+       <ng-container *ngIf="currentUser.role === 'admin'">
+          <a routerLink="/builder">Builder</a>
+          <a routerLink="/dashboards">My Dashboards</a>
+          <a routerLink="/admin/users">User Management</a>
+        </ng-container>
 
-        <a *ngIf="currentUser!.role !== 'admin'" routerLink="/viewer">Dashboard</a>
+        <!-- Viewer links -->
+        <ng-container *ngIf="currentUser.role === 'viewer'">
+          <a routerLink="/viewer/dashboards">Dashboards</a>
+          <a  routerLink="/viewer/profile">Profile</a>
+
+        </ng-container>
+
       </ng-container>
 
       <!-- Logged out state -->

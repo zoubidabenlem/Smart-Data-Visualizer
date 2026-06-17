@@ -1,14 +1,15 @@
-fastapi
-uvicorn[standard]
-sqlalchemy
-pymysql
-python-jose[cryptography]
-passlib[bcrypt]==1.7.4
-bcrypt==4.0.1
-pandas
-cachetools
-pydantic-settings
-python-dotenv
-email-validator
-openpyxl
-python-multipart
+fastapi # web framework for building APIs
+uvicorn[standard] # ASGI server for running FastAPI apps
+sqlalchemy # ORM for database access
+pymysql # MySQL database driver
+python-jose[cryptography] # JWT token handling and cryptographic support
+passlib[bcrypt]==1.7.4 # password hashing utilities
+bcrypt==4.0.1 # bcrypt hashing algorithm implementation
+pandas # data manipulation and analysis
+cachetools # in-memory caching utilities
+pydantic-settings # configuration management using Pydantic
+python-dotenv # load environment variables from .env files
+email-validator # validate email addresses
+openpyxl # read/write Excel files
+python-multipart # handle multipart form data uploads
+redis # cache implemetation
