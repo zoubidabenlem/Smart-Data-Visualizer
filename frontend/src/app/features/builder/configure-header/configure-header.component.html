@@ -1,0 +1,68 @@
+<div class="container-inner">
+  <h2>Configure Headers for Dataset #{{ datasetId }}</h2>
+
+  <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+
+  <!-- 1. Header Row Input -->
+  <div class="form-group">
+    <label>Header Row (0‑based):</label>
+    <input type="number" 
+           [(ngModel)]="headerRow" 
+           #rowInput
+           (change)="onHeaderRowChange(+rowInput.value)" 
+           min="0">
+  </div>
+
+  <!-- 2. Skip Rows Group -->
+  <div class="form-group">
+    <label>Skip Rows before header:</label>
+    <div>
+      <div *ngFor="let i of [].constructor(headerRow); let rowIndex = index">
+        <label>
+          <input type="checkbox" 
+                 [checked]="skipRows.includes(rowIndex)" 
+                 #checkInput
+                 (change)="onSkipRowToggle(rowIndex, checkInput.checked)">
+          Row {{ rowIndex }}
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. Preview Section with Horizontal Scroll Support -->
+  <div *ngIf="previewData" class="preview-section">
+    <h3>Preview (first 50 rows)</h3>
+    <div class="table-responsive">
+      <div class="table-wrapper">
+        <table class="table table-bordered">
+          <thead>
+            <tr>
+              <th *ngFor="let col of previewData.columns">
+                <input type="text" 
+                       [value]="columnNames[col]" 
+                       #nameInput
+                       (change)="onColumnNameChange(col, nameInput.value)" 
+                       class="form-control form-control-sm">
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let row of previewData.rows">
+              <td *ngFor="let col of previewData.columns">{{ row[col] }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Action Layout Buttons (With Cancel Button Added) -->
+  <div class="actions-footer">
+    <button class="btn btn-secondary" (click)="onCancel()" [disabled]="loading">
+      Cancel & Discard
+    </button>
+    <button class="btn btn-primary" (click)="submitConfiguration()" [disabled]="loading">
+      Confirm Header Configuration
+    </button>
+  </div>
+</div>

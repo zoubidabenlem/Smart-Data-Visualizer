@@ -13,7 +13,7 @@ from app.db.base import get_db
 from app.dependencies.auth_dependencies import require_admin, get_current_user
 from app.models.dataset import Dataset, SourceType
 from app.models.user import User
-from app.schemas.dataset_schemas import DatasetOut
+from app.schemas.dataset_schemas import ConfigureHeaderRequest, ConfigureHeaderResponse, DatasetOut
 from app.schemas.refine_schema import *
 from app.services.fileUpload_service import save_upload, extract_metadata
 from app.core.cache import preview_cache
@@ -22,6 +22,7 @@ from app.core.config import settings
 from fastapi.encoders import jsonable_encoder
 import pandas as pd
 import numpy as np
+from app.core.redis_client import delete_cache
 
 from app.services.pipeline.utils import dataframe_to_json_safe
 from app.services.pipeline.utils import sanitize_records
@@ -105,6 +106,59 @@ def upload_dataset(
     db.refresh(dataset)
 
     return DatasetOut.model_validate(dataset)
+
+# header configuration
+@router.post("/{dataset_id}/configure-header", response_model=ConfigureHeaderResponse, dependencies=[Depends(require_admin)])
+async def configure_header(
+    dataset_id: int,
+    config: ConfigureHeaderRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    dataset = db.query(Dataset).filter(Dataset.id == dataset_id).first()
+    if not dataset:
+        raise HTTPException(404, "Dataset not found")
+    if dataset.is_refined:   # probably want to allow header config only before refinement
+        raise HTTPException(400, "Dataset already refined; header configuration must happen before refinement")
+
+    # 1. Re‑read the file with new parameters
+    file_path = Path(dataset.source_path)
+    if not file_path.exists():
+        raise HTTPException(400, "Dataset file missing")
+
+    try:
+        if dataset.source_type == SourceType.csv:
+            df = pd.read_csv(file_path, header=config.header_row, skiprows=config.skip_rows or [])
+        else:
+            df = pd.read_excel(file_path, header=config.header_row, skiprows=config.skip_rows or [])
+    except Exception as e:
+        raise HTTPException(400, f"Error reading file with new header settings: {e}")
+
+    # 2. Apply manual column name overrides
+    if config.column_names:
+        df.rename(columns=config.column_names, inplace=True)
+
+    # 3. Save the cleaned file (optional but recommended)
+    new_path = file_path.parent / f"header_fixed_{dataset_id}.csv"
+    df.to_csv(new_path, index=False)
+
+    # 4. Update dataset metadata
+    dataset.source_path = str(new_path)
+    dataset.header_row = config.header_row
+    dataset.skip_rows = config.skip_rows
+    dataset.column_schema = [{"name": col, "dtype": str(df[col].dtype)} for col in df.columns]
+    dataset.row_count = len(df)
+    dataset.col_count = len(df.columns)
+
+    db.commit()
+
+    # 5. Invalidate any stale preview caches
+    delete_cache(f"preview:{dataset_id}:False")
+    delete_cache(f"preview:{dataset_id}:True")
+    # (you might have an invalidate_cache helper; if not, delete from Redis manually)
+
+    return ConfigureHeaderResponse.from_orm(dataset)
+
 # GET /datasets
 @router.get(
     "/",
@@ -138,21 +192,94 @@ def get_dataset(
         raise HTTPException(status_code=404, detail="Dataset not found")
     return DatasetOut.model_validate(dataset)
 
-#DELETE //datasets/{id}/delete
-@router.delete("/datasets/{id}/delete", status_code=200)
+#DELETE /{id}
+@router.delete("/{dataset_id}", status_code=status.HTTP_200_OK)
 def delete_dataset(
     dataset_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    # 1. Fetch the dataset ensuring ownership
     dataset = db.query(Dataset).filter(
         Dataset.id == dataset_id,
         Dataset.user_id == current_user.id
     ).first()
+    
     if not dataset:
         raise HTTPException(status_code=404, detail="Dataset not found")
-    db.delete(dataset)
-    db.commit()
+
+    # 2. OPTIONAL BUT RECOMMENDED: Delete physical file from disk storage
+    if dataset.source_path:
+        file_path = Path(str(dataset.source_path))
+        try:
+            if file_path.exists():
+                file_path.unlink()  # Deletes the file
+        except Exception as e:
+            # Log error but don't block DB deletion if the file is already gone
+            print(f"Warning: Could not delete physical file: {e}")
+
+    # 3. Delete records from database
+    try:
+        db.delete(dataset)
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Database deletion failed: {str(e)}")
+
+    return {"message": f"Dataset {dataset_id} successfully deleted"}
+
+# GET /datasets/{id}/raw-preview
+@router.get("/{dataset_id}/raw-preview")
+async def raw_preview(
+    dataset_id: int,
+    header_row: int = 0,
+    skip_rows: str = "",   # comma‑separated list of integers
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    dataset = db.query(Dataset).filter(Dataset.id == dataset_id, Dataset.user_id == current_user.id).first()
+    if not dataset:
+        raise HTTPException(404, "Dataset not found")
+
+    file_path = Path(dataset.source_path)
+    if not file_path.exists():
+        raise HTTPException(400, "File missing")
+
+    # 1. Safely extract your row configurations
+    skip_list = [int(x) for x in skip_rows.split(",") if x.strip()] if skip_rows else []
+    
+    try:
+        # 2. Apply parameters directly to the Pandas readers with encoding fallback paths
+        if dataset.source_type == SourceType.csv:  # type: ignore
+            try:
+                df = pd.read_csv(file_path, header=header_row, skiprows=skip_list, nrows=50)
+            except UnicodeDecodeError:
+                # Safe fallback if user uploads a Windows/Excel formatted local CSV
+                df = pd.read_csv(file_path, header=header_row, skiprows=skip_list, nrows=50, encoding='latin1')
+        else:
+            df = pd.read_excel(file_path, header=header_row, skiprows=skip_list, nrows=50)
+            
+        columns_list = list(df.columns)
+
+        # 3. Clean up the dataframe before extraction
+        df = dataframe_to_json_safe(df)
+        df = sanitize_records(df)
+        
+        # 4. FIXED: If your cleaning utilities convert the DF into a list of dicts, 
+        # do not call .to_dict() again. 
+        if isinstance(df, list):
+            preview_data = df
+        else:
+            preview_data = df.to_dict(orient="records")
+
+    except Exception as e:
+        raise HTTPException(400, f"Cannot parse: {e}")
+
+    return {
+        "columns": columns_list, 
+        "rows": preview_data, 
+        "total_rows_estimate": len(preview_data)
+    }
 
 # GET /datasets/{id}/preview
 @router.get("/{dataset_id}/preview", status_code=200)

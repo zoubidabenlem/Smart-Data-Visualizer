@@ -55,7 +55,7 @@ export class DatasetUploadComponent {
         const fileInput = document.getElementById('fileInput') as HTMLInputElement;
         if (fileInput) fileInput.value = '';
         this.uploadSuccess.emit();
-        this.router.navigate(['/builder/refine', dataset.id]);
+        this.router.navigate(['/builder/configure-header', dataset.id]);
 
       },
       error: (err) => {

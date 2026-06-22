@@ -1,10 +1,10 @@
 // src/app/core/services/dataset.service.ts
 
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { DatasetOut, DatasetPreview } from '../models/dataset.model';
+import { ConfigureHeaderRequest, DatasetOut, DatasetPreview, RawPreviewResponse } from '../models/dataset.model';
 
 @Injectable({
   providedIn: 'root'
@@ -24,6 +24,14 @@ export class DatasetService {
     return this.http.get<DatasetOut[]>(`${this.apiUrl}/`);
   }
 
+  getDataset(id: number): Observable<DatasetOut> {
+    return this.http.get<DatasetOut>(`${this.apiUrl}/${id}`);
+  }
+
+  deleteDataset(id:number):Observable<any>{
+    return this.http.delete(`${this.apiUrl}/${id}`);
+  }
+
   getPreview(id: number): Observable<DatasetPreview> {
     return this.http.get<DatasetPreview>(`${this.apiUrl}/${id}/preview`);
   }
@@ -36,8 +44,16 @@ export class DatasetService {
   refineSchema(datasetId:number, payload:any): Observable<any> {
   return this.http.post(`${this.apiUrl}/${datasetId}/refine-schema`, payload);  
 }
-getDataset(id: number): Observable<DatasetOut> {
-    return this.http.get<DatasetOut>(`${this.apiUrl}/${id}`);
-  }
 
+configureHeader(datasetId: number, config: ConfigureHeaderRequest): Observable<DatasetOut> {
+  return this.http.post<DatasetOut>(`${this.apiUrl}/${datasetId}/configure-header`, config);
 }
+
+getRawPreview(datasetId: number, headerRow: number, skipRows: number[] = []): Observable<RawPreviewResponse> {
+  let params = new HttpParams()
+    .set('header_row', headerRow.toString())
+    .set('skip_rows', skipRows.join(','));   // backend expects comma‑separated string
+  return this.http.get<RawPreviewResponse>(`${this.apiUrl}/${datasetId}/raw-preview`, { params });
+}
+}
+

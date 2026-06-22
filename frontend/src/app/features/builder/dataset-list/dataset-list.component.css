@@ -65,3 +65,33 @@
   border-radius: 4px;
   cursor: pointer;
 }
+
+.delete-btn {
+  background: #ff0000;
+  color: whitesmoke;
+  font-weight: bold;
+  border: none;
+  padding: 0.25rem 0.75rem;
+  border-radius: 4px;
+  margin-right: 5px;
+  cursor: pointer;
+}
+
+.delete-btn:hover {
+  background: #461b63;
+  color: rgb(253, 183, 247);
+}
+
+.status-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 6px;
+  background-color: gray; /* Default color if false */
+  vertical-align: middle;
+}
+
+.status-dot.refined {
+  background-color: green; /* Color if true */
+}

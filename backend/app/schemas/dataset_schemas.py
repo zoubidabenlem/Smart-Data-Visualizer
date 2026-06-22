@@ -1,6 +1,6 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from datetime import datetime
-from typing import Optional
+from typing import Dict, Optional
 
 from sqlalchemy import Column
 from app.models.dataset import SourceType
@@ -24,3 +24,20 @@ class DatasetOut(BaseModel):
     source_path: Optional[str] = None
     is_refined: bool                              
     refined_column_schema: Optional[List[ColumnInfo]] = None
+
+#req/res for schema header configuration
+
+
+class ConfigureHeaderRequest(BaseModel):
+    header_row: int = 0
+    skip_rows: Optional[List[int]] = []    # rows to skip before the header, e.g. [0,1,2]
+    column_names: Optional[Dict[str, str]] = None  # {"Unnamed: 0": "ID", "Unnamed: 1": "Name"}
+
+    @field_validator('header_row')
+    def header_row_must_be_non_negative(cls, v):
+        if v < 0:
+            raise ValueError('header_row must be >= 0')
+        return v
+
+class ConfigureHeaderResponse(DatasetOut):
+    pass

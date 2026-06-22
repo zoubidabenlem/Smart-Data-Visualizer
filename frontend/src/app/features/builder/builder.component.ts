@@ -44,6 +44,24 @@ export class BuilderComponent implements OnInit {
     this.loadDatasets();
   }
 
+  onDeleteDataset(datasetId: number): void {
+    const confirmDelete = window.confirm('Are you sure you want to permanently delete this dataset?');
+    
+    if (confirmDelete) {
+      this.datasetService.deleteDataset(datasetId).subscribe({
+        next: (response) => {
+          console.log(response.message);
+          // Refresh the list immediately so the deleted row disappears
+          this.loadDatasets(); 
+        },
+        error: (err) => {
+          alert('Could not delete dataset. It might be linked to active dashboards.');
+          console.error(err);
+        }
+      });
+    }
+  }
+
   openPreview(id: number): void {
     this.selectedDatasetId = id;
   }

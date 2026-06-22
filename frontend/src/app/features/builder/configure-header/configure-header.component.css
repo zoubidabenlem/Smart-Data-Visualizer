@@ -1,0 +1,297 @@
+/* =============================================
+   Styling for “Configure Headers” Component
+   – soft dark interface, scrollable preview,
+   – cancel + confirm actions
+   ============================================= */
+
+:host {
+  display: block;
+  padding: 2rem;
+  background: var(--color-bg-deep);
+  color: var(--color-text-primary);
+  font-family: 'Inter', 'Roboto', sans-serif;
+  min-height: 100vh;
+}
+
+/* ===== Main card ===== */
+.container-inner {
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--border-radius);
+  padding: 2rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(8px);
+  transition: var(--transition);
+  max-width: 100%;
+  overflow: hidden;                     /* keep the outer card clean */
+}
+
+/* ===== Headings ===== */
+h2 {
+  font-size: 1.8rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  color: var(--color-text-primary);
+  letter-spacing: 0.3px;
+}
+
+h3 {
+  font-size: 1.3rem;
+  margin: 1.5rem 0 0.75rem;
+  color: var(--color-text-muted);
+  font-weight: 500;
+}
+
+/* ===== Error alert ===== */
+.alert.alert-danger {
+  background: rgba(255, 77, 77, 0.12);
+  border: 1px solid rgba(255, 77, 77, 0.3);
+  color: #ff6b6b;
+  padding: 0.75rem 1rem;
+  border-radius: var(--border-radius);
+  margin-bottom: 1.25rem;
+  font-size: 0.95rem;
+}
+
+/* ===== Form groups ===== */
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Header row number input */
+input[type="number"] {
+  background: var(--color-bg-deep);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 6px;
+  padding: 0.6rem 0.75rem;
+  color: var(--color-text-primary);
+  font-size: 1rem;
+  width: 120px;
+  transition: border-color var(--transition), box-shadow var(--transition);
+  outline: none;
+}
+
+input[type="number"]:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(165, 94, 150, 0.25);
+}
+
+/* ===== Skip rows container ===== */
+.form-group > div {
+  margin-top: 0.75rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+/* Each skip‑row label */
+.form-group > div > label {
+  display: flex;
+  align-items: center;
+  background: var(--color-bg-deep);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 6px;
+  padding: 0.4rem 0.8rem;
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: background var(--transition), border-color var(--transition);
+  margin-bottom: 0;                     /* reset label margin */
+  text-transform: none;
+  letter-spacing: normal;
+  font-weight: 400;
+}
+
+.form-group > div > label:hover {
+  background: #2a353d;
+  border-color: var(--color-primary);
+}
+
+input[type="checkbox"] {
+  accent-color: var(--color-primary);   /* modern browsers */
+  margin-right: 0.4rem;
+  width: 1rem;
+  height: 1rem;
+  cursor: pointer;
+}
+
+/* ==========================================
+   Scrollable preview table
+   ========================================== */
+.preview-section {
+  margin-top: 1.5rem;
+}
+
+/* Outer container – enables horizontal scroll */
+.table-responsive {
+  background: var(--color-bg-deep);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--border-radius);
+  overflow-x: auto;                    /* ← horizontal scroll when many columns */
+  overflow-y: hidden;                  /* vertical scroll is optional, keep hidden if rows fit */
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.2);
+  max-height: 500px;                   /* optional: fixed height with vertical scroll if you prefer */
+  /* If you also want vertical scroll when many rows, change to overflow-y: auto; */
+}
+
+/* Inner wrapper – ensures the table takes its natural width */
+.table-wrapper {
+  min-width: max-content;              /* forces full width, essential for horizontal scroll */
+}
+
+/* ===== Table itself ===== */
+table.table {
+  width: 100%;
+  border-collapse: collapse;
+  color: var(--color-text-primary);
+  white-space: nowrap;                 /* keep cells from wrapping so scroll works */
+}
+
+thead tr {
+  background: #1a2832;
+}
+
+thead th {
+  padding: 0.6rem 0.8rem;
+  border-bottom: 2px solid var(--color-border-subtle);
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-align: left;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+/* Column name inputs inside header */
+thead input.form-control-sm {
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  padding: 0.3rem 0.5rem;
+  color: var(--color-text-primary);
+  font-size: 0.85rem;
+  width: 100%;
+  transition: border-color var(--transition), background var(--transition);
+  outline: none;
+}
+
+thead input.form-control-sm:hover {
+  border-color: var(--color-border-subtle);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+thead input.form-control-sm:focus {
+  border-color: var(--color-primary);
+  background: rgba(165, 94, 150, 0.1);
+  box-shadow: 0 0 0 2px rgba(165, 94, 150, 0.2);
+}
+
+/* ===== Table body ===== */
+tbody td {
+  padding: 0.5rem 0.8rem;
+  border-top: 1px solid var(--color-border-subtle);
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+}
+
+tbody tr:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+tbody tr:nth-child(even) {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+/* ===== Footer with Cancel & Confirm ===== */
+.actions-footer {
+  display: flex;
+  justify-content: flex-end;           /* push buttons to the right */
+  gap: 1rem;
+  margin-top: 2rem;
+  flex-wrap: wrap;                     /* allow wrapping on very narrow screens */
+}
+
+/* ===== Secondary (Cancel) button ===== */
+.btn.btn-secondary {
+  background: transparent;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--border-radius);
+  padding: 0.75rem 2rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  letter-spacing: 0.5px;
+  transition: all var(--transition);
+  box-shadow: none;
+}
+
+.btn.btn-secondary:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: var(--color-text-muted);
+  color: var(--color-text-primary);
+}
+
+.btn.btn-secondary:active:not(:disabled) {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.btn.btn-secondary:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ===== Primary (Confirm) button (unchanged) ===== */
+.btn.btn-primary {
+  background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+  border: none;
+  border-radius: var(--border-radius);
+  padding: 0.75rem 2rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #ffffff;
+  cursor: pointer;
+  letter-spacing: 0.5px;
+  transition: all var(--transition);
+  box-shadow: 0 4px 14px rgba(165, 94, 150, 0.4);
+}
+
+.btn.btn-primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(165, 94, 150, 0.6);
+  background: linear-gradient(135deg, var(--color-accent), var(--color-primary));
+}
+
+.btn.btn-primary:active:not(:disabled) {
+  transform: translateY(1px);
+  box-shadow: 0 2px 8px rgba(165, 94, 150, 0.4);
+}
+
+.btn.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+
+/* ===== Scrollbar (soft, on table wrapper) ===== */
+.table-responsive::-webkit-scrollbar {
+  height: 6px;
+}
+.table-responsive::-webkit-scrollbar-track {
+  background: var(--color-bg-deep);
+}
+.table-responsive::-webkit-scrollbar-thumb {
+  background: var(--color-border-subtle);
+  border-radius: 3px;
+}

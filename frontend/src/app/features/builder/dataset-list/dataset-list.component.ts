@@ -13,7 +13,9 @@ export class DatasetListComponent {
   @Input() loading = false;
   @Input() error = '';
   @Output() preview = new EventEmitter<number>();
-  @Output() refine = new EventEmitter<number>();   
+  @Output() refine = new EventEmitter<number>(); 
+  @Output() delete = new EventEmitter<number>(); // <-- Add this line
+  
    @Output() createDashboard = new EventEmitter<number>(); 
   // user clicks "Create Dashboard", emit the dataset id
   onCreateDashboard(datasetId: number) {

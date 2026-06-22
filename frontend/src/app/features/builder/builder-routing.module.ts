@@ -9,12 +9,18 @@ import { ColumnPickerComponent } from './column-picker/column-picker.component';
 import { authGuard } from 'src/app/core/auth/auth.guard';
 import { roleGuard } from 'src/app/core/auth/role.guard';
 import { RefineGuard } from 'src/app/core/guards/refine.guard';
+import { ConfigureHeaderComponent } from './configure-header/configure-header.component';
 const routes: Routes = [
 { path: '', component: BuilderComponent },
   {path: 'preview/:id',component:PreviewModalComponent},
   {path: 'upload',component:DatasetUploadComponent},
   {path: 'datasets',component:DatasetListComponent},
-  { path: 'refine/:datasetId', component: SchemaRefineComponent }   ,
+  { 
+    path: 'configure-header/:id', 
+    component: ConfigureHeaderComponent 
+  },
+  
+  { path: 'refine/:datasetId', component: SchemaRefineComponent },
   {
     path: 'refine/:datasetId',
     component: SchemaRefineComponent,

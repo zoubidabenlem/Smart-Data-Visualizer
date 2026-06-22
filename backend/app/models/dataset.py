@@ -26,6 +26,9 @@ class Dataset(Base):
     source_path = Column(String(1024), nullable=False)
     is_refined = Column(Boolean, default=False)
     refined_column_schema = Column(JSON, nullable=True)
+    header_row = Column(Integer, nullable=False, default=0)   # 0‑based row index of the header
+    skip_rows = Column(JSON, nullable=True)                    # list of ints (rows skipped before header)
+    custom_column_names = Column(JSON, nullable=True)          # dict mapping original -> new name (optional)
     # Relationships
     owner      = relationship("User", back_populates="datasets")
     widgets = relationship("Widget", back_populates="dataset")
