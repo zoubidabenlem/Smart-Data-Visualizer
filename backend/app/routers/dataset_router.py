@@ -31,7 +31,14 @@ from app.services.pipeline.orchestrator import run_pipeline
 from app.services.pipeline.utils import get_prepared_cache_key
 from app.services.pipeline.utils import preview_cache_key
 ##validation imports
-from app.services.pipeline.validation import validate_filters, validate_aggregation, validate_missing_config , PipelineValidationError  
+from app.services.pipeline.validation import (
+    validate_filters,
+      validate_aggregation,
+        validate_missing_config ,
+        validate_refine_deduplicate,
+        validate_refine_missing,
+          PipelineValidationError 
+    ) 
 from typing import List, Dict, Any, cast
 from app.services.refine_service import get_refined_cache_key
 from app.core.cache import prepared_cache, refined_cache, refined_df_cache
@@ -130,6 +137,23 @@ def get_dataset(
     if not dataset:
         raise HTTPException(status_code=404, detail="Dataset not found")
     return DatasetOut.model_validate(dataset)
+
+#DELETE //datasets/{id}/delete
+@router.delete("/datasets/{id}/delete", status_code=200)
+def delete_dataset(
+    dataset_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    dataset = db.query(Dataset).filter(
+        Dataset.id == dataset_id,
+        Dataset.user_id == current_user.id
+    ).first()
+    if not dataset:
+        raise HTTPException(status_code=404, detail="Dataset not found")
+    db.delete(dataset)
+    db.commit()
+
 # GET /datasets/{id}/preview
 @router.get("/{dataset_id}/preview", status_code=200)
 def preview_dataset(
@@ -167,13 +191,9 @@ def preview_dataset(
         refined_key = get_refined_cache_key(dataset_id)
         if refined_key in refined_cache:
             rows = refined_cache[refined_key][:50]
-            # sanitize just in case (defensive)
             safe_rows = sanitize_records(rows) if rows else []
-            # store in preview cache with refined=True
             preview_cache[cache_key] = {"data": safe_rows, "refined": True}
             return {"cached": False, "data": safe_rows, "refined": True}
-        else:
-            raise HTTPException(400, "Refined data not in cache. Please re-run refine.")
 
     # Original file
     file_path = Path(str(dataset.source_path))
@@ -227,27 +247,25 @@ async def refine_schema(
     dataset = db.query(Dataset).filter(Dataset.id == dataset_id).first()
     if not dataset:
         raise HTTPException(404, "Dataset not found")
-    #  Prevent re-refinement
     if dataset.is_refined is True:
         raise HTTPException(400, "Dataset already refined")
-    ## todo : check with current original name to avoid  action on old col
-    # 2. Get source path (as string)
+
     source_path = dataset.source_path
     if source_path is None:
         raise HTTPException(400, "Dataset file unavailable, please re-upload")
-    
+
     file_path = Path(str(dataset.source_path))
     if not file_path.exists():
         raise HTTPException(400, "Dataset file missing on disk, please re-upload")
 
     # 3. Read DataFrame
-    try:   
-        if dataset.source_type == SourceType.csv: #type: ignore
+    try:
+        if dataset.source_type == SourceType.csv:
             try:
                 df = pd.read_csv(file_path, encoding="utf-8")
             except UnicodeDecodeError:
                 df = pd.read_csv(file_path, encoding="latin-1")
-        elif dataset.source_type == SourceType.excel: #type: ignore
+        elif dataset.source_type == SourceType.excel:
             df = pd.read_excel(file_path)
         else:
             raise HTTPException(400, "Refine not supported for MySQL sources yet")
@@ -259,6 +277,21 @@ async def refine_schema(
     if len(new_names) != len(set(new_names)):
         raise HTTPException(422, "Duplicate new column names are not allowed")
 
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # NEW: Structured validation for missing & deduplicate
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    dataset_columns = list(df.columns)
+    column_dtypes = {col: df[col].dtype for col in dataset_columns}
+
+    missing_actions = [a for a in payload.columns if a.action == 'missing']
+    dedup_action = next((a for a in payload.columns if a.action == 'deduplicate'), None)
+
+    try:
+        validate_refine_missing(missing_actions, dataset_columns, column_dtypes)
+        validate_refine_deduplicate(dedup_action, dataset_columns)
+    except PipelineValidationError as e:
+        raise HTTPException(status_code=422, detail=e.errors)
+
     # 5. Apply transformations
     try:
         refined_df, refined_columns_info = apply_refine_transformations(df, payload.columns)
@@ -266,23 +299,45 @@ async def refine_schema(
         raise HTTPException(422, str(e))
 
     # 6. Update database
-    dataset.is_refined = True          # type: ignore
-    dataset.refined_column_schema = [col.dict() for col in refined_columns_info]  # type: ignore
+    dataset.is_refined = True
+    dataset.refined_column_schema = [col.dict() for col in refined_columns_info]
     db.commit()
 
-    # 7. Cache both the raw DataFrame AND the JSON‑safe version
-    cache_key = get_refined_cache_key(dataset_id)
+     # ===== NEW: Overwrite the original file with the refined DataFrame =====
+    try:
+        if dataset.source_type == SourceType.csv:
+            # Use the same encoding you originally detected (utf-8, fallback latin-1)
+            # For simplicity we stick to utf-8; adjust if you want to preserve original encoding.
+            refined_df.to_csv(file_path, index=False, encoding="utf-8")
+        elif dataset.source_type == SourceType.excel:
+            refined_df.to_excel(file_path, index=False, engine='openpyxl')
+        else:
+            # MySQL sources are not supported yet, but raise if it ever reaches here
+            raise HTTPException(400, "Refine not supported for this source type")
 
-    # Store original DataFrame for pipeline
+        # Update row and column counts to match refined data (useful if dedup/column drops changed them)
+        dataset.row_count = len(refined_df)
+        dataset.col_count = len(refined_df.columns)
+        db.commit()
+
+        logger.info(f"Refined dataset {dataset_id} written back to {file_path}")
+    except Exception as e:
+        # Rollback the is_refined flag if the write fails – keep data consistent
+        dataset.is_refined = False
+        dataset.refined_column_schema = None
+        db.commit()
+        raise HTTPException(500, f"Failed to persist refined data: {str(e)}")
+
+    # 7. Cache both the raw DataFrame AND the JSON‑safe version (keep as is)
+    cache_key = get_refined_cache_key(dataset_id)
     refined_df_cache[cache_key] = refined_df
+
     logger.info(f"Refine cache stored for dataset_id={dataset_id}, key={cache_key}")
 
-    # NEW: Use unified JSON-safe conversion
     json_safe_data = dataframe_to_json_safe(refined_df)
     json_safe_data = sanitize_records(json_safe_data)
     refined_cache[cache_key] = json_safe_data
 
-    # NEW: Store preview cache with correct key and refined flag
     preview_key = preview_cache_key(dataset_id, is_refined=True)
     preview_cache[preview_key] = {"data": json_safe_data[:50], "refined": True}
 

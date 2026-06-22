@@ -19,6 +19,7 @@ from pydantic import ValidationError
 from app.services.pipeline.validation import PipelineValidationError
 from app.core.logging_middleware import LoggingMiddleware
 from app.routers import user_router
+from app.core.redis_client import ping_redis
 
 app = FastAPI(
     title="Smart Data Visualizer API",
@@ -62,5 +63,7 @@ def root():
 
 @app.on_event("startup")
 def on_startup():
+    if not ping_redis():
+        raise RuntimeError("Redis is not reachable")
     Path("./uploads").mkdir(exist_ok=True)   
     init_db()

@@ -143,3 +143,54 @@ def validate_missing_config(config: MissingConfig, dataset_columns: List[str], c
             dtype = column_dtypes.get(col)
             if pd.api.types.is_numeric_dtype(dtype) and not isinstance(override.fill_value, (int, float)): # type: ignore
                 raise PipelineValidationError([{"field": f"missing_config.overrides.{col}.fill_value", "msg": f"Column '{col}' is numeric; fill_value must be a number."}])
+            
+# refinement validation
+
+def validate_refine_missing(
+    missing_actions: List[Any],
+    dataset_columns: List[str],
+    column_dtypes: Dict[str, Any]
+) -> None:
+    """
+    Validate missing actions from a refine request.
+    Each missing action must:
+      - Reference an existing column
+      - Provide missing_strategy
+      - If strategy is 'fill', missing_fill_value must be present and type‑compatible
+    """
+    if not missing_actions:
+        return
+    for ma in missing_actions:
+        col = ma.original_name
+        if col not in dataset_columns:
+            raise PipelineValidationError([{
+                "field": f"columns[missing].original_name",
+                "msg": f"Column '{col}' not found."
+            }])
+        if ma.missing_strategy == "fill":
+            if ma.missing_fill_value is None:
+                raise PipelineValidationError([{
+                    "field": f"columns[missing].missing_fill_value",
+                    "msg": f"fill_value is required for column '{col}' with 'fill' strategy."
+                }])
+            dtype = column_dtypes.get(col)
+            if pd.api.types.is_numeric_dtype(dtype) and not isinstance(ma.missing_fill_value, (int, float)):
+                raise PipelineValidationError([{
+                    "field": f"columns[missing].missing_fill_value",
+                    "msg": f"Column '{col}' is numeric; fill_value must be a number."
+                }])
+
+def validate_refine_deduplicate(
+    dedup_action: Any,
+    dataset_columns: List[str]
+) -> None:
+    """Validate a single deduplicate action."""
+    if dedup_action is None:
+        return
+    # Subset required and non‑empty (already checked by Pydantic)
+    for col in dedup_action.subset:
+        if col not in dataset_columns:
+            raise PipelineValidationError([{
+                "field": "columns[deduplicate].subset",
+                "msg": f"Column '{col}' not found."
+            }])
