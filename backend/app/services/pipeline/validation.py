@@ -194,3 +194,27 @@ def validate_refine_deduplicate(
                 "field": "columns[deduplicate].subset",
                 "msg": f"Column '{col}' not found."
             }])
+        
+def validate_refine_merge(
+    merge_action: Any,               # single merge action or None
+    dataset_columns: List[str]
+) -> None:
+    """Validate the merge action’s parameters."""
+    if merge_action is None:
+        return
+    params = merge_action.parameters
+    # Check source columns exist
+    for col in params.source_columns:
+        if col not in dataset_columns:
+            raise PipelineValidationError([{
+                "field": "columns[merge].parameters.source_columns",
+                "msg": f"Column '{col}' not found in dataset"
+            }])
+    # target_column must not already exist (unless it's one of the source columns)
+    if params.target_column in dataset_columns and params.target_column not in params.source_columns:
+        raise PipelineValidationError([{
+            "field": "columns[merge].parameters.target_column",
+            "msg": f"Target column '{params.target_column}' already exists. Choose a different name."
+        }])
+    # target_column must not clash with any other rename/new_name in the same request
+    # (handled later by unique new-name check – we just raise if duplicate with existing)

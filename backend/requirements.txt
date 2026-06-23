@@ -14,3 +14,4 @@ openpyxl # read/write Excel files
 python-multipart # handle multipart form data uploads
 redis[hiredis]>=5.0.0
 orjson>=3.9.0        # faster JSON serialisation (optional, can use json)
+pytest #test framework

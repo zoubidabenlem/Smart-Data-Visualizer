@@ -1,0 +1,116 @@
+{
+  "info": {
+    "name": "Refinement Sandbox",
+    "description": "Test refinement sandbox endpoints: apply-action, undo, finalize",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Login (get token)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var jsonData = pm.response.json();",
+              "pm.environment.set(\"token\", jsonData.access_token);"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"your_admin_username\",\n  \"password\": \"your_admin_password\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/auth/login",
+          "host": ["{{base_url}}"],
+          "path": ["auth", "login"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Apply Action",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"action\": \"rename\",\n  \"original_name\": \"Name\",\n  \"new_name\": \"FullName\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/datasets/{{dataset_id}}/refine/apply-action",
+          "host": ["{{base_url}}"],
+          "path": ["datasets", "{{dataset_id}}", "refine", "apply-action"]
+        }
+      }
+    },
+    {
+      "name": "Undo Last Action",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "DELETE",
+        "url": {
+          "raw": "{{base_url}}/datasets/{{dataset_id}}/refine/undo",
+          "host": ["{{base_url}}"],
+          "path": ["datasets", "{{dataset_id}}", "refine", "undo"]
+        }
+      }
+    },
+    {
+      "name": "Finalize Refinement",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "url": {
+          "raw": "{{base_url}}/datasets/{{dataset_id}}/refine/finalize",
+          "host": ["{{base_url}}"],
+          "path": ["datasets", "{{dataset_id}}", "refine", "finalize"]
+        }
+      }
+    }
+  ]
+}

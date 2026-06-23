@@ -1,0 +1,229 @@
+{
+  "info": {
+    "name": "Refinement Sandbox (No Keep)",
+    "description": "Collection for testing /apply-action, /undo, /finalize. The 'keep' action is removed; use 'rename' with same original_name/new_name to change dtype only.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Login",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var jsonData = pm.response.json();",
+              "pm.environment.set(\"token\", jsonData.access_token);"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"your_admin_username\",\n  \"password\": \"your_admin_password\"\n}",
+          "options": { "raw": { "language": "json" } }
+        },
+        "url": {
+          "raw": "{{base_url}}/auth/login",
+          "host": ["{{base_url}}"],
+          "path": ["auth", "login"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Rename Column",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+        },
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"action\": \"rename\",\n  \"original_name\": \"name\",\n  \"new_name\": \"full_name\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/datasets/{{dataset_id}}/refine/apply-action",
+          "host": ["{{base_url}}"],
+          "path": ["datasets", "{{dataset_id}}", "refine", "apply-action"]
+        }
+      }
+    },
+    {
+      "name": "Change Dtype Only (Rename with same name)",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+        },
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"action\": \"rename\",\n  \"original_name\": \"age\",\n  \"new_name\": \"age\",\n  \"override_dtype\": \"int\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/datasets/{{dataset_id}}/refine/apply-action",
+          "host": ["{{base_url}}"],
+          "path": ["datasets", "{{dataset_id}}", "refine", "apply-action"]
+        }
+      }
+    },
+    {
+      "name": "Drop Column",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+        },
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"action\": \"drop\",\n  \"original_name\": \"city\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/datasets/{{dataset_id}}/refine/apply-action",
+          "host": ["{{base_url}}"],
+          "path": ["datasets", "{{dataset_id}}", "refine", "apply-action"]
+        }
+      }
+    },
+    {
+      "name": "Missing - Drop rows with NaN",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+        },
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"action\": \"missing\",\n  \"original_name\": \"cgpa\",\n  \"missing_strategy\": \"drop\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/datasets/{{dataset_id}}/refine/apply-action",
+          "host": ["{{base_url}}"],
+          "path": ["datasets", "{{dataset_id}}", "refine", "apply-action"]
+        }
+      }
+    },
+    {
+      "name": "Missing - Fill with value",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+        },
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"action\": \"missing\",\n  \"original_name\": \"cgpa\",\n  \"missing_strategy\": \"fill\",\n  \"missing_fill_value\": \"0.0\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/datasets/{{dataset_id}}/refine/apply-action",
+          "host": ["{{base_url}}"],
+          "path": ["datasets", "{{dataset_id}}", "refine", "apply-action"]
+        }
+      }
+    },
+    {
+      "name": "Missing - Fill with mean",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+        },
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"action\": \"missing\",\n  \"original_name\": \"cgpa\",\n  \"missing_strategy\": \"mean\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/datasets/{{dataset_id}}/refine/apply-action",
+          "host": ["{{base_url}}"],
+          "path": ["datasets", "{{dataset_id}}", "refine", "apply-action"]
+        }
+      }
+    },
+    {
+      "name": "Merge Columns",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+        },
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"action\": \"merge\",\n  \"parameters\": {\n    \"source_columns\": [\"full_name\", \"city\"],\n    \"target_column\": \"location\",\n    \"separator\": \", \",\n    \"drop_sources\": false\n  }\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/datasets/{{dataset_id}}/refine/apply-action",
+          "host": ["{{base_url}}"],
+          "path": ["datasets", "{{dataset_id}}", "refine", "apply-action"]
+        }
+      }
+    },
+    {
+      "name": "Deduplicate",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+        },
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"action\": \"deduplicate\",\n  \"subset\": [\"full_name\"],\n  \"keep\": \"first\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/datasets/{{dataset_id}}/refine/apply-action",
+          "host": ["{{base_url}}"],
+          "path": ["datasets", "{{dataset_id}}", "refine", "apply-action"]
+        }
+      }
+    },
+    {
+      "name": "Undo Last Action",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+        },
+        "method": "DELETE",
+        "url": {
+          "raw": "{{base_url}}/datasets/{{dataset_id}}/refine/undo",
+          "host": ["{{base_url}}"],
+          "path": ["datasets", "{{dataset_id}}", "refine", "undo"]
+        }
+      }
+    },
+    {
+      "name": "Finalize Refinement",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+        },
+        "method": "POST",
+        "url": {
+          "raw": "{{base_url}}/datasets/{{dataset_id}}/refine/finalize",
+          "host": ["{{base_url}}"],
+          "path": ["datasets", "{{dataset_id}}", "refine", "finalize"]
+        }
+      }
+    }
+  ]
+}

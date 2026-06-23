@@ -167,7 +167,7 @@ loadColumns(): void {
   }
 
   onSkip(): void {
-    this.router.navigate(['/builder/columns', this.datasetId]);
+    this.router.navigate(['/builder/dashboard', this.datasetId]);
   }
 
   continueToColumnPicker(): void {

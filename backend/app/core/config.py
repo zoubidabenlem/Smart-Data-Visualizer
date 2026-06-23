@@ -29,9 +29,13 @@ class Settings(BaseSettings):
     cache_ttl_seconds: int = 300
     cache_max_size: int = 100
     prepare_async_threshold: int = 10_000 #rows swtitch to async above these
+    
     ##redis cache
     redis_url: str = "redis://localhost:6379/0"
 
+    #sandbox
+    SANDBOX_KEY_PREFIX : str
+    REFINE_SANDBOX_TTL : int
 
     # CORS
     cors_origin: str = "http://localhost:4200"

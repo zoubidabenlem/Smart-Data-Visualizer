@@ -1,51 +1,63 @@
 from pydantic import BaseModel, field_validator, ValidationInfo, model_validator   
-from typing import List, Optional,Literal
+from typing import Any, Dict, List, Optional,Literal
 
 ALLOWED_DTYPES = {"float", "int", "datetime", "string"}
 
+# -------------------- NEW: Merge Parameters --------------------
+class MergeParameters(BaseModel):
+    source_columns: List[str]          # columns to merge from (original names)
+    target_column: str                 # name of the resulting column
+    separator: str = " "               # separator between values
+    drop_sources: bool = True          # drop the source columns after merge?
+
+    @field_validator('source_columns')
+    def at_least_two_columns(cls, v):
+        if len(v) < 2:
+            raise ValueError('At least two source columns are required for a merge')
+        return v
+
 class ColumnRefineAction(BaseModel):
+    action: Literal["rename", "drop", "missing", "deduplicate", "merge"]
     original_name: Optional[str] = None
-    action : Literal["rename", "drop", "keep", "missing", "deduplicate"]
-
-    #for rename
-    new_name: Optional[str]=None
-    #for changing type
-    override_dtype: Optional[Literal["float", "int", "datetime", "string"]]=None
-     #  for missing
+    new_name: Optional[str] = None
+    override_dtype: Optional[Literal["float", "int", "datetime", "string"]] = None
     missing_strategy: Optional[Literal["drop", "fill", "mean"]] = None
-    missing_fill_value: Optional[str] = None   # stored as str, coerced if needed
-    # for deduplicate
-    subset: Optional[List[str]] = None   # list of original column names to consider for duplicates
+    missing_fill_value: Optional[str] = None
+    subset: Optional[List[str]] = None
     keep: Optional[Literal["first", "last", False]] = None
-    #validation logic
-    @field_validator('original_name')
-    def original_name_required_except_deduplicate(cls, v, info):
-        if info.data.get('action') != 'deduplicate' and v is None:
-            raise ValueError('original_name is required for this action')
-        return v
-    @field_validator('new_name')
-    def new_name_required_if_keep(cls, v, info: ValidationInfo):
-        # Access the already-validated 'action' field via info.data
-        if info.data.get('action') == 'keep' and not v:
-            raise ValueError('new_name is required when action is "keep"')
-        return v
-    @field_validator('missing_strategy')
-    def missing_strategy_required_for_missing(cls, v, info):
-        if info.data.get('action') == 'missing' and v is None:
+    parameters: Optional[MergeParameters] = None
+
+    @model_validator(mode='after')
+    def validate_action_requirements(self):
+        action = self.action
+
+        # ---- original_name required for most actions ----
+        if action not in ('deduplicate', 'merge') and self.original_name is None:
+            raise ValueError(f"original_name is required for action '{action}'")
+
+        # ---- merge specific ----
+        if action == 'merge':
+            if self.parameters is None:
+                raise ValueError('parameters object is required for action "merge"')
+
+        # ---- rename specific ----
+        if action == 'rename' and not self.new_name:
+            raise ValueError('new_name is required when action is "rename"')
+
+        # ---- missing specific ----
+        if action == 'missing' and self.missing_strategy is None:
             raise ValueError('missing_strategy is required when action is "missing"')
-        return v
+        if action == 'missing' and self.missing_strategy == 'fill' and self.missing_fill_value is None:
+            raise ValueError('missing_fill_value is required for missing strategy "fill"')
 
-    @field_validator('subset')
-    def subset_required_for_deduplicate(cls, v, info):
-        if info.data.get('action') == 'deduplicate' and (v is None or len(v) == 0):
-            raise ValueError('subset must be a non‑empty list when action is "deduplicate"')
-        return v
+        # ---- deduplicate specific ----
+        if action == 'deduplicate':
+            if not self.subset:
+                raise ValueError('subset must be a non‑empty list when action is "deduplicate"')
+            if self.keep is None:
+                raise ValueError('keep is required when action is "deduplicate"')
 
-    @field_validator('keep')
-    def keep_required_for_deduplicate(cls, v, info):
-        if info.data.get('action') == 'deduplicate' and v is None:
-            raise ValueError('keep is required when action is "deduplicate"')
-        return v
+        return self
     
 class RefineSchemaRequest(BaseModel):
     columns: List[ColumnRefineAction]
@@ -64,3 +76,9 @@ class RefineSchemaResponse(BaseModel):
     dataset_id: int
     refined_columns: List[RefinedColumnInfo]
     is_refined: bool
+
+#sequnetial treatmenet 
+class SandboxPreviewResponse(BaseModel):
+    preview: List[Dict[str, Any]]          # first 50 rows as JSON-safe
+    columns: List[RefinedColumnInfo]       # name + dtype
+    actions: List[ColumnRefineAction]      # current sandbox actions (for UI recipe)
