@@ -1,0 +1,183 @@
+<div class="sandbox-container">
+  <div class="left-panel">
+    <!-- Dataset info bar -->
+    <div class="dataset-info">
+      <span class="filename">{{ datasetInfo?.filename }}</span>
+      <span class="meta">Rows: {{ datasetInfo?.rowCount }}</span>
+      <span class="meta">Cols: {{ datasetInfo?.colCount }}</span>
+    </div>
+
+    <!-- Preview table -->
+    <div class="preview-table-wrapper">
+      <table class="preview-table" *ngIf="previewRows.length > 0; else noData">
+        <thead>
+          <tr>
+            <th *ngFor="let col of columns">{{ col.name }} <small>({{ col.dtype }})</small></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let row of previewRows">
+            <td *ngFor="let col of columns">{{ row[col.name] }}</td>
+          </tr>
+        </tbody>
+      </table>
+      <ng-template #noData>
+        <p class="no-data">No preview data available.</p>
+      </ng-template>
+    </div>
+
+    <!-- Loading / Error -->
+    <div *ngIf="loading" class="status">Processing...</div>
+    <div *ngIf="error" class="error">{{ error }}</div>
+  </div>
+
+  <div class="right-panel">
+    <!-- Recipe history -->
+    <div class="recipe-section">
+      <h3>Recipe</h3>
+      <div *ngIf="actions.length === 0" class="empty-recipe">No actions yet.</div>
+      <ul class="recipe-list">
+        <li *ngFor="let act of actions; let i = index">
+          <span class="step-number">{{ i + 1 }}.</span>
+          {{ describeAction(act) }}
+        </li>
+      </ul>
+      <button mat-stroked-button color="warn" [disabled]="actions.length === 0" (click)="undoLastAction()">
+        Undo Last Step
+      </button>
+    </div>
+
+    <!-- Action configuration form -->
+    <div class="config-section">
+  <h3>Configure New Action</h3>
+  
+  <mat-form-field appearance="fill" class="action-select">
+    <mat-label>Action Type</mat-label>
+    <mat-select [(ngModel)]="selectedActionType" (selectionChange)="onActionTypeChange($event.value)">
+      <mat-option value="rename">Rename / Change Type</mat-option>
+      <mat-option value="drop">Drop Column</mat-option>
+      <mat-option value="missing">Handle Missing</mat-option>
+      <mat-option value="merge">Merge Columns</mat-option>
+      <mat-option value="deduplicate">Deduplicate</mat-option>
+    </mat-select>
+  </mat-form-field>
+
+  <div [formGroup]="actionForm" [ngSwitch]="selectedActionType" class="action-form">
+    
+    <div *ngSwitchCase="'rename'">
+      <mat-form-field appearance="fill">
+        <mat-label>Column</mat-label>
+        <mat-select formControlName="original_name">
+          <mat-option *ngFor="let col of columns" [value]="col.name">{{ col.name }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+      
+      <mat-form-field appearance="fill">
+        <mat-label>New Name</mat-label>
+        <input matInput formControlName="new_name" />
+      </mat-form-field>
+      
+      <mat-form-field appearance="fill">
+        <mat-label>Override Type (optional)</mat-label>
+        <mat-select formControlName="override_dtype">
+          <mat-option [value]="null">None</mat-option>
+          <mat-option value="float">Float</mat-option>
+          <mat-option value="int">Integer</mat-option>
+          <mat-option value="datetime">Date/Time</mat-option>
+          <mat-option value="string">String</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <div *ngSwitchCase="'drop'">
+      <mat-form-field appearance="fill">
+        <mat-label>Column to Drop</mat-label>
+        <mat-select formControlName="original_name">
+          <mat-option *ngFor="let col of columns" [value]="col.name">{{ col.name }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+        <!-- MISSING -->
+        <div *ngSwitchCase="'missing'">
+          <mat-form-field appearance="fill">
+            <mat-label>Column</mat-label>
+            <mat-select formControlName="original_name">
+              <mat-option *ngFor="let col of columns" [value]="col.name">{{ col.name }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field appearance="fill">
+            <mat-label>Strategy</mat-label>
+            <mat-select formControlName="missing_strategy">
+              <mat-option value="drop">Drop Rows</mat-option>
+              <mat-option value="fill">Fill Value</mat-option>
+              <mat-option value="mean">Replace with Mean</mat-option>
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field appearance="fill" *ngIf="actionForm.get('missing_strategy')?.value === 'fill'">
+            <mat-label>Fill Value</mat-label>
+            <input matInput formControlName="missing_fill_value" />
+          </mat-form-field>
+          <mat-form-field appearance="fill">
+            <mat-label>Override Type (optional)</mat-label>
+            <mat-select formControlName="override_dtype">
+              <mat-option [value]="null">None</mat-option>
+              <mat-option value="float">Float</mat-option>
+              <mat-option value="int">Integer</mat-option>
+              <mat-option value="datetime">Date/Time</mat-option>
+              <mat-option value="string">String</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <!-- MERGE -->
+        <div *ngSwitchCase="'merge'">
+          <mat-form-field appearance="fill">
+            <mat-label>Source Columns (min 2)</mat-label>
+            <mat-select formControlName="merge_source_columns" multiple>
+              <mat-option *ngFor="let col of columns" [value]="col.name">{{ col.name }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field appearance="fill">
+            <mat-label>Target Column Name</mat-label>
+            <input matInput formControlName="merge_target_column" />
+          </mat-form-field>
+          <mat-form-field appearance="fill">
+            <mat-label>Separator</mat-label>
+            <input matInput formControlName="merge_separator" />
+          </mat-form-field>
+          <mat-checkbox formControlName="merge_drop_sources">Drop Source Columns</mat-checkbox>
+        </div>
+
+        <!-- DEDUPLICATE -->
+        <div *ngSwitchCase="'deduplicate'">
+          <mat-form-field appearance="fill">
+            <mat-label>Subset Columns</mat-label>
+            <mat-select formControlName="subset" multiple>
+              <mat-option *ngFor="let col of columns" [value]="col.name">{{ col.name }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field appearance="fill">
+            <mat-label>Keep</mat-label>
+            <mat-select formControlName="keep">
+              <mat-option value="first">First</mat-option>
+              <mat-option value="last">Last</mat-option>
+              <mat-option [value]="false">None (drop all duplicates)</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+      </div>
+
+      <button mat-raised-button color="primary" [disabled]="loading" (click)="applyAction()">
+        Apply Action
+      </button>
+    </div>
+
+    <!-- Finalize button -->
+    <div class="finalize-section">
+      <button mat-raised-button color="accent" [disabled]="loading || actions.length === 0" (click)="finalize()">
+        Finalize & Save Dataset
+      </button>
+    </div>
+  </div>
+</div>

@@ -23,8 +23,8 @@ import { DatasetUploadComponent } from './dataset-upload/dataset-upload.componen
 import { ConfigureHeaderComponent } from './configure-header/configure-header.component';
 import { DatasetListComponent } from './dataset-list/dataset-list.component';
 import { PreviewModalComponent } from './preview-modal/preview-modal.component';
-import { SchemaRefineComponent } from './refine-schema/refine-schema.component';
-import { ColumnPickerComponent } from './column-picker/column-picker.component';
+import { RefineService } from 'src/app/core/services/refine.service';
+import { RefineSandboxComponent } from './refine-sandbox/refine-sandbox.component';
 
 @NgModule({
   declarations: [
@@ -33,10 +33,8 @@ import { ColumnPickerComponent } from './column-picker/column-picker.component';
     ConfigureHeaderComponent,
     DatasetListComponent,
     PreviewModalComponent,
-    SchemaRefineComponent,
-    ColumnPickerComponent,
-    ColumnPickerComponent,
     ConfigureHeaderComponent,
+    RefineSandboxComponent,
   ],
   imports: [
     CommonModule,
@@ -52,6 +50,8 @@ import { ColumnPickerComponent } from './column-picker/column-picker.component';
     MatChipsModule,
     OverlayModule,
     ScrollingModule,
-    SharedModule,],
+    SharedModule,
+  ],
+  providers: [RefineService],
 })
 export class BuilderModule { }

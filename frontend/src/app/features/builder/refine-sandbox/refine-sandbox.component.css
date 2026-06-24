@@ -1,0 +1,320 @@
+/* ============================================
+   Sandbox Layout – Consistent dark soft theme
+   ============================================ */
+
+/* ----- Global theme variables assumed from previous style -----
+   If not already defined, include these in your :root:
+   :root {
+     --color-bg-deep: #0a1929;
+     --color-bg-surface: #202930;
+     --color-primary: #a55e96;
+     --color-secondary: #96647E;
+     --color-accent: #DEA2B8;
+     --color-border-subtle: #2F3E46;
+     --color-text-primary: #E6F0F5;
+     --color-text-muted: #8FA3AD;
+     --border-radius: 8px;
+     --transition: 0.2s ease-in-out;
+   }
+------------------------------------------------------------- */
+
+.sandbox-container {
+  display: flex;
+  height: calc(100vh - 64px);          /* adjust if header present */
+  gap: 16px;
+  padding: 16px;
+  box-sizing: border-box;
+  background: var(--color-bg-deep);
+  font-family: 'Inter', 'Roboto', sans-serif;
+  color: var(--color-text-primary);
+}
+
+/* ===== Left Panel (preview table) ===== */
+.left-panel {
+  flex: 3;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--border-radius);
+  padding: 16px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+  backdrop-filter: blur(4px);
+}
+
+/* Dataset info row */
+.dataset-info {
+  display: flex;
+  gap: 16px;
+  padding: 8px 0;
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--color-border-subtle);
+  color: var(--color-text-muted);
+}
+
+.filename {
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.meta {
+  color: var(--color-text-muted);
+  font-size: 0.9em;
+}
+
+/* Scrollable table wrapper */
+.preview-table-wrapper {
+  overflow: auto;
+  flex: 1;
+  background: var(--color-bg-deep);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--border-radius);
+  box-shadow: inset 0 2px 8px rgba(0,0,0,0.2);
+}
+
+/* Scrollbar styling for the table wrapper */
+.preview-table-wrapper::-webkit-scrollbar {
+  height: 6px;
+  width: 6px;
+}
+.preview-table-wrapper::-webkit-scrollbar-track {
+  background: transparent;
+}
+.preview-table-wrapper::-webkit-scrollbar-thumb {
+  background: var(--color-border-subtle);
+  border-radius: 3px;
+}
+
+/* Table itself */
+.preview-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  white-space: nowrap;               /* keep cells from wrapping */
+  color: var(--color-text-primary);
+}
+
+.preview-table th,
+.preview-table td {
+  padding: 6px 10px;
+  border: 1px solid var(--color-border-subtle);
+  text-align: left;
+}
+
+.preview-table th {
+  background: #1a2832;                /* distinct header background */
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  border-bottom: 2px solid var(--color-border-subtle);
+}
+
+.preview-table tbody tr:nth-child(even) {
+  background: rgba(255,255,255,0.02);
+}
+
+.preview-table tbody tr:hover {
+  background: rgba(255,255,255,0.05);
+}
+
+/* Status / error messages */
+.status {
+  padding: 8px 12px;
+  color: var(--color-primary);
+  background: rgba(165,94,150,0.1);
+  border-radius: var(--border-radius);
+  margin: 8px 0;
+  font-size: 0.9em;
+}
+
+.error {
+  padding: 8px 12px;
+  color: #ff6b6b;
+  background: rgba(255,77,77,0.12);
+  border: 1px solid rgba(255,77,77,0.3);
+  border-radius: var(--border-radius);
+  margin: 8px 0;
+  font-size: 0.9em;
+}
+
+/* ===== Right Panel ===== */
+.right-panel {
+  flex: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow-y: auto;
+  padding-right: 4px;                  /* space for scrollbar */
+}
+
+/* Custom scrollbar for right panel */
+.right-panel::-webkit-scrollbar {
+  width: 6px;
+}
+.right-panel::-webkit-scrollbar-track {
+  background: transparent;
+}
+.right-panel::-webkit-scrollbar-thumb {
+  background: var(--color-border-subtle);
+  border-radius: 3px;
+}
+
+/* Recipe section */
+.recipe-section {
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--border-radius);
+  padding: 16px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+}
+
+.recipe-section h3,
+.recipe-section h4 {
+  color: var(--color-text-primary);
+  margin-top: 0;
+  font-weight: 500;
+}
+
+/* Recipe list */
+.recipe-list {
+  list-style: none;
+  padding-left: 0;
+  margin: 12px 0;
+}
+
+.recipe-list li {
+  padding: 8px 0;
+  border-bottom: 1px solid var(--color-border-subtle);
+  color: var(--color-text-muted);
+  font-size: 0.9em;
+  display: flex;
+  align-items: baseline;
+}
+
+.step-number {
+  font-weight: 700;
+  margin-right: 8px;
+  color: var(--color-accent);
+  min-width: 24px;
+}
+
+.empty-recipe {
+  color: var(--color-text-muted);
+  font-style: italic;
+  opacity: 0.7;
+}
+
+/* Config section */
+.config-section {
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--border-radius);
+  padding: 16px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+}
+
+.config-section h3 {
+  color: var(--color-text-primary);
+  margin-top: 0;
+}
+
+/* Angular Material overrides – if you're using mat-select, mat-form-field */
+.action-select {
+  width: 100%;
+}
+
+.action-form {
+  margin: 12px 0;
+}
+
+/* Target Angular Material form fields to blend in */
+::ng-deep .action-form .mat-form-field {
+  width: 100%;
+  margin-bottom: 16px;
+}
+
+::ng-deep .action-form .mat-form-field-appearance-outline .mat-form-field-outline {
+  color: var(--color-border-subtle) !important;
+}
+
+::ng-deep .action-form .mat-form-field-label {
+  color: var(--color-text-muted) !important;
+}
+
+::ng-deep .action-form .mat-input-element {
+  color: var(--color-text-primary) !important;
+  caret-color: var(--color-primary) !important;
+}
+
+::ng-deep .action-form .mat-select-value {
+  color: var(--color-text-primary);
+}
+
+::ng-deep .action-form .mat-select-arrow {
+  color: var(--color-text-muted);
+}
+
+::ng-deep .action-form .mat-form-field-underline {
+  background-color: var(--color-border-subtle) !important;
+}
+
+::ng-deep .action-form .mat-form-field-ripple {
+  background-color: var(--color-primary) !important;
+}
+
+/* Finalize section (pushed to bottom) */
+.finalize-section {
+  margin-top: auto;
+  padding-top: 8px;
+}
+
+/* Buttons – reuse the same soft styling as before */
+button {
+  margin-top: 12px;
+  border: none;
+  border-radius: var(--border-radius);
+  padding: 0.75rem 1.5rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  letter-spacing: 0.5px;
+  transition: all var(--transition);
+  background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(165,94,150,0.3);
+  text-transform: uppercase;
+}
+
+button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(165,94,150,0.5);
+  background: linear-gradient(135deg, var(--color-accent), var(--color-primary));
+}
+
+button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+
+/* Secondary / cancel style – if needed */
+button.secondary {
+  background: transparent;
+  border: 1px solid var(--color-border-subtle);
+  color: var(--color-text-muted);
+  box-shadow: none;
+}
+
+button.secondary:hover:not(:disabled) {
+  background: rgba(255,255,255,0.05);
+  color: var(--color-text-primary);
+  border-color: var(--color-text-muted);
+}

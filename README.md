@@ -92,8 +92,6 @@ smart-data-visualizer/
 │
 └── README.md
 ```
-### Project Status
-This project is currently under active development as part of an academic MVP.
 
 ```
 Smart-Data-Visualizer
@@ -105,6 +103,7 @@ Smart-Data-Visualizer
 │  │  │  ├─ exception_handlers.py
 │  │  │  ├─ logging_config.py
 │  │  │  ├─ logging_middleware.py
+│  │  │  ├─ redis_client.py
 │  │  │  ├─ security.py
 │  │  │  └─ __init__.py
 │  │  ├─ db
@@ -150,9 +149,11 @@ Smart-Data-Visualizer
 │  │  │  │  ├─ validation.py
 │  │  │  │  └─ __init__.py
 │  │  │  ├─ refine_service.py
+│  │  │  ├─ sandbox_service.py
 │  │  │  ├─ task_manager.py
 │  │  │  └─ __init__.py
 │  │  └─ __init__.py
+│  ├─ corrupt.csv
 │  ├─ Dockerfile
 │  ├─ generate_schema.py
 │  ├─ logs
@@ -168,9 +169,14 @@ Smart-Data-Visualizer
 │  ├─ README.md
 │  ├─ refine.json
 │  ├─ requirements.txt
+│  ├─ sample.csv
+│  ├─ sample.xlsx
 │  ├─ tests
+│  │  ├─ RefineSandbox2_Tests.postman_collection.json
+│  │  ├─ RefineSandbox_Tests.postman_collection.json
 │  │  ├─ test_dataset.csv
-│  │  └─ test_dataset_gen.py
+│  │  ├─ test_dataset_gen.py
+│  │  └─ test_refine_pipeline.py
 │  ├─ test_pipe.py
 │  └─ __init__.py
 ├─ docker-compose.yml
@@ -249,6 +255,10 @@ Smart-Data-Visualizer
 │  │  │  │  │  │  ├─ column-picker.component.html
 │  │  │  │  │  │  ├─ column-picker.component.spec.ts
 │  │  │  │  │  │  └─ column-picker.component.ts
+│  │  │  │  │  ├─ configure-header
+│  │  │  │  │  │  ├─ configure-header.component.css
+│  │  │  │  │  │  ├─ configure-header.component.html
+│  │  │  │  │  │  └─ configure-header.component.ts
 │  │  │  │  │  ├─ dataset-list
 │  │  │  │  │  │  ├─ dataset-list.component.css
 │  │  │  │  │  │  ├─ dataset-list.component.html
@@ -265,9 +275,6 @@ Smart-Data-Visualizer
 │  │  │  │  │  │  ├─ preview-modal.component.spec.ts
 │  │  │  │  │  │  └─ preview-modal.component.ts
 │  │  │  │  │  └─ refine-schema
-│  │  │  │  │     ├─ refine-schema.component.css
-│  │  │  │  │     ├─ refine-schema.component.html
-│  │  │  │  │     └─ refine-schema.component.ts
 │  │  │  │  ├─ dashboards
 │  │  │  │  │  ├─ components
 │  │  │  │  │  │  ├─ create-dashboard-dialog

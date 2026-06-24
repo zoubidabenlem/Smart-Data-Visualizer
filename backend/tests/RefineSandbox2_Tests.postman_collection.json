@@ -24,7 +24,7 @@
         "header": [],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"username\": \"your_admin_username\",\n  \"password\": \"your_admin_password\"\n}",
+          "raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"admin123\"\n}",
           "options": { "raw": { "language": "json" } }
         },
         "url": {

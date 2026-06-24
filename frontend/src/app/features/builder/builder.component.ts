@@ -66,9 +66,11 @@ export class BuilderComponent implements OnInit {
     this.selectedDatasetId = id;
   }
 
-  openRefine(id: number): void {
-    this.router.navigate(['/builder/refine', id]);
-  }
+
+openRefine(id: number): void {
+  // Change '/refine-sandbox' to '/refine' to match builder-routing.module.ts
+  this.router.navigate(['/builder/refine', id]);
+}
 
   // src/app/features/builder/builder.component.ts
   navigateToDashboardBuilder(id: number) {

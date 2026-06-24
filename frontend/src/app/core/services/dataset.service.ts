@@ -41,7 +41,7 @@ export class DatasetService {
     return this.http.get<any[]>(`${this.apiUrl}/${datasetId}/columns`);
   }
 
-  refineSchema(datasetId:number, payload:any): Observable<any> {
+refineSchema(datasetId:number, payload:any): Observable<any> {
   return this.http.post(`${this.apiUrl}/${datasetId}/refine-schema`, payload);  
 }
 
