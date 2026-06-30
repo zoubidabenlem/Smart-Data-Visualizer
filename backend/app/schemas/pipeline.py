@@ -35,7 +35,20 @@ class MissingConfig(BaseModel):
         if self.default == "fill" and self.default_fill_value is None:
             raise ValueError("default_fill_value is required when default strategy is 'fill'")
         return self
-    
+
+class AggregationSpec(BaseModel):
+    """Specification for multi-value aggregation."""
+    value_col: str
+    agg_func: Literal["SUM", "MEAN", "COUNT", "MAX", "MIN"]
+    alias: Optional[str] = None   # custom output column name
+
+    @field_validator("alias")
+    @classmethod
+    def alias_not_empty(cls, v: Optional[str]) -> Optional[str]:
+        if v is not None and v.strip() == "":
+            raise ValueError("Alias cannot be empty string")
+        return v
+
 class PrepareRequest(BaseModel):
     #old static to delete when everything works with new configuration
     missing_strategy: Literal["drop","fill","mean"]="drop"
@@ -49,12 +62,32 @@ class PrepareRequest(BaseModel):
     group_by: Optional[List[str]] = None
     agg_func: Optional[Literal["SUM", "MEAN", "COUNT","MAX","MIN"]] = None
     value_col: Optional[str] = None
+    aggregations: Optional[List[AggregationSpec]] = None
 
-    @field_validator('value_col')
+    @model_validator(mode="after")
+    def _normalize_aggregations(self) -> "PrepareRequest":
+        # If old single fields are present, convert them to aggregations list
+        if self.agg_func and self.value_col:
+            if self.aggregations:
+                raise ValueError(
+                    "Use either 'aggregations' list or the single 'agg_func'/'value_col' pair, not both."
+                )
+            self.aggregations = [
+                AggregationSpec(value_col=self.value_col, agg_func=self.agg_func)
+            ]
+        elif self.aggregations and (self.agg_func or self.value_col):
+            raise ValueError(
+                "Use either 'aggregations' list or the single 'agg_func'/'value_col' pair, not both."
+            )
+        return self
+
+    @field_validator("value_col")
     def check_value_col(cls, v, info):
-        if info.data.get('agg_func') and not v:
-            raise ValueError('value_col is required when aggregation is used')
+        # Only enforce if old-style single aggregation is used and no aggregations list
+        if v is None and info.data.get("agg_func") and not info.data.get("aggregations"):
+            raise ValueError("value_col is required when aggregation is used")
         return v
+
 
     @property
     def effective_missing_config(self) -> MissingConfig:
@@ -74,8 +107,3 @@ class PrepareResponse(BaseModel):
     chart_data: List[dict]          # array of records for Chart.js
     row_count: int
     cached: bool
-
-##MULTI VALUE AGGREGATION
-class AggregationSpec(BaseModel):
-    value_col: str
-    agg_func: Literal["SUM", "MEAN", "COUNT", "MAX", "MIN"]

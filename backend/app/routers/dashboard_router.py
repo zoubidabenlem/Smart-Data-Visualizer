@@ -24,8 +24,9 @@ from app.schemas.pipeline import PrepareRequest
 from app.services.pipeline.orchestrator import run_pipeline
 from app.core.cache import get_cache, set_cache, invalidate_cache, refined_df_cache
 from app.core.logging_config import logger
-from app.services.pipeline.utils import _load_dataframe, format_chart_data
-from app.models.dashboard import dashboard_assignment  # add this line
+from app.services.pipeline.utils import _load_dataframe, format_chart_data, get_prepared_cache_key
+from app.models.dashboard import dashboard_assignment
+from app.core.config import Settings  # add this line
 
 router = APIRouter(prefix="/dashboards", tags=["dashboards"])
 
@@ -119,6 +120,14 @@ def get_dashboard(
             ).first()
             if not accessible:
                 raise HTTPException(403, "Access denied")
+
+        # ---- Load all datasets needed by this dashboard once ----
+        dataset_ids = {w.dataset_id for w in dash.widgets}
+        dataset_cache = {}   # dataset_id → DataFrame
+        for ds_id in dataset_ids:
+            ds = db.query(Dataset).get(ds_id)
+            if ds:
+                dataset_cache[ds_id] = _load_dataframe(ds, refined_df_cache)  # your existing loader
 
         widgets_responses = []
         for widget in dash.widgets:
@@ -274,22 +283,30 @@ def _get_widget_data(widget_id: int, db: Session, current_user: User) -> dict:
         if not dataset:
             raise HTTPException(status_code=400, detail="Dataset not found")
 
-        config = widget.config_json
-        prepare_params = PrepareRequest(
-            filters=config.get("filters"),
-            group_by=config.get("group_by"),
-            agg_func=config.get("agg_func"),
-            value_col=config.get("value_col"),
-            missing_config=config.get("missing_config"),
-        )
+         # Extract config and keep an untouched copy for the final response
+        raw_config = widget.config_json
+        config = raw_config.copy() if hasattr(raw_config, "copy") else dict(raw_config)
+
+        # Normalise old aggregation fields into aggregations list if present
+        if config.get("agg_func") and config.get("value_col") and not config.get("aggregations"):
+            config["aggregations"] = [
+                {"value_col": config["value_col"], "agg_func": config["agg_func"]}
+            ]
+        # Remove the old fields to avoid confusion (PrepareRequest won't need them)
+        config.pop("agg_func", None)
+        config.pop("value_col", None)
+
+        # Safely instantiate using the cleaned, unpacked dictionary
+        prepare_params = PrepareRequest(**config)
 
         df = _load_dataframe(dataset, refined_df_cache)  # your existing function
         chart_data = run_pipeline(df, prepare_params)
         chart_data = format_chart_data(chart_data)
 
+
         response = {
             "id": widget.id,
-            "config": WidgetConfig(**config).dict(),
+            "config": WidgetConfig(**raw_config).dict(),
             "chart_data": chart_data,
             "position": widget.position,
             "created_at": widget.created_at.isoformat(),
@@ -304,7 +321,59 @@ def _get_widget_data(widget_id: int, db: Session, current_user: User) -> dict:
     except Exception as e:
         logger.exception(f"Unexpected error in _get_widget_data for widget {widget_id}")
         raise HTTPException(status_code=500, detail="Error fetching widget data")
+def _get_widget_data_cached(
+    widget: Widget,
+    db: Session,
+    current_user: User,
+    dataset_cache: Dict[int, pd.DataFrame]
+) -> dict:
+    # 1. Widget‑level cache (the whole response including widget metadata)
+    widget_key = f"widget:{widget.id}"
+    cached = get_cache(widget_key)
+    if cached:
+        logger.info(f"Widget cache HIT for {widget_key}")
+        return cached
 
+    # 2. Dataset must be in the cache (already loaded)
+    df = dataset_cache.get(widget.dataset_id)
+    if df is None:
+        raise HTTPException(status_code=400, detail="Dataset not found for widget")
+
+    # 3. Build prepare params from widget config (normalise aggregations)
+    config = widget.config_json
+    if config.get("agg_func") and config.get("value_col") and not config.get("aggregations"):
+        config["aggregations"] = [
+            {"value_col": config["value_col"], "agg_func": config["agg_func"]}
+        ]
+        config.pop("agg_func", None)
+        config.pop("value_col", None)
+
+    prepare_params = PrepareRequest(**config)
+
+    # 4. Prepared data cache (shared across widgets with same params)
+    params_dict = prepare_params.dict(exclude_none=True)
+    prepared_key = get_prepared_cache_key(widget.dataset_id, params_dict)
+    chart_data = get_cache(prepared_key)
+
+    if chart_data is None:
+        # Compute and store in Redis (TTL from settings)
+        chart_data = run_pipeline(df, prepare_params)
+        set_cache(prepared_key, chart_data, ttl=Settings.cache_ttl_seconds)
+
+    # 5. Format
+    chart_data = format_chart_data(chart_data)
+
+    # 6. Build final response
+    response = {
+        "id": widget.id,
+        "config": WidgetConfig(**config).dict(),
+        "chart_data": chart_data,
+        "position": widget.position,
+        "created_at": widget.created_at.isoformat(),
+        "updated_at": widget.updated_at.isoformat(),
+    }
+    set_cache(widget_key, response, ttl=300)
+    return response
 
 @router.post("/{dashboard_id}/widgets", response_model=dict, status_code=201)
 def add_widget(

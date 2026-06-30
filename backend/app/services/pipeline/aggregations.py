@@ -1,19 +1,17 @@
 import pandas as pd
 from typing import Optional, List
 
+from app.schemas.pipeline import AggregationSpec
+
 def apply_aggregation(
     df: pd.DataFrame,
     group_by: Optional[List[str]],
-    agg_func: Optional[str],
-    value_col: Optional[str]
+    aggregations: List[AggregationSpec]
 ) -> pd.DataFrame:
     # If no aggregation requested, return original DataFrame
-    if not agg_func or not value_col:
+    if not aggregations:
         return df
 
-    # Validate column exists
-    if value_col not in df.columns:
-        raise ValueError(f"Value column '{value_col}' not found")
 
     agg_map = {
         "SUM": "sum",
@@ -22,20 +20,47 @@ def apply_aggregation(
         "MAX": "max",
         "MIN": "min"
     }
-    pandas_agg = agg_map.get(agg_func)
-    if not pandas_agg:
-        raise ValueError(f"Unsupported aggregation: {agg_func}")
+     # Validate columns and build alias mapping
+    output_aliases = set()
+    agg_dict = {}
 
-    # Global aggregation (no group_by)
-    if not group_by or len(group_by) == 0:
-        result = {value_col: getattr(df[value_col], pandas_agg)()}
-        # For COUNT, also return count as integer; optionally rename
-        return pd.DataFrame([result])
+    for spec in aggregations:
+        if spec.value_col not in df.columns:
+            raise ValueError(f"Value column '{spec.value_col}' not found in dataset")
 
-    # Grouped aggregation
-    for col in group_by:
-        if col not in df.columns:
-            raise ValueError(f"Group by column '{col}' not found")
+        func = agg_map.get(spec.agg_func)
+        if not func:
+            raise ValueError(f"Unsupported aggregation: {spec.agg_func}")
 
-    grouped = df.groupby(group_by, as_index=False)[value_col].agg(pandas_agg)
-    return pd.DataFrame(grouped)
+        # Check data type for numeric operations
+        if spec.agg_func in ("SUM", "MEAN", "MAX", "MIN"):
+            if not pd.api.types.is_numeric_dtype(df[spec.value_col]):
+                raise TypeError(
+                    f"Column '{spec.value_col}' is not numeric; cannot apply {spec.agg_func}"
+                )
+
+        # Determine output column name
+        alias = spec.alias or f"{spec.value_col}_{spec.agg_func}"
+        # Resolve collisions automatically if alias already used
+        original_alias = alias
+        counter = 1
+        while alias in output_aliases:
+            alias = f"{original_alias}_{counter}"
+            counter += 1
+        output_aliases.add(alias)
+
+        agg_dict[alias] = pd.NamedAgg(column=spec.value_col, aggfunc=func)
+
+    # Perform grouping
+    if group_by:
+        for col in group_by:
+            if col not in df.columns:
+                raise ValueError(f"Group by column '{col}' not found")
+        result = df.groupby(group_by, as_index=False).agg(**agg_dict)
+    else:
+        result_row = {}
+        for alias, named_agg in agg_dict.items():
+            result_row[alias] = getattr(df[named_agg.column], named_agg.aggfunc)()
+        result = pd.DataFrame([result_row])
+
+    return result

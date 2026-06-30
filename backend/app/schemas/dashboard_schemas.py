@@ -1,6 +1,6 @@
 from typing import Any, Dict, Optional, List, Literal
 from pydantic import BaseModel, Field, field_validator, model_validator
-from app.schemas.pipeline import FilterCondition, MissingConfig
+from app.schemas.pipeline import AggregationSpec, FilterCondition, MissingConfig
 
 
 ALLOWED_CHART_TYPES = {"bar", "line", "pie", "scatter", "area", "heatmap","kpi"}
@@ -17,6 +17,7 @@ class WidgetConfig(BaseModel):
     value_col: Optional[str] = None
     missing_config: Optional[MissingConfig] = None
     color_scheme: str = "default"  # consistent naming with default value
+    aggregations: Optional[List[AggregationSpec]]
 
     # Optional: keep validators for custom logic (though Literal already catches invalid values)
     @field_validator("chart_type")
@@ -35,23 +36,38 @@ class WidgetConfig(BaseModel):
 
     @model_validator(mode="after")
     def check_aggregation_consistency(self) -> "WidgetConfig":
-
+        # KPI can have a single agg_func/value_col without group_by
         if self.chart_type == "kpi":
+            # allow single aggregation with no group_by
             return self
+
+        has_old_style = self.agg_func and self.value_col
+        has_new_style = bool(self.aggregations)
+
+        if has_old_style and has_new_style:
+            raise ValueError("Use either 'aggregations' or 'agg_func'/'value_col', not both")
+
+        if has_old_style:
+            # Must also have group_by
+            if not self.group_by or len(self.group_by) == 0:
+                raise ValueError("group_by must be a non‑empty list when using agg_func and value_col")
+            # Normalise into aggregations inside the router before creating PrepareRequest
+            # (see step 4)
+
+        if has_new_style and not self.group_by:
+            # For charts, aggregation without group_by is allowed? Original rule required group_by.
+            # If you want to allow global aggregation (e.g., total SUM) without group_by,
+            # remove this check. Let's keep the old rule: group_by required for non-KPI.
+            raise ValueError("group_by is required when aggregations are used for chart widgets")
+
+        return self
     
-        group_by = self.group_by
-        agg_func = self.agg_func
-        value_col = self.value_col
-
-        # No aggregation requested
-        if group_by is None and agg_func is None and value_col is None:
-            return self
-
-        # All three must be present
-        if not (group_by and agg_func and value_col):
-            raise ValueError("group_by, agg_func, and value_col must all be provided together")
-        if not isinstance(group_by, list) or len(group_by) == 0:
-            raise ValueError("group_by must be a non‑empty list when aggregation is requested")
+    @model_validator(mode="after")
+    def check_aliases(self):
+        if self.aggregations and len(self.aggregations) > 1:
+            for spec in self.aggregations:
+                if not spec.alias:
+                    raise ValueError("Alias is required when multiple aggregations are used")
         return self
 
     model_config = {
@@ -104,3 +120,4 @@ class DashboardListItem(BaseModel):
     title: str
     created_at: str
     widget_count: int
+

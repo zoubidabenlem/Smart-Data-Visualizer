@@ -28,10 +28,10 @@ def run_pipeline(df: pd.DataFrame, params: PrepareRequest) -> List[Dict[str, Any
     filter_time = (time.time() - start) * 1000
     logger.info(f"Filter step: rows after={len(df_clean)} | elapsed={filter_time:.2f} ms")
 
-    # 3. Aggregation
+     # 3. Aggregation
     start = time.time()
-    if params.agg_func and params.value_col:   # <-- only require agg_func and value_col
-        df_clean = apply_aggregation(df_clean, params.group_by, params.agg_func, params.value_col)
+    if params.aggregations:   # uses the normalised list
+        df_clean = apply_aggregation(df_clean, params.group_by, params.aggregations)
     agg_time = (time.time() - start) * 1000
     logger.info(f"Aggregation step: output rows={len(df_clean)} | elapsed={agg_time:.2f} ms")
     
