@@ -74,3 +74,8 @@ class PrepareResponse(BaseModel):
     chart_data: List[dict]          # array of records for Chart.js
     row_count: int
     cached: bool
+
+##MULTI VALUE AGGREGATION
+class AggregationSpec(BaseModel):
+    value_col: str
+    agg_func: Literal["SUM", "MEAN", "COUNT", "MAX", "MIN"]

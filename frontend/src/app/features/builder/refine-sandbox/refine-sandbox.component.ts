@@ -218,7 +218,7 @@ export class RefineSandboxComponent implements OnInit {
     this.refineService.finalize(this.datasetId).subscribe({
       next: () => {
         this.loading = false;
-        this.router.navigate(['/builder/datasets']); // or wherever appropriate
+        this.router.navigate(['/dashboards']); // or wherever appropriate
       },
       error: (err) => {
         this.error = err.error?.detail || 'Finalize failed';

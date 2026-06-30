@@ -95,3 +95,10 @@
 .status-dot.refined {
   background-color: green; /* Color if true */
 }
+
+.refine-btn:disabled {
+  background-color: #cccccc;
+  color: #666666;
+  cursor: not-allowed;
+  opacity: 0.6;
+}

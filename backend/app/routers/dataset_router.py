@@ -141,8 +141,12 @@ async def configure_header(
         df.rename(columns=config.column_names, inplace=True)
 
     # 3. Save the cleaned file (optional but recommended)
-    new_path = file_path.parent / f"header_fixed_{dataset_id}.csv"
-    df.to_csv(new_path, index=False)
+    if dataset.source_type == SourceType.csv:
+        new_path = file_path.parent / f"header_fixed_{dataset_id}.csv"
+        df.to_csv(new_path, index=False)
+    else:
+        new_path = file_path.parent / f"header_fixed_{dataset_id}.xlsx"
+        df.to_excel(new_path, index=False, engine='openpyxl')
 
     # 4. Update dataset metadata
     dataset.source_path = str(new_path)
@@ -155,9 +159,14 @@ async def configure_header(
     db.commit()
 
     # 5. Invalidate any stale preview caches
-    delete_cache(f"preview:{dataset_id}:False")
-    delete_cache(f"preview:{dataset_id}:True")
+    key_f = preview_cache_key(dataset_id, False)
+    key_t = preview_cache_key(dataset_id, True)
+    del preview_cache[key_f]
+    del preview_cache[key_t]
     # (you might have an invalidate_cache helper; if not, delete from Redis manually)
+    # In configure_header, after db.commit()
+    logger.info(f"Clearing original_df_cache for dataset {dataset_id}")
+    original_df_cache.pop(dataset_id, None)
 
     return ConfigureHeaderResponse.from_orm(dataset)
 

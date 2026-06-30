@@ -25,8 +25,9 @@
         <td>{{ ds.uploaded_at | date:'medium' }}</td>
         <td>
           <button class="preview-btn" (click)="preview.emit(ds.id)">Preview</button>
-          <button class="refine-btn" (click)="refine.emit(ds.id)">Refine</button>
-          <!-- Add this button inside the <td> tag in dataset-list.component.html -->
+          <button class="refine-btn" [disabled]="ds.is_refined" (click)="refine.emit(ds.id)">
+            Refine
+          </button>          <!-- Add this button inside the <td> tag in dataset-list.component.html -->
           <button class="delete-btn" (click)="delete.emit(ds.id)"> Delete</button>
 
           <button class="dashboard-btn" (click)="onCreateDashboard(ds.id)">Create Dashboard</button>
