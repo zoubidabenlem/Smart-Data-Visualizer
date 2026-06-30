@@ -4,6 +4,8 @@ import { Component, OnInit } from '@angular/core';
 import { DatasetService } from '../../core/services/dataset.service';
 import { DatasetOut } from '../../core/models/dataset.model';
 import { Router } from '@angular/router';
+import { DashboardService } from 'src/app/core/services/dashboard.service';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-builder',
@@ -18,6 +20,8 @@ export class BuilderComponent implements OnInit {
 
   constructor(
     private datasetService: DatasetService,
+      private dashboardService: DashboardService,
+    private snackBar: MatSnackBar,
   private router: Router
 ) {}
 
@@ -80,6 +84,29 @@ openRefine(id: number): void {
  navigateToUserManagement(id: number) {
   this.router.navigate(['/admin/user'], { queryParams: { datasetId: id } });
 }
+
+// Handler for dataset-list "Create Dashboard" button
+  createDashboard(datasetId: number): void {
+    const title = 'Untitled Dashboard'; // generic title
+    this.dashboardService.createDashboard({ title }).subscribe({
+      next: (res) => {
+        this.snackBar.open('Dashboard created! Opening editor…', 'Close', {
+          duration: 2000,
+        });
+        this.router.navigate([`/dashboards/${res.id}/edit`], {
+          queryParams: { dataset_id: datasetId },
+        });
+      },
+      error: (err) => {
+        console.error('Dashboard creation failed:', err);
+        this.snackBar.open(
+          'Failed to create dashboard. Check console.',
+          'Close',
+          { duration: 4000 }
+        );
+      },
+    });
+  }
   
 
 }

@@ -1,12 +1,12 @@
 <div class="chart-container" *ngIf="widget; else noData">
-      <canvas #chartCanvas *ngIf="widget.config.chart_type !== 'kpi'"></canvas>
-      <!-- Inside widget-chart.component.html -->
-<div *ngIf="widget.config.chart_type === 'kpi'" class="kpi-card">
-  <div class="kpi-value">{{ kpiValue }}</div>
-  <div class="kpi-label">{{ widget.config.title }}</div>
+  <div *ngIf="widget.config.chart_type === 'kpi'" class="kpi-card">
+    <div class="kpi-value">{{ kpiValue }}</div>
+    <div class="kpi-label">{{ widget.config.title }}</div>
+  </div>
+  
+  <canvas #chartCanvas *ngIf="widget.config.chart_type !== 'kpi'"></canvas>
 </div>
-<canvas #chartCanvas *ngIf="widget.config.chart_type !== 'kpi'"></canvas>
-    </div>
-    <ng-template #noData>
-      <div class="no-chart-data">No chart data</div>
-    </ng-template>
+
+<ng-template #noData>
+  <div class="no-chart-data">No chart data</div>
+</ng-template>

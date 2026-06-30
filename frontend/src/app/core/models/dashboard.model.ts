@@ -25,6 +25,12 @@ export type Strategy = "drop" | "fill" | "mean";
 export type FillValue = string | number | null;
 export type ColorScheme = string;
 
+export interface AggregationSpec {
+  value_col: string;
+  agg_func: "SUM" | "MEAN" | "COUNT" | "MAX" | "MIN";
+  alias?: string | null;
+}
+
 export interface WidgetConfig {
   dataset_id: DatasetId;
   chart_type: ChartType;
@@ -37,6 +43,8 @@ export interface WidgetConfig {
   value_col?: ValueCol;
   missing_config?: MissingConfig | null;
   color_scheme?: ColorScheme;
+  aggregations?: AggregationSpec[] | null;   // ← NEW
+
 }
 export interface FilterCondition {
   column: Column;

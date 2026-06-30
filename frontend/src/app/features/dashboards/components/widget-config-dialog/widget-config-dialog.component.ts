@@ -1,12 +1,19 @@
 // src/app/features/dashboards/components/widget-config-dialog/widget-config-dialog.component.ts
 import { Component, Inject, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, FormArray, Validators, AbstractControl } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { DashboardService } from 'src/app/core/services/dashboard.service';
 import { DatasetService } from 'src/app/core/services/dataset.service';
-import { WidgetConfig, WidgetResponse } from 'src/app/core/models/dashboard.model';
+import {
+  WidgetConfig,
+  WidgetResponse,
+  AggregationSpec,
+  MissingConfig,
+  MissingOverride
+} from 'src/app/core/models/dashboard.model';
 import { DatasetOut } from 'src/app/core/models/dataset.model';
+import { Observable } from 'rxjs';
 
 export interface WidgetDialogData {
   dashboardId: number;
@@ -32,6 +39,16 @@ export class WidgetConfigDialogComponent implements OnInit {
   aggregationFunctions = ['SUM', 'MEAN', 'COUNT', 'MAX', 'MIN'];
   operators = ['==', '!=', '>', '<', 'in', 'like'];
 
+  // Predefined colour schemes (align with backend)
+  colorSchemes = [
+    'default',
+    'pastel',
+    'vibrant',
+    'monochrome',
+    'cool',
+    'warm'
+  ];
+
   constructor(
     private fb: FormBuilder,
     private dashboardService: DashboardService,
@@ -44,23 +61,24 @@ export class WidgetConfigDialogComponent implements OnInit {
   ngOnInit(): void {
     this.initForm();
     this.loadDatasets();
-    console.log('Dialog data:', this.data);
+
     if (this.data.widget) {
       this.isEditMode = true;
       this.widgetId = this.data.widget.id;
       this.patchFormWithWidget(this.data.widget.config);
     } else if (this.data.preSelectedDatasetId) {
-      // Pre-select dataset and load its columns
       this.form.patchValue({ dataset_id: this.data.preSelectedDatasetId });
       this.onDatasetChange(this.data.preSelectedDatasetId);
     }
 
     if (this.data.defaultChartType === 'kpi') {
       this.form.patchValue({ chart_type: 'kpi' });
-      this.toggleFieldsBasedOnChartType('kpi');
     }
+
+    this.form.get('chart_type')?.valueChanges.subscribe(ct => this.toggleFieldsBasedOnChartType(ct));
   }
 
+  // ---------- Form structure ----------
   private initForm(): void {
     this.form = this.fb.group({
       dataset_id: [null, Validators.required],
@@ -69,77 +87,105 @@ export class WidgetConfigDialogComponent implements OnInit {
       x_column: [null],
       y_column: [null],
       filters: this.fb.array([]),
-      group_by: [null],
-      agg_func: [null],
-      value_col: [null],
+      group_by: [[]],              // ← replaces agg_func/value_col
       missing_config: this.fb.group({
         default: ['drop'],
         default_fill_value: [null],
-        overrides: this.fb.group({})
+        overrides: this.fb.array([])              // dynamic per‑column overrides
       }),
-      color_scheme: ['default']
+      color_scheme: ['default'],
+      aggregations: this.fb.array([]),            // ← replaces agg_func/value_col
+
     });
 
-    this.addFilter(); // start with one empty filter
+    this.addAggregation();   // start with one aggregation row
+    this.addFilter();        // one empty filter
 
-    this.form.get('chart_type')?.valueChanges.subscribe(ct => this.toggleFieldsBasedOnChartType(ct));
-
-    // Aggregation validation
-    const aggFields = ['group_by', 'agg_func', 'value_col'];
-    aggFields.forEach(field => {
-      this.form.get(field)?.valueChanges.subscribe(() => this.validateAggregation());
-    });
+    // Conditional validation for KPI
+    this.toggleFieldsBasedOnChartType(this.form.get('chart_type')!.value);
   }
 
+  /** Show/hide fields that are irrelevant for certain chart types */
   private toggleFieldsBasedOnChartType(chartType: string): void {
     const isKpi = chartType === 'kpi';
-    const xControl = this.form.get('x_column');
-    const yControl = this.form.get('y_column');
+    const x = this.form.get('x_column');
+    const y = this.form.get('y_column');
     if (isKpi) {
-      xControl?.disable();
-      yControl?.disable();
-      xControl?.setValue(null);
-      yControl?.setValue(null);
+      x?.disable(); y?.disable();
+      x?.setValue(null); y?.setValue(null);
     } else {
-      xControl?.enable();
-      yControl?.enable();
+      x?.enable(); y?.enable();
     }
   }
 
-  private validateAggregation(): void {
-    const groupBy = this.form.get('group_by')?.value;
-    const aggFunc = this.form.get('agg_func')?.value;
-    const valueCol = this.form.get('value_col')?.value;
-    const allPresent = groupBy && aggFunc && valueCol;
-    const nonePresent = !groupBy && !aggFunc && !valueCol;
-    if (!allPresent && !nonePresent) {
-      this.form.setErrors({ aggregationInvalid: true });
+  // ---- Aggregations FormArray ----
+  get aggregationsArray(): FormArray {
+    return this.form.get('aggregations') as FormArray;
+  }
+
+  createAggregationGroup(agg?: AggregationSpec): FormGroup {
+    return this.fb.group({
+      value_col: [agg?.value_col || '', Validators.required],
+      agg_func: [agg?.agg_func || 'SUM', Validators.required],
+      alias: [agg?.alias || null]
+    });
+  }
+
+  addAggregation(): void {
+    this.aggregationsArray.push(this.createAggregationGroup());
+  }
+
+  removeAggregation(index: number): void {
+    if (this.aggregationsArray.length > 1) {
+      this.aggregationsArray.removeAt(index);
     } else {
-      if (this.form.hasError('aggregationInvalid')) {
-        const errors = this.form.errors;
-        delete errors?.['aggregationInvalid'];
-        this.form.setErrors(Object.keys(errors || {}).length ? errors : null);
-      }
+      this.snackBar.open('At least one aggregation is required', 'Close', { duration: 2000 });
     }
   }
 
+  // ---- Filters FormArray ----
   get filtersArray(): FormArray {
     return this.form.get('filters') as FormArray;
   }
 
-  addFilter(): void {
-    const filterGroup = this.fb.group({
+  createFilterGroup(): FormGroup {
+    return this.fb.group({
       column: ['', Validators.required],
       operator: ['==', Validators.required],
       value: ['', Validators.required]
     });
-    this.filtersArray.push(filterGroup);
+  }
+
+  addFilter(): void {
+    this.filtersArray.push(this.createFilterGroup());
   }
 
   removeFilter(index: number): void {
     this.filtersArray.removeAt(index);
   }
 
+  // ---- Missing Config Overrides ----
+  get overridesArray(): FormArray {
+    return (this.form.get('missing_config') as FormGroup).get('overrides') as FormArray;
+  }
+
+  createOverrideGroup(override?: { column: string; config: MissingOverride }): FormGroup {
+    return this.fb.group({
+      column: [override?.column || '', Validators.required],
+      strategy: [override?.config?.strategy || 'drop', Validators.required],
+      fill_value: [override?.config?.fill_value ?? null]
+    });
+  }
+
+  addOverride(): void {
+    this.overridesArray.push(this.createOverrideGroup());
+  }
+
+  removeOverride(index: number): void {
+    this.overridesArray.removeAt(index);
+  }
+
+  // ---- Data loading ----
   private loadDatasets(): void {
     this.datasetService.getDatasets().subscribe({
       next: (ds) => this.datasets = ds,
@@ -147,75 +193,99 @@ export class WidgetConfigDialogComponent implements OnInit {
     });
   }
 
-  // Called when dataset selection changes (dropdown or programmatically)
   onDatasetChange(datasetId: number): void {
-  if (!datasetId) {
-    this.columns = [];
-    return;
-  }
-  console.log('Loading columns for dataset ID:', datasetId);
-  this.datasetService.getDatasetColumns(datasetId).subscribe({
-    next: (response: any) => {
-      console.log('Raw columns response:', response);
-      // Extract the columns array from the response object
-      const colsArray = response?.columns || [];
-      console.log('Columns array:', colsArray);
-      // Map to column names (adjust property names as needed)
-      this.columns = colsArray.map((col: any) => col.name || col.column_name);
-      console.log('Mapped column names:', this.columns);
-      if (this.columns.length === 0) {
-        this.snackBar.open('No columns found for this dataset', 'Close', { duration: 3000 });
-      }
-      // Reset dependent fields
-      this.form.patchValue({
-        x_column: null,
-        y_column: null,
-        group_by: null,
-        value_col: null
-      });
-      // Reset filters (optional)
-      while (this.filtersArray.length) this.filtersArray.removeAt(0);
-      this.addFilter();
-    },
-    error: (err) => {
-      console.error('Failed to load columns', err);
+    if (!datasetId) {
       this.columns = [];
-      this.snackBar.open('Could not load columns', 'Close', { duration: 3000 });
+      return;
     }
-  });
-}
+    this.datasetService.getDatasetColumns(datasetId).subscribe({
+      next: (response: any) => {
+        const cols = response?.columns || [];
+        this.columns = cols.map((col: any) => col.name || col.column_name);
+        if (this.columns.length === 0) {
+          this.snackBar.open('No columns found', 'Close', { duration: 3000 });
+        }
+        // Reset dependent fields
+        this.form.patchValue({ x_column: null, y_column: null, group_by: [] });
+        while (this.filtersArray.length) this.filtersArray.removeAt(0);
+        this.addFilter();
+      },
+      error: (err) => {
+        console.error('Failed to load columns', err);
+        this.columns = [];
+        this.snackBar.open('Could not load columns', 'Close', { duration: 3000 });
+      }
+    });
+  }
 
+  // ---- Patching form when editing ----
   private patchFormWithWidget(config: WidgetConfig): void {
+    // Basic fields
     this.form.patchValue({
       dataset_id: config.dataset_id,
       chart_type: config.chart_type,
       title: config.title,
       x_column: config.x_column,
       y_column: config.y_column,
-      group_by: config.group_by ? config.group_by[0] : null, // assuming group_by is array with single value
-      agg_func: config.agg_func,
-      value_col: config.value_col,
+      group_by: config.group_by || [],
       color_scheme: config.color_scheme || 'default'
     });
-    if (config.missing_config) {
-      this.form.get('missing_config')?.patchValue(config.missing_config);
+
+    // Aggregations
+    this.aggregationsArray.clear();
+    if (config.aggregations && config.aggregations.length > 0) {
+      config.aggregations.forEach(agg => this.aggregationsArray.push(this.createAggregationGroup(agg)));
+    } else if (config.agg_func && config.value_col) {
+      // Convert legacy single aggregation
+      this.aggregationsArray.push(this.createAggregationGroup({
+        value_col: config.value_col,
+        agg_func: config.agg_func,
+        alias: null
+      }));
+    } else {
+      // At least one empty aggregation
+      this.aggregationsArray.push(this.createAggregationGroup());
     }
-    // Patch filters
-    if (config.filters && config.filters.length) {
-      while (this.filtersArray.length) this.filtersArray.removeAt(0);
-      config.filters.forEach(f => {
-        const fg = this.fb.group({
-          column: [f.column, Validators.required],
-          operator: [f.operator, Validators.required],
-          value: [f.value, Validators.required]
-        });
-        this.filtersArray.push(fg);
+
+    // Filters
+    while (this.filtersArray.length) this.filtersArray.removeAt(0);
+    if (config.filters?.length) {
+      config.filters.forEach(f => this.filtersArray.push(this.createFilterGroup().patchValue({
+        column: f.column,
+        operator: f.operator,
+        value: f.value
+      })));
+    } else {
+      this.addFilter();
+    }
+
+    // Missing config
+    const missing = config.missing_config;
+    if (missing) {
+      const mcGroup = this.form.get('missing_config') as FormGroup;
+      mcGroup.patchValue({
+        default: missing.default || 'drop',
+        default_fill_value: missing.default_fill_value ?? null
       });
+      const overrides = mcGroup.get('overrides') as FormArray;
+      overrides.clear();
+      if (missing.overrides) {
+        Object.entries(missing.overrides).forEach(([column, val]) => {
+          if (typeof val === 'object' && val !== null && 'strategy' in val) {
+            overrides.push(this.createOverrideGroup({ column, config: val as MissingOverride }));
+          } else {
+            // Fallback for string shortcut
+            overrides.push(this.createOverrideGroup({ column, config: { strategy: val as any, fill_value: null } }));
+          }
+        });
+      }
     }
-    // Load columns for the dataset after patching the dataset_id
+
+    // Load columns for this dataset after patching dataset_id
     this.onDatasetChange(config.dataset_id);
   }
 
+  // ---- Submit ----
   onSubmit(): void {
     if (this.form.invalid) {
       this.snackBar.open('Please fix form errors', 'Close', { duration: 3000 });
@@ -223,57 +293,86 @@ export class WidgetConfigDialogComponent implements OnInit {
     }
 
     const rawValue = this.form.getRawValue();
+    
+    // Build aggregations
+    const aggregations: AggregationSpec[] = rawValue.aggregations
+      .filter((a: any) => a.value_col && a.agg_func)
+      .map((a: any) => ({
+        value_col: a.value_col,
+        agg_func: a.agg_func,
+        alias: a.alias?.trim() || null
+      }));
+
+    if (aggregations.length === 0) {
+      this.snackBar.open('At least one valid aggregation is required', 'Close', { duration: 3000 });
+      return;
+    }
+
+    // Build missing_config (only if overrides exist or non‑default settings)
+    let missing_config: MissingConfig | null = null;
+    const mcGroup = this.form.get('missing_config') as FormGroup;
+    const overridesRaw = (mcGroup.get('overrides') as FormArray).controls
+      .filter((ctrl: AbstractControl) => ctrl.value.column)
+      .map((ctrl: AbstractControl) => ctrl.value);
+
+    if (overridesRaw.length > 0 ||
+        mcGroup.value.default !== 'drop' ||
+        (mcGroup.value.default === 'fill' && mcGroup.value.default_fill_value !== null)) {
+      const overrides: Record<string, MissingOverride> = {};
+      overridesRaw.forEach((o: any) => {
+        overrides[o.column] = {
+          strategy: o.strategy,
+          fill_value: o.fill_value ?? null
+        };
+      });
+      missing_config = {
+        default: mcGroup.value.default,
+        default_fill_value: mcGroup.value.default_fill_value ?? null,
+        overrides: overrides
+      };
+    }
+
+    // Build filters
+    const filters = rawValue.filters
+      .filter((f: any) => f.column && f.operator && f.value !== undefined)
+      .map((f: any) => ({
+        column: f.column,
+        operator: f.operator,
+        value: f.value
+      }));
+
     const config: WidgetConfig = {
       dataset_id: rawValue.dataset_id,
       chart_type: rawValue.chart_type,
       title: rawValue.title,
       x_column: rawValue.x_column || null,
       y_column: rawValue.y_column || null,
-      filters: rawValue.filters.filter((f: any) => f.column && f.operator && f.value !== undefined),
-      group_by: rawValue.group_by ? [rawValue.group_by] : null,
-      agg_func: rawValue.agg_func || null,
-      value_col: rawValue.value_col || null,
-      missing_config: rawValue.missing_config,
-      color_scheme: rawValue.color_scheme
+      filters,
+      group_by: rawValue.group_by.length > 0 ? rawValue.group_by : null,      // Legacy fields set to null – we're using aggregations
+      agg_func: null,
+      value_col: null,
+      aggregations,
+      missing_config,
+      color_scheme: rawValue.color_scheme || 'default'
     };
 
-    // Aggregation validation
-    if (config.chart_type !== 'kpi') {
-    const hasGroup = !!config.group_by;
-    const hasAgg = !!config.agg_func;
-    const hasValue = !!config.value_col;
-    if ((hasGroup || hasAgg || hasValue) && !(hasGroup && hasAgg && hasValue)) {
-      this.snackBar.open('Aggregation must be all three or none', 'Close', { duration: 3000 });
-      return;
-    }
-  }
-
     this.isLoading = true;
-    if (this.isEditMode && this.widgetId) {
-      this.dashboardService.updateWidget(this.data.dashboardId, this.widgetId, { config }).subscribe({
-        next: () => {
-          this.snackBar.open('Widget updated', 'Close', { duration: 2000 });
-          this.dialogRef.close(true);
-        },
-        error: (err) => {
-          console.error(err);
-          this.snackBar.open('Update failed', 'Close', { duration: 3000 });
-          this.isLoading = false;
-        }
-      });
-    } else {
-      this.dashboardService.addWidget(this.data.dashboardId, { config }).subscribe({
-        next: () => {
-          this.snackBar.open('Widget created', 'Close', { duration: 2000 });
-          this.dialogRef.close(true);
-        },
-        error: (err) => {
-          console.error(err);
-          this.snackBar.open('Creation failed', 'Close', { duration: 3000 });
-          this.isLoading = false;
-        }
-      });
-    }
+    const action = this.isEditMode && this.widgetId
+      ? this.dashboardService.updateWidget(this.data.dashboardId, this.widgetId!, { config })
+      : this.dashboardService.addWidget(this.data.dashboardId, { config });
+
+    // Cast to Observable<any> to avoid TypeScript union call signature issue
+    (action as Observable<any>).subscribe({
+      next: () => {
+        this.snackBar.open(this.isEditMode ? 'Widget updated' : 'Widget created', 'Close', { duration: 2000 });
+        this.dialogRef.close(true);
+      },
+      error: (err: any) => {
+        console.error(err);
+        this.snackBar.open('Operation failed. Check console.', 'Close', { duration: 4000 });
+        this.isLoading = false;
+      }
+    });
   }
 
   onCancel(): void {
