@@ -3,16 +3,20 @@
     <a routerLink="/" class="brand-identity">
       <img src="assets/images/logo.png" alt="Logo" class="logo-img" />
       <span class="brand-name">Smart Data Visualizer</span>
+      <span class="page-title" *ngIf="pageTitle !== 'Smart Data Visualizer'">
+        / {{ pageTitle }}
+      </span>
     </a>
 
     <nav class="main-nav">
       <!-- Logged in state -->
       <ng-container *ngIf="currentUser; else loggedOut">
-        <span class="user-greeting">Welcome, {{ currentUser!.role }}</span>
+        <span class="user-greeting" *ngIf="shouldShowWelcomeMessage">Welcome, {{ currentUser!.role }}</span>
         <button (click)="logout()" class="btn-logout">Sign Out</button>
 
        <ng-container *ngIf="currentUser.role === 'admin'">
           <a routerLink="/builder">Builder</a>
+          
           <a routerLink="/dashboards">My Dashboards</a>
           <a routerLink="/admin/users">User Management</a>
         </ng-container>

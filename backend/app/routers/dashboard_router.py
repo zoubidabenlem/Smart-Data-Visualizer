@@ -1,3 +1,6 @@
+import hashlib
+import json
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List, Dict, Any
@@ -26,7 +29,7 @@ from app.core.cache import get_cache, set_cache, invalidate_cache, refined_df_ca
 from app.core.logging_config import logger
 from app.services.pipeline.utils import _load_dataframe, format_chart_data, get_prepared_cache_key
 from app.models.dashboard import dashboard_assignment
-from app.core.config import Settings  # add this line
+from app.core.config import Settings, settings  # add this line
 
 router = APIRouter(prefix="/dashboards", tags=["dashboards"])
 
@@ -120,20 +123,27 @@ def get_dashboard(
             ).first()
             if not accessible:
                 raise HTTPException(403, "Access denied")
+            
+        cache_key = f"dashboard_response:{dashboard_id}"
+        cached = get_cache(cache_key)
+        if cached:
+            logger.info(f"Dashboard cache HIT for {dashboard_id}")
+            return cached
 
         # ---- Load all datasets needed by this dashboard once ----
         dataset_ids = {w.dataset_id for w in dash.widgets}
-        dataset_cache = {}   # dataset_id → DataFrame
+        dataset_cache = {}   # dataset_id -> (DataFrame, updated_at_timestamp)
         for ds_id in dataset_ids:
             ds = db.query(Dataset).get(ds_id)
             if ds:
-                dataset_cache[ds_id] = _load_dataframe(ds, refined_df_cache)  # your existing loader
-
+                df = _load_dataframe(ds, refined_df_cache)   # already uses refined if available
+                dataset_cache[ds_id] = (df, ds.uploaded_at.timestamp())   # float epoch seconds
+        
         widgets_responses = []
         for widget in dash.widgets:
             try:
                 # Compute chart data for each widget (with caching)
-                widget_data = _get_widget_data(widget.id, db, current_user)
+                widget_data = _get_widget_data_v2(widget, dataset_cache)
                 widgets_responses.append(widget_data)
             except HTTPException:
                 raise  # let endpoint handle upstream
@@ -144,13 +154,15 @@ def get_dashboard(
                 # Here we skip the faulty widget to keep the dashboard stable
                 continue
 
-        return {
+        response = {
             "id": dash.id,
             "title": dash.title,
             "widgets": widgets_responses,
             "created_at": dash.created_at.isoformat(),
             "updated_at": dash.updated_at.isoformat(),
         }
+        set_cache(cache_key, response, ttl=60)
+        return response
     except HTTPException:
         raise
     except Exception as e:
@@ -374,7 +386,44 @@ def _get_widget_data_cached(
     }
     set_cache(widget_key, response, ttl=300)
     return response
+###helper
+def _get_widget_data_v2(widget, dataset_cache):
+    # 1. Widget‑level cache (fast‑path for unchanged widgets)
+    widget_key = f"widget:{widget.id}"
+    cached = get_cache(widget_key)
+    if cached:
+        return cached
 
+    # 2. Retrieve pre‑loaded DataFrame and dataset version
+    df, ds_updated_ts = dataset_cache[widget.dataset_id]
+
+    # 3. Normalise config and build prepared cache key
+    config = widget.config_json.copy()
+    # ... normalise aggregations as before ...
+    params_hash = hashlib.md5(
+        json.dumps(config, sort_keys=True, default=str).encode()
+    ).hexdigest()
+    prepared_key = f"prepare:{widget.dataset_id}:{ds_updated_ts}:{params_hash}"
+
+    # 4. Fetch or compute chart_data
+    chart_data = get_cache(prepared_key)
+    if chart_data is None:
+        prepare_params = PrepareRequest(**config)
+        chart_data = run_pipeline(df, prepare_params)
+        set_cache(prepared_key, chart_data, ttl=settings.cache_ttl_seconds)
+
+    # 5. Format and build final response
+    chart_data = format_chart_data(chart_data)
+    response = {
+        "id": widget.id,
+        "config": WidgetConfig(**config).dict(),
+        "chart_data": chart_data,
+        "position": widget.position,
+        "created_at": widget.created_at.isoformat(),
+        "updated_at": widget.updated_at.isoformat(),
+    }
+    set_cache(widget_key, response, ttl=300)
+    return response
 @router.post("/{dashboard_id}/widgets", response_model=dict, status_code=201)
 def add_widget(
     dashboard_id: int,

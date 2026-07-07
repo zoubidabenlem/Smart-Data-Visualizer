@@ -13,7 +13,7 @@ import {
   MissingStrategy,
   DedupKeep
 } from 'src/app/core/models/refine.model';
-
+import {HeaderTitleService} from 'src/app/core/services/header-title.service';
 @Component({
   selector: 'app-refine-sandbox',
   templateUrl: './refine-sandbox.component.html',
@@ -37,7 +37,8 @@ export class RefineSandboxComponent implements OnInit {
     private router: Router,
     private fb: FormBuilder,
     private refineService: RefineService,
-    private datasetService: DatasetService
+    private datasetService: DatasetService,
+    private headerTitle: HeaderTitleService
   ) {
     this.actionForm = this.fb.group({
       original_name: [null],
@@ -58,6 +59,8 @@ export class RefineSandboxComponent implements OnInit {
   ngOnInit(): void {
     this.datasetId = +this.route.snapshot.paramMap.get('datasetId')!;
     this.loadInitialData();
+    this.headerTitle.setTitle(`Refine Dataset: ${this.datasetId}`);
+    
   }
 
   private loadInitialData(): void {

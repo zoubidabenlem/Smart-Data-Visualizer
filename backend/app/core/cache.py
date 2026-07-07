@@ -41,6 +41,7 @@ refined_cache         = RedisBackedCache(ttl=settings.cache_ttl_seconds)   # ref
 
 # DataFrame cache stays in local memory (not JSON‑serialisable)
 refined_df_cache      = TTLCache(maxsize=100, ttl=600)                    # actual pd.DataFrames
+dataset_df_cache      = TTLCache(maxsize=50, ttl=3600)   # general dataset DataFrame cache
 
 # ----------------------------------------------------------------------
 #  Backward‑compatible helper functions (used by routers)

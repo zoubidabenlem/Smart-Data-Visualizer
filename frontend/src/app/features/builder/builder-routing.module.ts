@@ -10,17 +10,26 @@ import { RefineGuard } from 'src/app/core/guards/refine.guard';
 import { ConfigureHeaderComponent } from './configure-header/configure-header.component';
 import { RefineSandboxComponent } from './refine-sandbox/refine-sandbox.component';
 const routes: Routes = [
-{ path: '', component: BuilderComponent },
+{ 
+  path: '',
+   component: BuilderComponent,
+   data: { title: 'Data Builder' }        // will show "Builder" in the header
+
+   },
   {path: 'preview/:id',component:PreviewModalComponent},
   {path: 'upload',component:DatasetUploadComponent},
   {path: 'datasets',component:DatasetListComponent},
   { 
     path: 'configure-header/:id', 
-    component: ConfigureHeaderComponent 
+    component: ConfigureHeaderComponent ,
+           data: { title: 'Configure Header' }        // will show "Builder" in the header
+
   },
   {
     path: 'refine/:datasetId',
     component: RefineSandboxComponent,
+       data: { title: 'Data Refinement' }        // will show "Builder" in the header
+
   }
 
 ];

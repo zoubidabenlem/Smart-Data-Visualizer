@@ -9,7 +9,7 @@ import numpy as np
 import math
 from pathlib import Path
 from app.core.logging_config import logger
-
+from app.core.cache import dataset_df_cache
 from app.models.dataset import SourceType
 
 def dataframe_to_json_safe(df: pd.DataFrame) -> List[Dict[str, Any]]:
@@ -82,19 +82,20 @@ def preview_cache_key(dataset_id: int, is_refined: bool) -> str:
     suffix = "refined" if is_refined else "original"
     return f"{dataset_id}_{suffix}"
 
-def _load_dataframe(dataset, refined_df_cache) -> pd.DataFrame:
+from app.core.cache import dataset_df_cache   # import the global cache
 
+def _load_dataframe(dataset, refined_df_cache=None) -> pd.DataFrame:
     """
     Return the most up‑to‑date DataFrame for the given dataset.
-    Logic:
-    - If dataset.is_refined is True and a refined version is cached → use that.
-    - Otherwise, read the original file from source_path.
+    Cached by dataset id + upload timestamp (version-aware).
     """
-    if dataset.is_refined:
-        refined_key = f"refined:{dataset.id}"          # use the same key pattern as your prepare endpoint
-        if refined_key in refined_df_cache:
-            logger.info(f"Using refined DataFrame for dataset {dataset.id}")
-            return refined_df_cache[refined_key]
+    cache_key = f"df:{dataset.id}:{dataset.uploaded_at.timestamp()}"
+    
+    if cache_key in dataset_df_cache:
+        logger.info(f"Using cached DataFrame for dataset {dataset.id}")
+        return dataset_df_cache[cache_key]
+
+    logger.info(f"DataFrame cache MISS for dataset {dataset.id}, loading from disk")
 
     file_path = Path(str(dataset.source_path))
     if not file_path.exists():
@@ -104,7 +105,10 @@ def _load_dataframe(dataset, refined_df_cache) -> pd.DataFrame:
         df = pd.read_csv(file_path)
     else:
         df = pd.read_excel(file_path)
-    logger.info(f"Loaded original DataFrame for dataset {dataset.id}, rows={len(df)}")
+
+    # Store in global cache for next requests
+    dataset_df_cache[cache_key] = df
+    logger.info(f"Loaded and cached DataFrame for dataset {dataset.id}, rows={len(df)}")
     return df
 
 # Add this helper near the top of dashboard_router.py

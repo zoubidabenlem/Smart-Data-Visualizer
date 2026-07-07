@@ -78,20 +78,6 @@ Frontend runs on:
 http://localhost:4200
 ```
 ## Project Structure (Initial)
-```
-smart-data-visualizer/
-│
-├── backend/
-│   ├── app/
-│   ├── main.py
-│   └── requirements.txt
-│
-├── frontend/
-│   ├── src/
-│   └── angular.json
-│
-└── README.md
-```
 
 ```
 Smart-Data-Visualizer
@@ -207,6 +193,8 @@ Smart-Data-Visualizer
 │  │  │  │  │  ├─ role.guard.spec.ts
 │  │  │  │  │  └─ role.guard.ts
 │  │  │  │  ├─ core.module.ts
+│  │  │  │  ├─ errors
+│  │  │  │  │  └─ global-error-handler.ts
 │  │  │  │  ├─ guards
 │  │  │  │  │  └─ refine.guard.ts
 │  │  │  │  ├─ interceptors
@@ -216,6 +204,7 @@ Smart-Data-Visualizer
 │  │  │  │  ├─ models
 │  │  │  │  │  ├─ dashboard.model.ts
 │  │  │  │  │  ├─ dataset.model.ts
+│  │  │  │  │  ├─ refine.model.ts
 │  │  │  │  │  └─ user.model.ts
 │  │  │  │  ├─ services
 │  │  │  │  │  ├─ builder-state.service.ts
@@ -223,6 +212,7 @@ Smart-Data-Visualizer
 │  │  │  │  │  ├─ dashboard.service.ts
 │  │  │  │  │  ├─ dataset.service.spec.ts
 │  │  │  │  │  ├─ dataset.service.ts
+│  │  │  │  │  ├─ refine.service.ts
 │  │  │  │  │  ├─ services.module.ts
 │  │  │  │  │  └─ user.service.ts
 │  │  │  │  └─ unauthorized
@@ -250,11 +240,6 @@ Smart-Data-Visualizer
 │  │  │  │  │  ├─ builder.component.html
 │  │  │  │  │  ├─ builder.component.ts
 │  │  │  │  │  ├─ builder.module.ts
-│  │  │  │  │  ├─ column-picker
-│  │  │  │  │  │  ├─ column-picker.component.css
-│  │  │  │  │  │  ├─ column-picker.component.html
-│  │  │  │  │  │  ├─ column-picker.component.spec.ts
-│  │  │  │  │  │  └─ column-picker.component.ts
 │  │  │  │  │  ├─ configure-header
 │  │  │  │  │  │  ├─ configure-header.component.css
 │  │  │  │  │  │  ├─ configure-header.component.html
@@ -274,7 +259,10 @@ Smart-Data-Visualizer
 │  │  │  │  │  │  ├─ preview-modal.component.html
 │  │  │  │  │  │  ├─ preview-modal.component.spec.ts
 │  │  │  │  │  │  └─ preview-modal.component.ts
-│  │  │  │  │  └─ refine-schema
+│  │  │  │  │  └─ refine-sandbox
+│  │  │  │  │     ├─ refine-sandbox.component.css
+│  │  │  │  │     ├─ refine-sandbox.component.html
+│  │  │  │  │     └─ refine-sandbox.component.ts
 │  │  │  │  ├─ dashboards
 │  │  │  │  │  ├─ components
 │  │  │  │  │  │  ├─ create-dashboard-dialog
@@ -375,6 +363,7 @@ Smart-Data-Visualizer
 │  │  ├─ index.html
 │  │  ├─ main.ts
 │  │  └─ styles.css
+│  ├─ src.zip
 │  ├─ tsconfig.app.json
 │  ├─ tsconfig.json
 │  └─ tsconfig.spec.json

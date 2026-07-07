@@ -44,3 +44,16 @@
   font-size: 0.8rem;
   margin-top: 0.25rem;
 }
+.warning-hint {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #f57c00;
+  font-size: 0.9rem;
+  padding: 0.5rem 0;
+}
+.warning-hint mat-icon {
+  font-size: 1.2rem;
+  width: 1.2rem;
+  height: 1.2rem;
+}

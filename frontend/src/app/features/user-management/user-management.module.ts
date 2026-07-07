@@ -9,7 +9,7 @@ import { MatDialogContent, MatDialogModule } from '@angular/material/dialog';
 import { SharedModule } from 'src/app/shared/shared.module';
 
 const routes: Routes = [
-  { path: '', component: UserManagementComponent },
+  { path: '', component: UserManagementComponent, data: { title: 'User Management' } },
 ];
 
 @NgModule({

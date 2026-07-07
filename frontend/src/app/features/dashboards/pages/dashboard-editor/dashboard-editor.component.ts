@@ -7,7 +7,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { DashboardEditorService } from '../../services/dashboard-editor.service';
 import { DatasetService } from 'src/app/core/services/dataset.service';
 
-
+import { HeaderTitleService } from 'src/app/core/services/header-title.service';
 import { WidgetResponse } from 'src/app/core/models/dashboard.model';
 import { DatasetOut } from 'src/app/core/models/dataset.model';
 import { WidgetConfigDialogComponent } from '../../components/widget-config-dialog/widget-config-dialog.component';
@@ -59,6 +59,7 @@ public isLeftPaneCollapsed = false;
     private datasetService: DatasetService,
     private snackBar: MatSnackBar,
     private dialog: MatDialog,
+    private headerTitle: HeaderTitleService,
     public gridService : GridsterService
   ) {}
 
@@ -74,6 +75,8 @@ public isLeftPaneCollapsed = false;
     this.editorService.loadDashboard(this.dashboardId, initialDatasetId).subscribe({
       next: () => {
         console.log('[DEBUG] Dashboard loaded successfully');
+        this.headerTitle.setTitle(`Dashboard: ${this.editorService.currentDashboard?.id || ''}`);
+
         this.isLoading = false;
       },
       error: (err) => {
@@ -82,6 +85,7 @@ public isLeftPaneCollapsed = false;
         this.router.navigate(['/dashboards']);
       },
     });
+    
 
     // Load datasets list for the dropdown
     console.log('[DEBUG] Fetching datasets list...');

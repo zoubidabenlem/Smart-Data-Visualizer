@@ -153,7 +153,7 @@
 }
 
 .widget-list {
-  max-height: 320px;
+  max-height: none;
   overflow-y: auto;
   margin-top: 0.5rem;
 }
@@ -224,11 +224,13 @@
 }
 
 /* Toggle button */
+/* Toggle button - Fixed structural anchoring and depth layer */
 .toggle-pane-btn {
   position: absolute;
   top: 50%;
-  left: calc(30% - 16px);
-  transform: translateY(-50%);
+  /* Anchors the handle right on the edge boundary of the left pane */
+  left: 30%; 
+  transform: translate(-50%, -50%);
   width: 32px;
   height: 56px;
   background: #FFFFFF;
@@ -238,9 +240,10 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  z-index: 20;
-  transition: left 0.3s;
+  z-index: 50; /* Forced well above left-pane (2) and right-pane layers */
+  transition: left 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1); /* Matches pane slide easing */
   color: #B28BCB;
+  box-shadow: 2px 0 8px rgba(178, 139, 203, 0.15); /* Makes handle visible against white canvas */
 }
 
 .toggle-pane-btn:hover {
@@ -248,6 +251,7 @@
   border-color: #D0BCEA;
   color: #E984B0;
 }
+
 
 /* ========= RIGHT PANE – Pure white preview canvas ========= */
 .right-pane {
@@ -315,6 +319,8 @@
 
 .preview-header {
   display: flex;
+  color: #2C3E66;
+  font-weight: 600;
   justify-content: space-between;
   align-items: center;
   padding: 12px 16px;
@@ -324,6 +330,8 @@
 
 .preview-content {
   flex: 1;
+  color: #2C3E66;
+  font-weight: 500;
   min-height: 250px;
   display: flex;            /* already there? */
   align-items: center;

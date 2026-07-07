@@ -5,9 +5,9 @@ import { DashboardEditorComponent } from './pages/dashboard-editor/dashboard-edi
 import { DashboardViewerComponent } from './pages/dashboard-viewer/dashboard-viewer.component';
 
 const routes: Routes = [
-  {path:'', component: DashboardListComponent},
-  {path: ':id/edit', component: DashboardEditorComponent},
-  {path: 'view/:id', component: DashboardViewerComponent},
+  {path:'', component: DashboardListComponent,       data: { title: 'Dashboard List' }    },
+  {path: ':id/edit', component: DashboardEditorComponent,       data: { title: 'Dashboard Editor' }    },
+  {path: 'view/:id', component: DashboardViewerComponent,       data: { title: 'Dashboard Viewer' }    },
 ];
 
 @NgModule({

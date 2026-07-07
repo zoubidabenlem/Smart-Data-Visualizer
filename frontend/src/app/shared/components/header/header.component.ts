@@ -1,7 +1,9 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Router } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { AuthService } from 'src/app/core/auth/auth.service';
 import { User } from 'src/app/core/models/user.model';
-import { Subscription } from 'rxjs';
+import { HeaderTitleService } from 'src/app/core/services/header-title.service';  // adjust path
 
 @Component({
   selector: 'app-header',
@@ -10,20 +12,30 @@ import { Subscription } from 'rxjs';
 })
 export class HeaderComponent implements OnInit, OnDestroy {
   currentUser: User | null = null;
+  pageTitle = 'Smart Data Visualizer';   // fallback
   private userSub?: Subscription;
+  private titleSub?: Subscription;        // new
 
   constructor(
     private auth: AuthService,
-    private cdr: ChangeDetectorRef
-  ) {  console.log('HeaderComponent CONSTRUCTOR');
-}
+    private headerTitle: HeaderTitleService,   // inject the service
+    private router: Router
+  ) {}
 
   ngOnInit(): void {
-    console.log('HeaderComponent ngOnInit - subscribing');
-  this.userSub = this.auth.currentUser$.subscribe(user => {
-    console.log('Header received user:', user);
-    this.currentUser = user;
-  });
+    this.userSub = this.auth.currentUser$.subscribe(user => {
+      this.currentUser = user;
+    });
+
+    // Subscribe to the dynamic title
+    this.titleSub = this.headerTitle.currentTitle$.subscribe(title => {
+      this.pageTitle = title;
+    });
+  }
+
+  get shouldShowWelcomeMessage(): boolean {
+    const currentUrl = this.router.url || '';
+    return !currentUrl.includes('/dashboards') && !currentUrl.includes('/builder/refine')  && !currentUrl.includes('/builder');
   }
 
   logout(): void {
@@ -31,9 +43,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    console.log('HeaderComponent DESTROYED');
-
     this.userSub?.unsubscribe();
-
+    this.titleSub?.unsubscribe();   // clean up
   }
 }

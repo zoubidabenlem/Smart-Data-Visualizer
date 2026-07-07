@@ -95,3 +95,9 @@
   background-color: var(--color-primary);
   color: white;
 }
+.page-title {
+  color: var(--color-text-primary);
+  font-weight: 700;
+  font-size: 1.1rem;
+  letter-spacing: -0.5px
+}
