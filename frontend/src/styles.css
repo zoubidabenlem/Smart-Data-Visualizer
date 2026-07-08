@@ -1,72 +1,84 @@
-/* ===== Global CSS Variables ===== */
-@import '@angular/material/prebuilt-themes/indigo-pink.css';
+/* ===== New Unified Theme – Light & Sleek ===== */
 :root {
-  /* Backgrounds */
-  --color-bg-deep: #031017;
-  --color-bg-surface: #202930;
-  --color-bg-card: #202930;
+  /* Palette */
+  --prussian-blue: #0a2342;
+  --seagrass: #2ca58d;
+  --muted-teal: #84bc9c;
+  --porcelain: #fffdf7;
+  --rose-kiss: #f46197;
 
-  /* Accents */
-  --color-primary: #a55e96;      /* neon teal */
-  --color-secondary: #96647E;    /* magenta glow */
-  --color-accent: #DEA2B8;       /* neon pink */
-  --color-border-subtle: #2F3E46;
+  /* Semantic roles */
+  --color-primary: var(--seagrass);
+  --color-primary-hover: #238b76;   /* darker shade for hover */
+  --color-secondary: var(--muted-teal);
+  --color-accent: var(--rose-kiss); /* use sparingly */
 
-  /* Text */
-  --color-text-primary: #E6F0F5;
-  --color-text-muted: #8FA3AD;
+  --color-background: var(--porcelain);
+  --color-surface: #ffffff;
+  --color-surface-elevated: #ffffff;
 
-  /* Utility */
-  --border-radius: 8px;
-  --transition: 0.2s ease-in-out;
+  --color-text-primary: var(--prussian-blue);
+  --color-text-secondary: #475569;  /* muted but readable */
+  --color-text-on-primary: #ffffff;
 
-  --color-secondary: #31002b;
-  --color-bg-deep: #0a1929;
-  --color-text-primary: #ffffff;
-  --color-text-muted: #b0bec5;
-  --transition: 0.3s ease;
+  --color-border: #e2e8f0;
+  --color-border-focus: var(--seagrass);
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(10, 35, 66, 0.06);
+  --shadow-md: 0 4px 6px rgba(10, 35, 66, 0.08);
+  --shadow-lg: 0 10px 15px rgba(10, 35, 66, 0.1);
+
+  /* Spacing */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+
+  /* Typography */
+  --font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-size-sm: 0.875rem;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.25rem;
+
+  /* Radius */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+
+  /* Transitions */
+  --transition-fast: 150ms ease;
+  --transition-base: 250ms ease;
 }
 
-/* ===== Base Styles ===== */
-* {
+/* Base styles – now using the new tokens */
+*,
+*::before,
+*::after {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
 body {
-  background-color: var(--color-bg-deep);
+  background-color: var(--color-background);
   color: var(--color-text-primary);
-  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  line-height: 1.5;
+  font-family: var(--font-family);
+  line-height: 1.6;
   min-height: 100vh;
-  display: flex;
-  flex-direction: column;
+  -webkit-font-smoothing: antialiased;
 }
 
-/* Smooth scrolling */
-html {
-  scroll-behavior: smooth;
-}
-
-/* Links & buttons inherit fonts */
-a, button {
-  font-family: inherit;
-}
-
-/* Utility classes for spacing (optional) */
+/* Utility classes */
 .container {
   width: 90%;
   max-width: 1200px;
   margin: 0 auto;
 }
 
-.enlarged-chart-dialog .mat-dialog-container {
-  padding: 0 !important;
-  background: transparent !important;
-  box-shadow: none !important;
-  overflow: visible !important;   /* allow Chart.js tooltip to appear above the dialog */
-  border-radius: 20px;
-  overflow: visible;   /* allow tooltip to overflow */
-
+a {
+  text-decoration: none;
+  color: inherit;
 }

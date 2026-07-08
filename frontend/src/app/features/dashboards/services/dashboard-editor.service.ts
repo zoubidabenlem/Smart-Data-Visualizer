@@ -139,7 +139,7 @@ export class DashboardEditorService {
   updateWidgetPosition(widgetId: number, position: WidgetPosition): Observable<any> {
   return this.http.patch(
     `${this.baseUrl}/${this.dashboardId}/widgets/${widgetId}/position`,
-    position   // <-- send directly, no wrapping
+    position   // send directly: { x, y, cols, rows }
   );
 }
 

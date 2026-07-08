@@ -1,5 +1,5 @@
 .hero {
-  min-height: 84vh;
+  min-height: 86.4vh; /* full viewport height */
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -7,7 +7,7 @@
   align-items: center;
   justify-content: center;
   position: relative;
-  color: white;
+  color: var(--color-text-primary); /* dark text on light overlay */
   text-align: center;
 }
 
@@ -19,8 +19,8 @@
   height: 100%;
   background: linear-gradient(
     135deg,
-    rgba(3, 16, 23, 0.9) 0%,
-    rgba(32, 41, 48, 0.8) 100%
+    rgba(255, 253, 247, 0.85) 0%,    /* porcelain tint */
+    rgba(132, 188, 156, 0.25) 100%    /* muted teal whisper */
   );
   z-index: 1;
 }
@@ -28,46 +28,57 @@
 .hero-content {
   position: relative;
   z-index: 2;
-  max-width: 800px;
+  max-width: 750px;
   padding: 2rem;
 }
 
 .hero-logo {
-  max-width: 180px;
+  max-width: 160px;
   margin-bottom: 2rem;
-  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.5));
+  /* no heavy dropshadow needed */
 }
 
 h1 {
-  font-size: clamp(2rem, 5vw, 3.5rem);
-  font-weight: 700;
-  margin-bottom: 1.5rem;
-  text-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+  font-size: clamp(2.2rem, 5vw, 3.5rem);
+  font-weight: 800;
+  line-height: 1.2;
+  margin-bottom: 1rem;
+  color: var(--prussian-blue);
 }
 
 .hero-subtitle {
-  font-size: clamp(1rem, 2.5vw, 1.3rem);
-  color: var(--color-text-muted);
+  font-size: clamp(1rem, 2.5vw, 1.25rem);
+  color: var(--color-text-secondary);
   margin-bottom: 2.5rem;
-  max-width: 600px;
+  max-width: 550px;
   margin-left: auto;
   margin-right: auto;
 }
 
 .btn-get-started {
-  background-color: var(--color-accent);
-  color: var(--color-bg-deep);
-  font-size: 1.2rem;
+  display: inline-block;
+  background-color: var(--color-primary);
+  color: #ffffff;
+  font-size: 1.1rem;
   font-weight: 600;
-  padding: 1rem 3rem;
+  padding: 0.9rem 2.8rem;
   border: none;
   border-radius: 50px;
   cursor: pointer;
-  transition: transform var(--transition), background-color var(--transition);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+  text-decoration: none;
+  transition: background-color var(--transition-base),
+              transform var(--transition-base),
+              box-shadow var(--transition-base);
+  box-shadow: var(--shadow-md);
 }
 
 .btn-get-started:hover {
-  background-color: var(--color-secondary);
-  transform: scale(1.05);
+  background-color: var(--color-primary-hover);
+  transform: translateY(-3px) scale(1.03);
+  box-shadow: var(--shadow-lg);
+}
+
+.btn-get-started:active {
+  transform: translateY(0);
+  box-shadow: var(--shadow-sm);
 }

@@ -48,6 +48,8 @@ private debouncedSave = new Subject<WidgetPositionUpdatePayload>();
       .subscribe();  // no need to handle the response (fire-and-forget)
   }
 
+  
+
   // Call this when widgets are loaded to initialise itemMap
   syncWidgets(widgets: WidgetResponse[]): void {
     this.itemMap = {};
@@ -75,6 +77,8 @@ private debouncedSave = new Subject<WidgetPositionUpdatePayload>();
   }
 
   savePosition(widgetId: number, item: GridsterItem): void {
+      console.log('[Gridster] savePosition', widgetId, item);
+
     if (this.itemMap[widgetId]) {
       this.itemMap[widgetId] = { ...item };
     }
