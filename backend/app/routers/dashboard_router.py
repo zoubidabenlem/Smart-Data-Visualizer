@@ -527,52 +527,27 @@ def delete_widget(
 def update_widget_position(
     dashboard_id: int,
     widget_id: int,
-    pos_data: WidgetPosition,  # or just WidgetPosition
-    db: Session = Depends(get_db)
+    position: dict,               # or use a Pydantic schema
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
+    # Verify dashboard exists and belongs to user
+    db_dashboard = db.query(Dashboard).filter(
+        Dashboard.id == dashboard_id, Dashboard.user_id == current_user.id
+    ).first()
+    if not db_dashboard:
+        raise HTTPException(status_code=404, detail="Dashboard not found")
+
+    # Find widget
     widget = db.query(Widget).filter(
-        Widget.id == widget_id,
-        Widget.dashboard_id == dashboard_id
+        Widget.id == widget_id, Widget.dashboard_id == dashboard_id
     ).first()
     if not widget:
-        raise HTTPException(404)
-    widget.position = pos_data.dict() if hasattr(pos_data, 'dict') else pos_data
+        raise HTTPException(status_code=404, detail="Widget not found")
+
+    # Update only the position
+    widget.position = position
     db.commit()
-    return {"status": "ok"}
+    db.refresh(widget)
+    return widget
 
-@router.put("/{dashboard_id}/widgets/positions")
-def update_widget_positions(
-    dashboard_id: int,
-    updates: List[WidgetPositionUpdate],
-    db: Session = Depends(get_db),
-    current_user: User = Depends(require_admin),
-):
-    try:
-        # Verify dashboard ownership
-        dash = db.query(Dashboard).filter(
-            Dashboard.id == dashboard_id,
-            Dashboard.user_id == current_user.id
-        ).first()
-        if not dash:
-            raise HTTPException(status_code=404, detail="Dashboard not found")
-
-        # Process each update
-        for upd in updates:
-            widget = db.query(Widget).filter(
-                Widget.id == upd.widget_id,
-                Widget.dashboard_id == dashboard_id
-            ).first()
-            if not widget:
-                raise HTTPException(status_code=404, detail=f"Widget {upd.widget_id} not found")
-            widget.position = upd.position
-
-        db.commit()
-        # Invalidate all widget caches on this dashboard (optional, but safe)
-        for upd in updates:
-            invalidate_cache(f"widget:{upd.widget_id}")
-        return {"message": f"Updated {len(updates)} widget positions"}
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.exception("Unexpected error updating widget positions")
-        raise HTTPException(status_code=500, detail="Internal server error")

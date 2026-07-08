@@ -2,6 +2,7 @@ from typing import Any, Dict, Optional, List, Literal
 from pydantic import BaseModel, Field, field_validator, model_validator
 from app.schemas.pipeline import AggregationSpec, FilterCondition, MissingConfig
 from app.models.dashboard import WidgetPosition
+from pydantic import BaseModel
 
 
 ALLOWED_CHART_TYPES = {"bar", "line", "pie", "scatter", "area", "heatmap","kpi"}
@@ -122,3 +123,11 @@ class DashboardListItem(BaseModel):
     created_at: str
     widget_count: int
 
+
+
+
+class WidgetPositionUpdate(BaseModel):
+    x: int
+    y: int
+    cols: int
+    rows: int

@@ -2,7 +2,9 @@ from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Enum, JSON
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.models.base import Base
-import enum
+
+from pydantic import BaseModel, model_validator
+
 
 # Association table for many-to-many between users and dashboards
 dashboard_assignment = Table(
@@ -46,7 +48,6 @@ class Dashboard(Base):
         back_populates="assigned_dashboards"
     )
 
-from pydantic import BaseModel, model_validator
 
 class WidgetPosition(BaseModel):
     x: int = 0
