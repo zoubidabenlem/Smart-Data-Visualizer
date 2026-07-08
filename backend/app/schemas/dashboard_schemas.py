@@ -1,6 +1,7 @@
 from typing import Any, Dict, Optional, List, Literal
 from pydantic import BaseModel, Field, field_validator, model_validator
 from app.schemas.pipeline import AggregationSpec, FilterCondition, MissingConfig
+from app.models.dashboard import WidgetPosition
 
 
 ALLOWED_CHART_TYPES = {"bar", "line", "pie", "scatter", "area", "heatmap","kpi"}
@@ -93,18 +94,18 @@ class DashboardUpdateRequest(BaseModel):
 # Widget creation/update
 class WidgetCreateRequest(BaseModel):
     config: WidgetConfig
-    position: Optional[Dict[str, Any]] = None
+    position: Optional[WidgetPosition] = None
 
 class WidgetUpdateRequest(BaseModel):
     config: Optional[WidgetConfig] = None
-    position: Optional[Dict[str, Any]] = None
+    position: Optional[WidgetPosition] = None
 
 # Response models
 class WidgetResponse(BaseModel):
     id: int
     config: WidgetConfig
     chart_data: List[Dict[str, Any]]   # result of pipeline for this widget
-    position: Optional[Dict[str, Any]] = None
+    position: Optional[WidgetPosition] = None
     created_at: str
     updated_at: str
 

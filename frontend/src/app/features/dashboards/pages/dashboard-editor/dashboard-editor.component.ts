@@ -104,6 +104,13 @@ public isLeftPaneCollapsed = false;
         if (widgets) this.draggedWidgets = [...widgets];
       })
     );
+    this.editorService.widgets$.subscribe(widgets => {
+  if (widgets) {
+    this.gridService.syncWidgets(widgets);
+    // Optional: force gridster to re‑render if it doesn't detect changes
+    // You can use a ChangeDetectorRef.detectChanges() after a tick.
+  }
+});
   }
 
   ngOnDestroy(): void {
@@ -208,6 +215,14 @@ console.log('[DEBUG] Opening widget dialog with dataset ID snapshot:', datasetId
   });
 
   }
+  onItemChange(event: any, widgetId: number): void {
+  // event is the GridsterItem with new x, y
+  this.gridService.savePosition(widgetId, event);
+}
+
+onItemResize(event: any, widgetId: number): void {
+  this.gridService.savePosition(widgetId, event);
+}
   
 
 }

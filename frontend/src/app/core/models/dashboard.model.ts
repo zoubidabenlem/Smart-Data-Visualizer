@@ -117,3 +117,16 @@ export interface DashboardListItem {
   created_at: string;
   widget_count: number;
 }
+
+export interface WidgetPosition {
+  x: number;
+  y: number;
+  cols: number;
+  rows: number;
+}
+
+// Place at top of file, after imports
+export interface WidgetPositionUpdatePayload {
+  widgetId: number;
+  position: WidgetPosition;
+}

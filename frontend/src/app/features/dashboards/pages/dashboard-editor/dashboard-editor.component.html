@@ -1,4 +1,9 @@
-<!-- src/app/features/dashboards/pages/dashboard-editor/dashboard-editor.component.html -->
+  <ng-template #loading>
+  <div class="loading-container">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Loading dashboard...</p>
+  </div>
+</ng-template><!-- src/app/features/dashboards/pages/dashboard-editor/dashboard-editor.component.html -->
 <div class="editor-container" *ngIf="!isLoading; else loading">
   <!-- LEFT PANE -->
   <div class="left-pane" [class.collapsed]="isLeftPaneCollapsed">
@@ -104,29 +109,32 @@
     <!-- Static widget preview grid (no drag & drop, no edit/delete buttons here) -->
     <!-- Right pane: widget preview grid -->
 <!-- Static widget preview grid (click to enlarge) -->
-<div class="widget-preview-grid">
-  <div *ngFor="let widget of widgets$ | async"
-       class="preview-card"
-       (click)="openPopup(widget)">
-    <div class="preview-header">
-      <span>{{ widget.config.title }}</span>
-      <mat-icon>{{ getWidgetIcon(widget.config.chart_type) }}</mat-icon>
-    </div>
-    <div class="preview-content">
-      <app-widget-chart [widget]="widget"></app-widget-chart>
-    </div>
-  </div>
-  <div *ngIf="(widgets$ | async)?.length === 0" class="empty-previews">
-    <mat-icon>insight</mat-icon>
-    <p>No widgets to display. Add one from the left pane.</p>
-  </div>
-</div>
-  </div>
+ <gridster
+    [options]="gridService.gridOptions"
+    class="widget-gridster"
+  >
+<gridster-item
+      *ngFor="let widget of widgets$ | async"
+      [item]="gridService.itemMap[widget.id]"
+      (itemChange)="gridService.onItemChange($event, widget.id)"
+      (itemResize)="gridService.onItemResize($event, widget.id)"
+    >
+      <div class="widget-wrapper" (click)="openPopup(widget)">
+        <div class="preview-header">
+          <span>{{ widget.config.title }}</span>
+          <button mat-icon-button (click)="editWidget(widget); $event.stopPropagation()">
+            <mat-icon>edit</mat-icon>
+          </button>
+          <button mat-icon-button (click)="deleteWidget(widget.id, $event); $event.stopPropagation()">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </div>
+        <div class="preview-content">
+          <app-widget-chart [widget]="widget"></app-widget-chart>
+        </div>
+      </div>
+    </gridster-item>
+  </gridster>
+
 </div>
 
-<ng-template #loading>
-  <div class="loading-container">
-    <mat-spinner diameter="50"></mat-spinner>
-    <p>Loading dashboard...</p>
-  </div>
-</ng-template>

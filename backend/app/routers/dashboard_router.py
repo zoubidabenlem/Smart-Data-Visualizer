@@ -10,7 +10,7 @@ import traceback
 from app.dependencies.auth_dependencies import get_current_user, require_admin
 from app.db.base import get_db
 from app.models.user import User
-from app.models.dashboard import Dashboard, Widget
+from app.models.dashboard import Dashboard, Widget, WidgetPosition
 from app.models.dataset import Dataset
 from app.schemas.dashboard_schemas import (
     DashboardCreateRequest,
@@ -523,6 +523,22 @@ def delete_widget(
         logger.exception("Unexpected error deleting widget")
         raise HTTPException(status_code=500, detail="Internal server error")
 
+@router.patch("/{dashboard_id}/widgets/{widget_id}/position")
+def update_widget_position(
+    dashboard_id: int,
+    widget_id: int,
+    pos_data: WidgetPosition,  # or just WidgetPosition
+    db: Session = Depends(get_db)
+):
+    widget = db.query(Widget).filter(
+        Widget.id == widget_id,
+        Widget.dashboard_id == dashboard_id
+    ).first()
+    if not widget:
+        raise HTTPException(404)
+    widget.position = pos_data.dict() if hasattr(pos_data, 'dict') else pos_data
+    db.commit()
+    return {"status": "ok"}
 
 @router.put("/{dashboard_id}/widgets/positions")
 def update_widget_positions(

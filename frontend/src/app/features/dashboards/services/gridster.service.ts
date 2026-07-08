@@ -1,83 +1,141 @@
 import { Injectable } from '@angular/core';
 import { GridsterConfig, GridsterItem } from 'angular-gridster2';
-// We’ll not use itemChangeCallback → instead use (itemChange) in template
+import { DashboardEditorService } from '../services/dashboard-editor.service'; // your existing service
+import { debounceTime, Subject, switchMap } from 'rxjs';
+import { WidgetPosition, WidgetResponse, WidgetPositionUpdatePayload } from 'src/app/core/models/dashboard.model';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable()
 export class GridsterService {
-  gridOptions: GridsterConfig;
+  // Map widget.id -> GridsterItem for quick lookups
+  itemMap: { [id: number]: GridsterItem } = {};
 
-  private pendingPositionUpdates: Record<number, any> = {};
-  private debouncedSaveFn: () => void;
+  gridOptions: GridsterConfig = {
+    gridType: 'fit',               // fills the container
+    displayGrid: 'onDrag&Resize',  // show grid lines while interacting
+    pushItems: true,               // push neighbours away
+    draggable: { enabled: true },
+    resizable: {
+      enabled: true,
+      handles: { s: true, e: true, n: true, w: true, se: true, ne: true, sw: true, nw: true }
+    },
+    minCols: 12,
+    maxCols: 12,
+    minRows: 6,
+    maxRows: 100,
+    fixedRowHeight: 120,           // adjust to your liking
+    fixedColWidth: 105,            // adjust
+    // Callbacks
+   
+  };
 
-  // We don’t need DashboardEditorService yet unless you already have it
-  // You can inject it later when ready to save positions
-  constructor() {
-    this.gridOptions = {
-      draggable: { enabled: true },
-      resizable: { enabled: true },
-      pushItems: true,
-      pushDirections: { north: true, east: true, south: true, west: true },
-      // displayGrid expects a value from the DisplayGrid enum or string literal 'always' | 'onDrag' | 'none'
-      // The error shows it expects type 'displayGrids' which is probably 'always' | 'onDrag' | 'none' but with different casing?
-      // Let's use the 'onDrag' string and cast to any if needed
-      displayGrid: 'onDrag' as any,
-      // No itemChangeCallback – we’ll use the (itemChange) output on each gridster-item
-    };
+private debouncedSave = new Subject<WidgetPositionUpdatePayload>();
 
-    this.debouncedSaveFn = this.debounce(() => {
-      const updates = Object.entries(this.pendingPositionUpdates).map(
-        ([id, pos]) => ({
-          widget_id: Number(id),
-          position: pos
-        })
-      );
-      if (updates.length > 0) {
-        // Replace with real service call later
-        console.log('💾 Saving widget positions:', updates);
-        // this.editorService.updateWidgetPositions(updates).subscribe(...);
-        this.pendingPositionUpdates = {};
-      }
-    }, 500);
+ // Holds the latest position for each widget (for fast local updates)
+  private positions = new Map<number, WidgetPosition>();
+
+  // Subject that emits every time a widget moves or resizes
+  private positionChange$ = new Subject<{ id: number; position: WidgetPosition }>();
+
+  constructor(private dashboardEditorService: DashboardEditorService) {
+    // Debounced save to backend – only fire after 500ms of inactivity
+    this.positionChange$
+      .pipe(
+        debounceTime(500),
+        switchMap(({ id, position }) =>
+          this.dashboardEditorService.updateWidgetPosition(id, position)
+        )
+      )
+      .subscribe();  // no need to handle the response (fire-and-forget)
   }
 
-  /**
-   * Converts a WidgetResponse to a GridsterItem with default size.
-   */
-  getGridsterItem(widget: any): GridsterItem {
-    const pos = widget.position || { x: 0, y: 0, cols: 2, rows: 2 };
-    // Use bracket notation to avoid index signature errors
+  // Call this when widgets are loaded to initialise itemMap
+  syncWidgets(widgets: WidgetResponse[]): void {
+    this.itemMap = {};
+    widgets.forEach(w => {
+      this.itemMap[w.id] = this.widgetToGridsterItem(w);
+    });
+  }
+
+  // Convert backend position to GridsterItem
+  private widgetToGridsterItem(widget: WidgetResponse): GridsterItem {
+    const pos = widget.position || {};
     return {
-      x: pos['x'],
-      y: pos['y'],
-      cols: pos['w'] ?? pos['cols'] ?? 2,
-      rows: pos['h'] ?? pos['rows'] ?? 2
+      x: pos['x'] ?? 0,
+      y: pos['y'] ?? 0,
+      cols: pos['cols'] ?? 4,   // default width
+      rows: pos['rows'] ?? 3,   // default height
+      // You can store widgetId inside the item for retrieval
+      widgetId: widget.id
     };
   }
 
-  /**
-   * Callback when a grid item is changed (dragged/resized).
-   * This is called from the (itemChange) output in the template.
-   */
-  onItemChange(item: GridsterItem, widget: any): void {
-    const newPosition = {
-      x: item.x,
-      y: item.y,
-      w: item.cols,
-      h: item.rows
-    };
-    // Optimistically update local position
-    widget.position = newPosition;
-    this.pendingPositionUpdates[widget.id] = newPosition;
-    this.debouncedSaveFn();
+  // When the gridster callback fires, the item object already contains our custom widgetId
+  private getWidgetIdFromItem(item: GridsterItem): number | null {
+    return (item as any).widgetId ?? null;
   }
 
-  private debounce(fn: Function, delay: number): (...args: any[]) => void {
-    let timer: any;
-    return (...args: any[]) => {
-      clearTimeout(timer);
-      timer = setTimeout(() => fn(...args), delay);
-    };
+  savePosition(widgetId: number, item: GridsterItem): void {
+    if (this.itemMap[widgetId]) {
+      this.itemMap[widgetId] = { ...item };
+    }
+
+    this.debouncedSave.next({
+      widgetId,
+      position: {
+        x: item.x,
+        y: item.y,
+        cols: item.cols,
+        rows: item.rows
+      }
+    });
   }
+
+  /** Called on (itemChange) – fires when a widget is dragged/dropped */
+  onItemChange(event: any, widgetId: number): void {
+    // angular-gridster2 emits event = { item: GridsterItem, itemComponent: ... }
+    const newPos: WidgetPosition = {
+      x: event.item.x,
+      y: event.item.y,
+      cols: event.item.cols,
+      rows: event.item.rows,
+    };
+    this.updatePosition(widgetId, newPos);
+  }
+
+  /** Called on (itemResize) – fires when a widget is resized */
+  onItemResize(event: any, widgetId: number): void {
+    // angular-gridster2 resize event also contains `item`
+    const newPos: WidgetPosition = {
+      x: event.item.x,
+      y: event.item.y,
+      cols: event.item.cols,
+      rows: event.item.rows,
+    };
+    this.updatePosition(widgetId, newPos);
+  }
+
+  private updatePosition(id: number, position: WidgetPosition): void {
+    // Avoid emitting if position hasn’t actually changed (prevents loops)
+      console.log('updatePosition called', id, position);
+
+    const oldPos = this.positions.get(id);
+    if (
+      oldPos &&
+      oldPos.x === position.x &&
+      oldPos.y === position.y &&
+      oldPos.cols === position.cols &&
+      oldPos.rows === position.rows
+    ) {
+      return;
+    }
+
+    this.positions.set(id, position);
+    this.positionChange$.next({ id, position });
+  }
+
+  
 }
+
+ 
+
+  

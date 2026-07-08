@@ -46,3 +46,22 @@ class Dashboard(Base):
         back_populates="assigned_dashboards"
     )
 
+from pydantic import BaseModel, model_validator
+
+class WidgetPosition(BaseModel):
+    x: int = 0
+    y: int = 0
+    cols: int = 1
+    rows: int = 1
+
+    @model_validator(mode='before')
+    @classmethod
+    def normalize_old_keys(cls, values: dict) -> dict:
+        # If the backend receives old `w` / `h`, map them to `cols` / `rows`
+        if 'w' in values and 'cols' not in values:
+            values['cols'] = values['w']
+        if 'h' in values and 'rows' not in values:
+            values['rows'] = values['h']
+        return values
+
+

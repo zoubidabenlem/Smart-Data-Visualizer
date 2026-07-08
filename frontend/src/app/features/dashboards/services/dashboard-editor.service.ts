@@ -9,7 +9,11 @@ import {
   WidgetResponse,
   WidgetCreateRequest,
   WidgetUpdateRequest,
+  WidgetPosition,
 } from 'src/app/core/models/dashboard.model';
+import { HttpClient } from '@angular/common/http';
+import { environment } from 'src/environments/environment';
+import { GridsterService } from './gridster.service';
 
 export interface ColumnInfo {
   name: string;
@@ -39,8 +43,11 @@ export class DashboardEditorService {
 
   constructor(
     private dashboardService: DashboardService,
-    private datasetService: DatasetService
-  ) {}
+    private datasetService: DatasetService,
+    private http: HttpClient,
+  ) {
+    
+  }
 
   /** Load dashboard by ID and optionally auto-select a dataset from query param */
   loadDashboard(id: number, initialDatasetId?: number | null): Observable<DashboardResponse> {
@@ -52,6 +59,7 @@ export class DashboardEditorService {
         if (initialDatasetId) {
           this.selectDataset(initialDatasetId);
         }
+
       })
     );
   }
@@ -126,14 +134,13 @@ export class DashboardEditorService {
     };
     return icons[chartType] || 'insight';
   }
-  
-  updateWidgetPositions(updates: { widget_id: number, position: any }[]): Observable<void> {
-  if (!this.dashboardId) throw new Error('Dashboard not loaded');
-  return this.dashboardService.updateWidgetPositions(this.dashboardId, updates).pipe(
-    tap(() => {
-      // Optional: refresh dashboard to get new positions
-      this.refreshDashboard().subscribe();
-    })
+  private readonly baseUrl = `${environment.apiUrl}/dashboards`; 
+
+  updateWidgetPosition(widgetId: number, position: WidgetPosition): Observable<any> {
+  return this.http.patch(
+    `${this.baseUrl}/${this.dashboardId}/widgets/${widgetId}/position`,
+    position   // <-- send directly, no wrapping
   );
 }
+
 }

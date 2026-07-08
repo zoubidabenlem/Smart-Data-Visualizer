@@ -27,6 +27,7 @@ import { GridsterModule } from 'angular-gridster2';
 import { WidgetPopupComponent } from './components/widget-popup/widget-popup.component';
 import { DashboardViewerComponent } from './pages/dashboard-viewer/dashboard-viewer.component';
 import { SharedModule } from 'src/app/shared/shared.module';
+import { GridsterService } from './services/gridster.service';
 
 
 @NgModule({
@@ -47,7 +48,7 @@ import { SharedModule } from 'src/app/shared/shared.module';
    RouterModule,
     SharedModule,
   ],
-  providers: [DashboardEditorService],
+  providers: [DashboardEditorService, GridsterService],
   
 })
 export class DashboardsModule { }
