@@ -57,7 +57,9 @@ import { HttpClientModule } from '@angular/common/http';
     MatTooltipModule,
     MatSelectModule,
     MatToolbarModule,
-    HttpClientModule
+    HttpClientModule,
+    ReactiveFormsModule,
+    FormsModule,
   ]
 })
 export class SharedModule { }

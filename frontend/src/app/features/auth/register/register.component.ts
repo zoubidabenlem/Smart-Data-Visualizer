@@ -13,18 +13,22 @@ export class RegisterComponent {
   isLoading = false;
   errorMessage = '';
   successMessage = '';
-  backgroundImageUrl = 'url(assets/images/landing_bg.jpg)';  // <-- added
+  backgroundImageUrl = 'url(assets/images/landing_bg.jpg)';
 
   constructor(
     private fb: FormBuilder,
     private auth: AuthService,
     private router: Router
   ) {
-    this.registerForm = this.fb.group({
-      email: ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required, Validators.minLength(6)]],
-      confirmPassword: ['', Validators.required]
-    }, { validators: this.passwordMatchValidator });
+    this.registerForm = this.fb.group(
+      {
+        email: ['', [Validators.required, Validators.email]],
+        password: ['', [Validators.required, Validators.minLength(6)]],
+        confirmPassword: ['', Validators.required],
+        role: [2, Validators.required]   // default: Viewer (2)
+      },
+      { validators: this.passwordMatchValidator }
+    );
   }
 
   passwordMatchValidator(control: AbstractControl): ValidationErrors | null {
@@ -40,11 +44,13 @@ export class RegisterComponent {
     this.errorMessage = '';
     this.successMessage = '';
 
-    const { email, password } = this.registerForm.value;
-    const role_id = 2;
-    this.auth.register(email, password,role_id).subscribe({
+    const { email, password, role } = this.registerForm.value;
+    const role_id = +role;   // ensure it's a number
+
+    this.auth.register(email, password, role_id).subscribe({
       next: () => {
-        this.successMessage = 'Registration successful! Redirecting to login...';
+        this.successMessage = 'User created successfully! Redirecting to login...';
+        this.isLoading = false;
         setTimeout(() => this.router.navigate(['/login']), 2000);
       },
       error: (err) => {
@@ -64,4 +70,5 @@ export class RegisterComponent {
   get email() { return this.registerForm.get('email'); }
   get password() { return this.registerForm.get('password'); }
   get confirmPassword() { return this.registerForm.get('confirmPassword'); }
+  get role() { return this.registerForm.get('role'); }
 }

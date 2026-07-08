@@ -1,0 +1,152 @@
+<!-- ===== SURVEY PAGE – REDESIGNED WITH UNIFIED THEME ===== -->
+<div class="survey-page">
+
+  <!-- Decorative background elements -->
+  <div class="bg-blob bg-blob--1"></div>
+  <div class="bg-blob bg-blob--2"></div>
+  <div class="bg-blob bg-blob--3"></div>
+
+  <!-- Main container -->
+  <div class="survey-container">
+
+    <!-- Left: Branding / illustration -->
+    <div class="survey-brand">
+      <div class="brand-content">
+        <div class="logo-wrapper">
+          <img src="assets/images/logo.png" alt="Platform illustration" class="brand-logo" />
+          <div class="logo-glow"></div>
+        </div>
+        <h1 class="brand-title">Let's build<br />something great</h1>
+        <p class="brand-subtext">
+          Tell us about your data needs and we'll tailor a solution that fits.
+        </p>
+        <div class="brand-divider"></div>
+        <p class="brand-signin">
+          Already have an account? <a routerLink="/login">Sign in →</a>
+        </p>
+        <!-- Decorative dots -->
+        <div class="brand-dots">
+          <span></span><span></span><span></span><span></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Survey form card -->
+    <div class="survey-card">
+
+      <div class="card-header">
+        <span class="card-badge"> Quick survey</span>
+        <h2 class="card-title">Client Interest Survey</h2>
+        <p class="card-subtitle">
+          Fill in the details below and we'll get back to you within 24h.
+        </p>
+      </div>
+
+      <!-- Feedback messages -->
+      <div *ngIf="successMessage" class="message message--success">
+        <span class="message-icon">✓</span> {{ successMessage }}
+      </div>
+      <div *ngIf="errorMessage" class="message message--error">
+        <span class="message-icon">✕</span> {{ errorMessage }}
+      </div>
+
+      <form [formGroup]="surveyForm" (ngSubmit)="onSubmit()" novalidate class="survey-form">
+
+        <!-- Business email -->
+        <div class="field-group">
+          <label for="business_email">
+            Business email <span class="required">*</span>
+          </label>
+          <div class="input-wrapper">
+            <span class="input-icon">✉</span>
+            <input
+              id="business_email"
+              type="email"
+              formControlName="business_email"
+              placeholder="you@company.com"
+              [class.invalid]="surveyForm.get('business_email')?.touched && surveyForm.get('business_email')?.invalid"
+            />
+          </div>
+          <div class="field-errors">
+            <span class="field-error"
+              *ngIf="surveyForm.get('business_email')?.touched && surveyForm.get('business_email')?.hasError('required')">
+              ✕ Email is required
+            </span>
+            <span class="field-error"
+              *ngIf="surveyForm.get('business_email')?.touched && surveyForm.get('business_email')?.hasError('email')">
+              ✕ Please enter a valid email
+            </span>
+          </div>
+        </div>
+
+        <!-- Contact name -->
+        <div class="field-group">
+          <label for="contact_name">Contact name</label>
+          <div class="input-wrapper">
+            <span class="input-icon">⇛</span>
+            <input
+              id="contact_name"
+              type="text"
+              formControlName="contact_name"
+              placeholder="Jane Smith"
+            />
+          </div>
+        </div>
+
+        <!-- Company name -->
+        <div class="field-group">
+          <label for="company_name">Company name</label>
+          <div class="input-wrapper">
+            <span class="input-icon">⌂</span>
+            <input
+              id="company_name"
+              type="text"
+              formControlName="company_name"
+              placeholder="Acme Inc."
+            />
+          </div>
+        </div>
+
+        <!-- Data description -->
+        <div class="field-group">
+          <label for="data_description">
+            Short description of your data <span class="required">*</span>
+          </label>
+          <div class="input-wrapper input-wrapper--textarea">
+            <span class="input-icon"></span>
+            <textarea
+              id="data_description"
+              formControlName="data_description"
+              rows="3"
+              placeholder="e.g. Sales figures, IoT sensor logs, customer demographics..."
+              [class.invalid]="surveyForm.get('data_description')?.touched && surveyForm.get('data_description')?.invalid"
+            ></textarea>
+          </div>
+          <div class="field-errors">
+            <span class="field-error"
+              *ngIf="surveyForm.get('data_description')?.touched && surveyForm.get('data_description')?.hasError('required')">
+              ✕ Please describe your data needs
+            </span>
+          </div>
+        </div>
+
+        <!-- Submit -->
+        <button
+          type="submit"
+          class="submit-btn"
+          [disabled]="isLoading || surveyForm.invalid"
+        >
+          <span class="btn-text">
+            {{ isLoading ? 'Sending…' : 'Submit survey' }}
+          </span>
+          <span class="btn-arrow" *ngIf="!isLoading">→</span>
+          <span class="btn-spinner" *ngIf="isLoading"></span>
+        </button>
+
+        <p class="form-footnote">
+          <span>※</span> Your data is safe with us. We'll never share your information.
+        </p>
+      </form>
+    </div>
+  </div>
+</div>

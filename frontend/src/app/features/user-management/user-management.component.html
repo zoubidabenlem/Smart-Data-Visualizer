@@ -1,37 +1,175 @@
 <div class="admin-container">
-  <h1 class="neon-title">User Management</h1>
-  <button class="neon-btn" routerLink="/login/register">Create New User</button>
+  <!-- ===== MAIN HEADER ===== -->
+  <div class="admin-main-title">
+    User Management
+    <span>{{ allUsers.length }} total</span>
+    <!-- Display total users count, not page count -->
+  </div>
 
-  <table class="neon-table">
-    <thead>
-      <tr>
-        <th>ID</th>
-        <th>Email</th>
-        <th>Role</th>
-        <th>Active</th>
-        <th>Dashboards</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr *ngFor="let user of users">
-        <td>{{ user.id }}</td>
-        <td>{{ user.email }}</td>
-        <td>{{ user.role_id }}</td>
-        <td>{{ user.is_active ? 'Yes' : 'No' }}</td>
-        <td>{{ user.dashboard_count || 0 }}</td>
-        <td class="action-cell">
-          <button class="neon-btn-sm" (click)="toggleActive(user)">
-            {{ user.is_active ? 'Deactivate' : 'Activate' }}
-          </button>
-          <button class="neon-btn-sm danger" (click)="deleteUser(user.id)">Delete</button>
+  <!-- ===== CREATE USER BUTTON ===== -->
+  <a class="btn btn-primary" routerLink="/login/register">
+    + Create New User
+  </a>
 
-          <!-- New assign button that opens the dialog -->
-          <button class="neon-btn-sm" (click)="openAssignDialog(user)">
-            Manage Dashboards
-          </button>
-        </td>
-      </tr>
-    </tbody>
-  </table>
+
+
+  <!-- ===== USER TABLE CARD ===== -->
+  <div class="table-card">
+    <div class="card-header">
+      <div class="title-section">
+        <h2>Registered Users</h2>
+        <p>Manage active users and their dashboards</p>
+      </div>
+      <!-- ===== BADGE SECTION ACTING AS FILTER ===== -->
+      <div class="badge-section">
+        <span 
+          class="status-badge all" 
+          [class.active-filter]="filterActive === null" 
+          (click)="filterActive = null; applyUserFilters()">
+          All
+        </span>
+        <span 
+          class="status-badge active" 
+          [class.active-filter]="filterActive === true" 
+          (click)="filterActive = true; applyUserFilters()">
+          Active
+        </span>
+        <span 
+          class="status-badge inactive" 
+          [class.active-filter]="filterActive === false" 
+          (click)="filterActive = false; applyUserFilters()">
+          Inactive
+        </span>
+      </div>
+    </div>
+
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Email</th>
+          <th>Role</th>
+          <th>Active</th>
+          <th>Dashboards</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let user of usersPage">
+          <td>{{ user.id }}</td>
+          <td>{{ user.email }}</td>
+          <td>{{ user.role_id }}</td>
+          <td>
+            <span class="status-badge" [ngClass]="user.is_active ? 'active' : 'inactive'">
+              {{ user.is_active ? 'Yes' : 'No' }}
+            </span>
+          </td>
+          <td>{{ user.dashboard_count || 0 }}</td>
+          <td class="action-cell">
+            <button class="btn btn-sm btn-outline" (click)="toggleActive(user)">
+              {{ user.is_active ? 'Deactivate' : 'Activate' }}
+            </button>
+            <button class="btn btn-sm btn-danger" (click)="deleteUser(user.id)">
+              Delete
+            </button>
+            <button class="btn btn-sm btn-outline" (click)="openAssignDialog(user)">
+              Manage Dashboards
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Pagination -->
+    <div class="pagination" *ngIf="totalUserPages > 1">
+      <button [disabled]="userPageIndex === 0" (click)="setUserPage(0)">« First</button>
+      <button [disabled]="userPageIndex === 0" (click)="setUserPage(userPageIndex - 1)">‹ Prev</button>
+      <span>Page {{ userPageIndex + 1 }} of {{ totalUserPages }}</span>
+      <button [disabled]="userPageIndex >= totalUserPages - 1" (click)="setUserPage(userPageIndex + 1)">Next ›</button>
+      <button [disabled]="userPageIndex >= totalUserPages - 1" (click)="setUserPage(totalUserPages - 1)">Last »</button>
+    </div>
+  </div>
+
+  <!-- ===== SURVEY REQUESTS SECTION ===== -->
+  <h2 class="section-title">Survey Requests</h2>
+
+   <!-- Empty state -->
+  <div *ngIf="allRequests.length === 0" class="empty-state">
+    No survey requests yet.
+  </div>
+
+  <!-- Survey table card -->
+  <div class="table-card" *ngIf="allRequests.length > 0">
+    <div class="card-header">
+      <div class="title-section">
+        <h2>Client Interest Submissions</h2>
+        <p>Review and update status for each request</p>
+      </div>
+      
+      <!-- ===== BADGE SECTION ACTING AS FILTER ===== -->
+      <div class="badge-section">
+        <span 
+          class="status-badge all" 
+          [class.active-filter]="filterSurveyStatus === null" 
+          (click)="filterSurveyStatus = null; applySurveyFilters()">
+          All
+        </span>
+        <span 
+          class="status-badge pending" 
+          [class.active-filter]="filterSurveyStatus === 'pending'" 
+          (click)="filterSurveyStatus = 'pending'; applySurveyFilters()">
+          Pending
+        </span>
+        <span 
+          class="status-badge reviewed" 
+          [class.active-filter]="filterSurveyStatus === 'reviewed'" 
+          (click)="filterSurveyStatus = 'reviewed'; applySurveyFilters()">
+          Reviewed
+        </span>
+      </div>
+    </div>
+
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Business Email</th>
+          <th>Contact Name</th>
+          <th>Company</th>
+          <th>Data Description</th>
+          <th>Status</th>
+          <th>Created</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let req of requestsPage">
+          <td>{{ req.id }}</td>
+          <td>{{ req.business_email }}</td>
+          <td>{{ req.contact_name || '-' }}</td>
+          <td>{{ req.company_name || '-' }}</td>
+          <td>{{ req.data_description }}</td>
+          <td>
+            <select
+              [value]="req.status"
+              (change)="updateRequestStatus(req.id, $any($event.target).value)"
+              class="status-select"
+            >
+              <option value="pending">Pending</option>
+              <option value="reviewed">Reviewed</option>
+            </select>
+          </td>
+          <td>{{ req.created_at | date:'short' }}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Survey pagination -->
+    <div class="pagination" *ngIf="totalRequestPages > 1">
+      <button [disabled]="requestPageIndex === 0" (click)="setRequestPage(0)">« First</button>
+      <button [disabled]="requestPageIndex === 0" (click)="setRequestPage(requestPageIndex - 1)">‹ Prev</button>
+      <span>Page {{ requestPageIndex + 1 }} of {{ totalRequestPages }}</span>
+      <button [disabled]="requestPageIndex >= totalRequestPages - 1" (click)="setRequestPage(requestPageIndex + 1)">Next ›</button>
+      <button [disabled]="requestPageIndex >= totalRequestPages - 1" (click)="setRequestPage(totalRequestPages - 1)">Last »</button>
+    </div>
+  </div>
 </div>

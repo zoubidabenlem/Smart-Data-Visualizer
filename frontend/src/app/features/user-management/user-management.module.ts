@@ -15,7 +15,9 @@ const routes: Routes = [
 @NgModule({
  declarations: [
   UserManagementComponent,
-   AssignDashboardsDialogComponent],  
+   AssignDashboardsDialogComponent,
+  
+  ],  
 
   imports: [RouterModule.forChild(routes),
     CommonModule,

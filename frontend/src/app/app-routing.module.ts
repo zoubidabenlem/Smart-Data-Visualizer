@@ -5,11 +5,11 @@ import { roleGuard } from './core/auth/role.guard';
 
 import { UnauthorizedComponent } from './core/unauthorized/unauthorized.component';
 import { DashboardViewerComponent } from './features/dashboards/pages/dashboard-viewer/dashboard-viewer.component';
+import { SurveyComponent } from './features/auth/survey/survey.component';
 const routes: Routes = [
   // Landing page (public)
   { path: '', loadChildren: () => import('./features/landing/landing.module').then(m => m.LandingModule) },
-
-  // Login (public)
+  //surveypage (public)
   {
     path: 'login',
     loadChildren: () => import('./features/auth/auth.module').then(m => m.AuthModule)

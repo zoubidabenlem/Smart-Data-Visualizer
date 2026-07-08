@@ -1,116 +1,374 @@
+/* ==========================================================
+   ADMIN PANEL – UNIFIED THEME (Dynamic & Spacious)
+   ========================================================== */
+
+/* ---- Base Layout ---- */
 .admin-container {
-  padding: 2rem;
-  background: linear-gradient(145deg, #fef9ff 0%, #faf5ff 100%);
+  padding: var(--space-lg);
+  background-color: #F2F8F4;
   min-height: 100vh;
-  color: #2d2a3e;
 }
 
-/* Soft, elegant title with a subtle pink glow */
-.neon-title {
-  font-size: 2rem;
-  font-weight: 600;
-  background: linear-gradient(135deg, #a855f7, #ec4899);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  margin-bottom: 1.5rem;
-  text-shadow: 0 0 2px #ec489955;
+/* ---- Cards (Lift the tables off the page) ---- */
+.table-card {
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--color-border);
+  overflow: hidden;
+  margin-bottom: var(--space-xl);
+  transition: box-shadow var(--transition-base);
 }
 
-/* Primary button – pastel pink/purple */
-.neon-btn {
-  background: linear-gradient(135deg, #f3e8ff, #fce7f3);
-  border: 1px solid #e9d5ff;
-  color: #7e22ce;
-  padding: 0.5rem 1.5rem;
+.table-card:hover {
+  box-shadow: var(--shadow-lg);
+}
+
+.table-card .card-header {
+  padding: var(--space-md) var(--space-lg);
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-md);
+  background: rgba(44, 165, 141, 0.02);
+}
+
+.table-card .card-header .title-section h2 {
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.table-card .card-header .title-section p {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+/* ---- Typography ---- */
+.admin-main-title {
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: var(--prussian-blue);
+  letter-spacing: -1px;
+  margin-bottom: var(--space-lg);
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.admin-main-title span {
+  background: linear-gradient(135deg, var(--seagrass), var(--muted-teal));
   font-size: 1rem;
-  font-weight: 500;
-  border-radius: 40px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  margin-bottom: 1rem;
-  box-shadow: 0 2px 6px #c084fc30;
+  font-weight: 600;
+  color: white;
+  padding: 0.1rem 0.8rem;
+  border-radius: 50px;
+  letter-spacing: 0.3px;
 }
-.neon-btn:hover {
-  background: linear-gradient(135deg, #e9d5ff, #fbcfe8);
-  border-color: #d8b4fe;
-  box-shadow: 0 4px 12px #c084fc50;
+
+.section-title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin: var(--space-xl) 0 var(--space-md) 0;
+  padding-left: var(--space-sm);
+  border-left: 5px solid var(--color-primary);
+  line-height: 1.2;
+}
+
+/* ---- Table Styles (Now with breathing room & lines) ---- */
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-sm);
+}
+
+.admin-table th {
+  text-align: left;
+  color :#F2F8F4;
+  padding: var(--space-md) var(--space-lg);
+  background: var(--color-background);
+  color: var(--color-text-secondary);
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  border-bottom: 2px solid var(--color-border);
+}
+
+.admin-table td {
+  padding: var(--space-md) var(--space-lg);
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text-primary);
+  vertical-align: middle;
+}
+
+.admin-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.admin-table tbody tr {
+  transition: background var(--transition-fast);
+}
+
+.admin-table tbody tr:hover td {
+  background: rgba(44, 165, 141, 0.04);
+}
+
+/* ---- Button System (No more default grey!) ---- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: 0.45rem 1.2rem;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  font-family: var(--font-family);
+  border-radius: 50px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  text-decoration: none;
+  white-space: nowrap;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: var(--space-sm);
+}
+
+.btn:active {
+  transform: scale(0.95);
+}
+
+/* Primary (Seagrass) */
+.btn-primary {
+  background: var(--color-primary);
+  color: var(--color-text-on-primary);
+  border-color: var(--color-primary);
+}
+
+.btn-primary:hover {
+  background: var(--color-primary-hover);
+  border-color: var(--color-primary-hover);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+/* Outline (Ghost) */
+.btn-outline {
+  background: transparent;
+  color: var(--color-text-secondary);
+  border-color: var(--color-border);
+  box-shadow: none;
+}
+
+.btn-outline:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background: rgba(44, 165, 141, 0.05);
   transform: translateY(-1px);
 }
 
-/* Table – clean with pastel borders */
-.neon-table {
-  width: 100%;
-  border-collapse: collapse;
-  background: #ffffffcc;
-  backdrop-filter: blur(2px);
-  border-radius: 20px;
-  overflow: hidden;
-  box-shadow: 0 8px 20px #c084fc20;
-}
-.neon-table th {
-  text-align: left;
-  padding: 1rem;
-  background: #faf5ff;
-  color: #6b21a5;
-  font-weight: 600;
-  border-bottom: 2px solid #f0e6ff;
-}
-.neon-table td {
-  padding: 1rem;
-  border-bottom: 1px solid #f0e6ff;
-  color: #4a3b6e;
-}
-.neon-table tr:hover {
-  background: #fdf2ff;
+/* Danger (Rose Kiss) */
+.btn-danger {
+  background: var(--color-accent);
+  color: white;
+  border-color: var(--color-accent);
 }
 
+.btn-danger:hover {
+  background: #d9568a; /* Slightly darker rose */
+  border-color: #d9568a;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+/* Small variant for action cells */
+.btn-sm {
+  padding: 0.2rem 0.8rem;
+  font-size: 0.75rem;
+}
+
+/* ---- Action Cell (Buttons inside table) ---- */
 .action-cell {
   display: flex;
-  gap: 0.75rem;
+  gap: var(--space-sm);
   align-items: center;
   flex-wrap: wrap;
 }
 
-/* Small buttons – soft pink/purple */
-.neon-btn-sm {
-  background: #ffffff;
-  border: 1px solid #e9d5ff;
-  color: #9333ea;
-  padding: 0.25rem 0.9rem;
-  font-size: 0.85rem;
-  border-radius: 30px;
-  cursor: pointer;
-  transition: 0.2s;
-  font-weight: 500;
-}
-.neon-btn-sm:hover {
-  background: #fae8ff;
-  border-color: #d8b4fe;
-  box-shadow: 0 0 6px #ec489970;
-}
-.neon-btn-sm.danger {
-  border-color: #fecdd3;
-  color: #e11d48;
-}
-.neon-btn-sm.danger:hover {
-  background: #ffe4e6;
-  border-color: #fda4af;
+/* ---- Status Badges (Vibrant colors in action) ---- */
+.status-badge {
+  padding: 0.2rem 0.7rem;
+  border-radius: 50px;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  display: inline-block;
+  white-space: nowrap;
 }
 
-/* Select dropdown – soft pastel */
-.neon-select {
-  background: #ffffff;
-  border: 1px solid #e9d5ff;
-  color: #4a1d6d;
-  padding: 0.3rem 0.6rem;
-  border-radius: 30px;
-  font-size: 0.85rem;
-  font-family: inherit;
-  cursor: pointer;
+.status-badge.pending {
+  background: rgba(244, 97, 151, 0.15);
+  color: var(--color-accent);
+  border: 1px solid rgba(244, 97, 151, 0.2);
 }
-.neon-select:focus {
+
+.status-badge.reviewed {
+  background: rgba(44, 165, 141, 0.15);
+  color: var(--color-primary);
+  border: 1px solid rgba(44, 165, 141, 0.2);
+}
+
+.status-badge.active {
+  background: rgba(44, 165, 141, 0.15);
+  color: var(--color-primary);
+  border: 1px solid rgba(44, 165, 141, 0.2);
+}
+
+.status-badge.inactive {
+  background: rgba(71, 85, 105, 0.1);
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border);
+}
+
+/* ---- Status Select Dropdown ---- */
+.status-select {
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-border);
+  color: var(--color-text-primary);
+  padding: 0.3rem 0.8rem;
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  font-family: var(--font-family);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.status-select:hover {
+  border-color: var(--muted-teal);
+}
+
+.status-select:focus {
   outline: none;
-  border-color: #c084fc;
-  box-shadow: 0 0 0 2px #f0abfc40;
-} 
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(44, 165, 141, 0.15);
+}
+
+/* ---- Pagination (Now matches the elegant theme) ---- */
+.pagination {
+  padding: var(--space-md) var(--space-lg);
+  display: flex;
+  gap: var(--space-xs);
+  align-items: center;
+  flex-wrap: wrap;
+  border-top: 1px solid var(--color-border);
+  background: var(--color-background);
+}
+
+.pagination button {
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border);
+  padding: 0.3rem 0.9rem;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  font-size: var(--font-size-sm);
+  font-family: var(--font-family);
+  font-weight: 500;
+}
+
+.pagination button:hover:not(:disabled) {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: white;
+  box-shadow: var(--shadow-sm);
+}
+
+.pagination button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  background: var(--color-background);
+}
+
+.pagination span {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  padding: 0 var(--space-sm);
+  font-weight: 600;
+}
+
+/* ---- Empty State ---- */
+.empty-state {
+  padding: var(--space-xl);
+  color: var(--color-text-secondary);
+  font-style: italic;
+  text-align: center;
+  background: var(--color-surface);
+}
+
+/* ---- Material Dialog Overrides ---- */
+mat-selection-list {
+  max-height: 300px;
+  overflow: auto;
+  padding: var(--space-xs) 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+}
+
+mat-selection-list mat-list-option {
+  color: var(--color-text-primary) !important;
+  padding: var(--space-sm) var(--space-md) !important;
+  border-bottom: 1px solid var(--color-border);
+  transition: background var(--transition-fast);
+}
+
+mat-selection-list mat-list-option:hover {
+  background: rgba(44, 165, 141, 0.05) !important;
+}
+
+.mat-dialog-container {
+  background: var(--color-surface) !important;
+  color: var(--color-text-primary) !important;
+  border-radius: var(--radius-md) !important;
+  box-shadow: var(--shadow-lg) !important;
+}
+
+/* ---- Responsive tweaks ---- */
+@media (max-width: 768px) {
+  .admin-container {
+    padding: var(--space-md);
+  }
+
+  .table-card .card-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .admin-table th,
+  .admin-table td {
+    padding: var(--space-sm);
+  }
+
+  .action-cell {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .btn {
+    padding: 0.3rem 0.8rem;
+    font-size: 0.75rem;
+  }
+
+  .admin-main-title {
+    font-size: 1.8rem;
+  }
+
+
+}

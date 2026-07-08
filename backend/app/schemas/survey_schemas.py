@@ -19,3 +19,6 @@ class SurveyOut(BaseModel):
 
     class Config:
         from_attributes = True
+
+class SurveyStatusUpdate(BaseModel):
+    status: str  # "pending", "reviewed"

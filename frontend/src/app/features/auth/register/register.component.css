@@ -1,6 +1,7 @@
-/* ===== Full‑screen background section ===== */
+/* ===== Register Page – Light, Unified Theme ===== */
+
 .register-page {
-  min-height: 83.5vh;                /* fill viewport */
+  min-height: 86.4vh;
   width: 100%;
   position: relative;
   display: flex;
@@ -10,121 +11,116 @@
   background-position: center;
 }
 
-/* ===== Dark overlay with blur ===== */
-/* register.component.css */
-
+/* Light overlay – same soft porcelain / muted-teal as hero & login */
 .overlay {
   position: absolute;
   inset: 0;
-  /* Darker gradient overlay to ground the left side */
-  background: linear-gradient(to right, rgba(3, 16, 23, 0.9), rgba(3, 16, 23, 0.6)); 
-  backdrop-filter: blur(10px); /* Increased from 2px for a premium feel */
+  background: linear-gradient(
+    135deg,
+    rgba(255, 253, 247, 0.92) 0%,   /* porcelain */
+    rgba(132, 188, 156, 0.2) 100%   /* muted teal whisper */
+  );
+  backdrop-filter: blur(6px);
   z-index: 0;
 }
 
-/* ===== Main container: two‑column grid ===== */
+/* Two‑column grid */
 .register-container {
   position: relative;
   z-index: 1;
-
   display: grid;
-  grid-template-columns: 1fr 420px;  /* left flexible, right fixed */
+  grid-template-columns: 1fr 420px;
   gap: 60px;
-
   width: 90%;
   max-width: 1100px;
   padding: 60px;
-  border-radius: 16px;
-  box-shadow: 0 0 30px rgba(150, 100, 126, 0.15); /* subtle neon glow */
+  border-radius: var(--radius-lg);
+  background: rgba(255, 255, 255, 0.35);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(132, 188, 156, 0.2);
+  box-shadow: var(--shadow-lg);
 }
 
 /* ===== Left panel (branding) ===== */
-/* register.component.css - Replace .left-panel and .left-panel .logo */
-
 .left-panel {
-  color: var(--color-text-primary);
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding-right: 20px; /* Space between text and the register card */
+  padding-right: 20px;
 }
 
 .left-panel .logo {
-  width: 200px; /* Slightly smaller for a cleaner look */
+  width: 180px;
   height: auto;
   margin-bottom: 24px;
-  /* Use a cleaner drop shadow or remove it if the logo is already high-contrast */
-  filter: drop-shadow(0 0 15px rgba(222, 162, 184, 0.3)); 
-  opacity: 0.9;
+  filter: drop-shadow(0 4px 8px rgba(10, 35, 66, 0.08));
 }
 
 .left-panel h1 {
-  font-size: 3rem; /* Bigger, bolder statement */
+  font-size: 3rem;
   font-weight: 800;
   letter-spacing: -1px;
   margin-bottom: 0.5rem;
-  background: linear-gradient(white, #cbd5e1); /* Subtle text gradient */
-  -webkit-background-clip: text;
-  background-clip: text; /* Standard property */
-  -webkit-text-fill-color: transparent;
-  color: transparent; /* Standard property */
+  color: var(--prussian-blue);
+  line-height: 1.2;
 }
 
 .left-panel p {
-  font-size: 1.2rem;
-  max-width: 400px; /* Prevents long lines of text which are hard to read */
-  color: var(--color-text-muted);
-  line-height: 1.4;
+  font-size: 1.1rem;
+  max-width: 400px;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
 }
+
 .left-panel .small-text {
   font-size: 0.95rem;
 }
 
 .left-panel a {
-  color: var(--color-accent);
+  color: var(--color-primary);
   text-decoration: none;
-  font-weight: 500;
-  transition: color 0.2s;
+  font-weight: 600;
+  transition: color var(--transition-fast);
 }
 
 .left-panel a:hover {
-  color: var(--color-secondary);
+  color: var(--color-primary-hover);
   text-decoration: underline;
 }
 
-/* ===== Right panel (form container) ===== */
+/* ===== Right panel (form card) ===== */
 .right-panel {
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-/* ===== Improved glass card ===== */
 .register-card {
   width: 100%;
   max-width: 400px;
 }
 
 .glass {
-  background: rgba(32, 41, 48, 0.6); /* #202930 with opacity */
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(150, 100, 126, 0.25); /* muted purple border */
-  border-radius: 12px;
-  padding: 32px;
-  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5);
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(132, 188, 156, 0.25);
+  border-radius: var(--radius-md);
+  padding: 36px 32px;
+  box-shadow: var(--shadow-md);
 }
 
 .register-title {
-  font-size: 2rem;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-  color: var(--color-text-primary);
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin-bottom: 0.4rem;
+  color: var(--prussian-blue);
   text-align: center;
 }
 
 .register-subtitle {
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);
   text-align: center;
   margin-bottom: 2rem;
   font-size: 0.95rem;
@@ -138,9 +134,9 @@
 .field-group label {
   display: block;
   margin-bottom: 0.5rem;
-  font-weight: 500;
-  color: var(--color-text-muted);
-  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  font-size: 0.85rem;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -148,84 +144,128 @@
 .field-group input {
   width: 100%;
   padding: 0.8rem 1rem;
-  background: rgba(0, 0, 0, 0.3);
-  border: 1px solid var(--color-border-subtle);
-  border-radius: var(--border-radius);
-  color: var(--color-text-primary);
+  background: rgba(255, 253, 247, 0.6);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--prussian-blue);
   font-size: 1rem;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition: border-color var(--transition-fast),
+              box-shadow var(--transition-fast);
 }
 
 .field-group input:focus {
   outline: none;
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(38, 83, 116, 0.3);
+  box-shadow: 0 0 0 3px rgba(44, 165, 141, 0.2);
 }
 
 .field-group input.invalid {
-  border-color: #ff6b6b;
+  border-color: var(--color-accent);
 }
 
 .field-error {
   display: block;
-  color: #ff8a8a;
+  color: var(--color-accent);
   font-size: 0.8rem;
   margin-top: 0.3rem;
+  font-weight: 500;
 }
 
 /* ===== Error banner ===== */
 .error-banner {
-  background: rgba(255, 107, 107, 0.2);
-  border: 1px solid #ff6b6b;
-  color: #ffb3b3;
+  background: rgba(244, 97, 151, 0.1);
+  border: 1px solid var(--color-accent);
+  color: #b91c5b;
   padding: 0.8rem 1rem;
-  border-radius: var(--border-radius);
+  border-radius: var(--radius-sm);
   margin-bottom: 1.5rem;
   text-align: center;
   font-size: 0.9rem;
+  font-weight: 500;
 }
 
 /* ===== Submit button ===== */
 .submit-btn {
   width: 100%;
   padding: 0.9rem;
-  background: var(--color-accent);
-  color: var(--color-bg-deep);
+  background: var(--color-primary);
+  color: var(--color-text-on-primary);
   border: none;
-  border-radius: var(--border-radius);
-  font-size: 1.1rem;
+  border-radius: 50px;
+  font-size: 1.05rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.2s, transform 0.1s;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  transition: background-color var(--transition-base),
+              transform var(--transition-base),
+              box-shadow var(--transition-base);
+  box-shadow: var(--shadow-sm);
 }
 
 .submit-btn:hover:not(:disabled) {
-  background: var(--color-secondary);
+  background-color: var(--color-primary-hover);
   transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.submit-btn:active:not(:disabled) {
+  transform: translateY(0);
 }
 
 .submit-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
+/* ── Role dropdown ───────────────────────────────────────── */
+.role-select {
+  width: 100%;
+  padding: 0.8rem 1rem;
+  background: rgba(255, 253, 247, 0.6);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--prussian-blue);
+  font-size: 1rem;
+  font-family: var(--font-family);
+  transition: border-color var(--transition-fast),
+              box-shadow var(--transition-fast);
+  appearance: auto; /* keeps native arrow on most browsers */
+  cursor: pointer;
+}
 
-/* ===== Responsive design ===== */
+.role-select:hover {
+  border-color: var(--muted-teal);
+}
+
+.role-select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(44, 165, 141, 0.2);
+}
+
+.role-select.invalid {
+  border-color: var(--color-accent);
+}
+
+.role-select option {
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+}
+
+/* ===== Responsive ===== */
 @media (max-width: 900px) {
   .register-container {
-    grid-template-columns: 1fr;      /* stack vertically */
+    grid-template-columns: 1fr;
     gap: 30px;
-    padding: 40px;
+    padding: 40px 30px;
   }
 
   .left-panel {
     text-align: center;
     align-items: center;
+    padding-right: 0;
   }
 
   .left-panel .logo {
-    margin-left: auto;
-    margin-right: auto;
+    margin: 0 auto 20px;
   }
 }
 
@@ -235,10 +275,11 @@
   }
 
   .glass {
-    padding: 24px;
+    padding: 24px 20px;
   }
 
   .left-panel h1 {
     font-size: 2rem;
   }
+  
 }
