@@ -3,6 +3,7 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ConfigureHeaderRequest, RawPreviewResponse } from 'src/app/core/models/dataset.model';
 import { DatasetService } from 'src/app/core/services/dataset.service';
+import { HeaderTitleService } from 'src/app/core/services/header-title.service';
 
 @Component({
   selector: 'app-configure-header',
@@ -23,13 +24,17 @@ export class ConfigureHeaderComponent implements OnInit,  OnDestroy {
   constructor(
     private route: ActivatedRoute,
     private datasetService: DatasetService,
-    private router: Router
-  ) {}
+    private router: Router,
+    private headerTitleService: HeaderTitleService
+  ) {
+this.headerTitleService.setTitle('Configure Header');
+  }
   ngOnDestroy(): void {
     if (!this.isProcessingAction && this.datasetId) {
       console.warn(`User closed tab or clicked navbar logo. Purging unconfigured dataset #${this.datasetId}`);
       this.datasetService.deleteDataset(Number(this.datasetId)).subscribe();
     }
+
   }
    onCancel(): void {
     const confirmCancel = window.confirm('Are you sure you want to cancel? This uploaded file will be discarded.');
@@ -50,6 +55,15 @@ export class ConfigureHeaderComponent implements OnInit,  OnDestroy {
       }
     });
   }
+  onConfigureHeaderOpened() {
+  // Appends your deep nested configuration state instantly without clearing "Data Builder"
+  this.headerTitleService.appendSubTitle('Configure Header');
+}
+
+onConfigureHeaderClosed() {
+  // Easily drops the appended string array when your user returns to the primary view
+  this.headerTitleService.resetToBase();
+}
 
   ngOnInit(): void {
     this.datasetId = +this.route.snapshot.paramMap.get('id')!;

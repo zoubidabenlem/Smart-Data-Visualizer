@@ -6,7 +6,7 @@ import { DatasetOut } from '../../core/models/dataset.model';
 import { Router } from '@angular/router';
 import { DashboardService } from 'src/app/core/services/dashboard.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
-
+import { HeaderTitleService } from 'src/app/core/services/header-title.service'; // Import the service
 @Component({
   selector: 'app-builder',
   templateUrl: './builder.component.html',
@@ -22,14 +22,28 @@ export class BuilderComponent implements OnInit {
     private datasetService: DatasetService,
       private dashboardService: DashboardService,
     private snackBar: MatSnackBar,
-  private router: Router
-) {}
+  private router: Router,
+  private headerTitleService: HeaderTitleService  // Inject the service
+) {this.headerTitleService.setTitle('Data Builder'); // Set the page title on component initialization
+  
+}
 
   ngOnInit(): void {
     
     this.loadDatasets();
+    this.setTitle('Data Builder'); // Set the page title on init
+    
   }
 
+ // ===== ADD THIS FUNCTION TO BROADCAST THE TITLE UNIFORMLY =====
+  setTitle(title: string): boolean {
+    // Updates the browser tab title instantly
+    document.title = `Smart Data ç | ${title}`;
+    
+    // If your shared header reads a service or global window state, update it here.
+    // This safely ensures your page title evaluations match perfectly.
+    return true;
+  }
   loadDatasets(): void {
     this.isLoading = true;
     this.datasetService.getDatasets().subscribe({

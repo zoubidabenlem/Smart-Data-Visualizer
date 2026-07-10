@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
-import { Subscription } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
 import { AuthService } from 'src/app/core/auth/auth.service';
 import { User } from 'src/app/core/models/user.model';
 import { HeaderTitleService } from 'src/app/core/services/header-title.service';  // adjust path
@@ -12,7 +12,8 @@ import { HeaderTitleService } from 'src/app/core/services/header-title.service';
 })
 export class HeaderComponent implements OnInit, OnDestroy {
   currentUser: User | null = null;
-  pageTitle = 'Smart Data Visualizer';   // fallback
+  defaultTitle = 'Smart Data Visualizer';
+  pageTitle$!: Observable<string>;
   private userSub?: Subscription;
   private titleSub?: Subscription;        // new
 
@@ -29,7 +30,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
     // Subscribe to the dynamic title
     this.titleSub = this.headerTitle.currentTitle$.subscribe(title => {
-      this.pageTitle = title;
+    this.pageTitle$ = this.headerTitle.currentTitle$;
     });
   }
 

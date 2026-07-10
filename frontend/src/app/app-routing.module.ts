@@ -20,6 +20,7 @@ const routes: Routes = [
   path: 'builder',
   canActivate: [authGuard, roleGuard],
   data: { roles: ['admin'] },
+  title: 'Data Builder',
   loadChildren: () => import('./features/builder/builder.module').then(m => m.BuilderModule)
 },
 ///////////////DASHBOARD  routes — protected by BOTH guards, run in order

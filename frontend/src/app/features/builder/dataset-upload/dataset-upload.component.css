@@ -1,20 +1,30 @@
+/* ===== Upload Area (Builder) ===== */
 .upload-area {
-  background: var(--color-bg-surface);
-  border: 1px solid var(--color-border-subtle);
-  border-radius: var(--border-radius);
-  padding: 1.5rem;
+  background: var(--color-surface);
+  border: 2px dashed var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 2rem;
   margin-bottom: 2rem;
   text-align: center;
+  transition: border-color var(--transition-fast), background-color var(--transition-fast);
+}
+
+/* Blue accent appears on hover or drag over */
+.upload-area:hover,
+.upload-area.drag-over {
+  border-color: var(--color-blue-accent);
+  background-color: var(--color-blue-tint);
 }
 
 .upload-area h3 {
   margin: 0 0 0.5rem 0;
-  color: var(--color-text-primary);
+  color: var(--prussian-blue);        /* blue heading */
+  font-size: 1.2rem;
 }
 
 .upload-area p {
-  margin: 0 0 1rem 0;
-  color: var(--color-text-muted);
+  margin: 0 0 1.2rem 0;
+  color: var(--color-text-secondary);
 }
 
 .file-input-wrapper {
@@ -22,28 +32,48 @@
   justify-content: center;
   gap: 1rem;
   align-items: center;
+  flex-wrap: wrap;
 }
 
-.file-input-wrapper input {
-  background: var(--color-bg-deep);
-  border: 1px solid var(--color-border-subtle);
-  padding: 0.5rem;
-  border-radius: var(--border-radius);
+.file-input-wrapper input[type="file"] {
+  /* Style the native file input nicely */
+  background: var(--color-background);
+  border: 1px solid var(--color-border);
+  padding: 0.6rem 1rem;
+  border-radius: var(--radius-sm);
   color: var(--color-text-primary);
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: border-color var(--transition-fast);
+}
+
+.file-input-wrapper input[type="file"]:focus {
+  border-color: var(--color-blue-accent);
+  box-shadow: 0 0 0 3px rgba(10, 35, 66, 0.15);
 }
 
 .upload-btn {
   background: var(--color-primary);
   color: white;
   border: none;
-  padding: 0.5rem 1.5rem;
-  border-radius: var(--border-radius);
+  padding: 0.6rem 1.8rem;
+  border-radius: 50px;
+  font-weight: 600;
   cursor: pointer;
-  transition: background var(--transition);
+  transition: background-color var(--transition-base),
+              transform var(--transition-fast),
+              box-shadow var(--transition-fast);
+  box-shadow: var(--shadow-sm);
 }
 
 .upload-btn:hover:not([disabled]) {
-  background: var(--color-secondary);
+  background-color: var(--color-primary-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.upload-btn:active:not([disabled]) {
+  transform: translateY(0);
 }
 
 .upload-btn[disabled] {
@@ -53,10 +83,12 @@
 
 .file-info {
   margin-top: 1rem;
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
 }
 
 .error-message {
   margin-top: 1rem;
-  color: #ff6b6b;
+  color: var(--color-accent);
+  font-weight: 500;
 }

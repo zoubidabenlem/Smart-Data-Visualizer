@@ -66,7 +66,10 @@ export class DatasetUploadComponent {
           this.error = 'File too large (max 50 MB).';
         } else if (err.status === 422) {
           this.error = 'Invalid file content. Please check your CSV/Excel format.';
-        } else if (err.status === 401 || err.status === 403) {
+        }else if (err.status === 400) {
+          this.error = 'Bad request. Please check the file is not corrupted and try again.';
+        }
+        else if (err.status === 401 || err.status === 403) {
           this.error = 'You are not authorized to upload.';
         } else {
           this.error = 'Upload failed. Please try again.';

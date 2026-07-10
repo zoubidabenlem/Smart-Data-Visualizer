@@ -1,4 +1,5 @@
 /* ===== New Unified Theme – Light & Sleek ===== */
+@import '@angular/material/prebuilt-themes/indigo-pink.css';
 :root {
   /* Palette */
   --prussian-blue: #0a2342;

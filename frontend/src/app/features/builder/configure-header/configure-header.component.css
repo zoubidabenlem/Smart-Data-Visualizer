@@ -1,54 +1,50 @@
 /* =============================================
-   Styling for “Configure Headers” Component
-   – soft dark interface, scrollable preview,
-   – cancel + confirm actions
+   Configure Headers – Light, Full‑Palette Builder
    ============================================= */
 
 :host {
   display: block;
   padding: 2rem;
-  background: var(--color-bg-deep);
+  background: var(--color-background);       /* porcelain */
   color: var(--color-text-primary);
-  font-family: 'Inter', 'Roboto', sans-serif;
+  font-family: var(--font-family);
   min-height: 100vh;
 }
 
 /* ===== Main card ===== */
 .container-inner {
-  background: var(--color-bg-surface);
-  border: 1px solid var(--color-border-subtle);
-  border-radius: var(--border-radius);
+  background: var(--color-surface);           /* white */
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
   padding: 2rem;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-  backdrop-filter: blur(8px);
-  transition: var(--transition);
+  box-shadow: var(--shadow-md);
   max-width: 100%;
-  overflow: hidden;                     /* keep the outer card clean */
+  overflow: hidden;
 }
 
 /* ===== Headings ===== */
 h2 {
   font-size: 1.8rem;
-  font-weight: 600;
+  font-weight: 700;
   margin-bottom: 1.5rem;
-  color: var(--color-text-primary);
-  letter-spacing: 0.3px;
+  color: var(--prussian-blue);                /* deep blue for authority */
+  letter-spacing: -0.3px;
 }
 
 h3 {
   font-size: 1.3rem;
   margin: 1.5rem 0 0.75rem;
-  color: var(--color-text-muted);
-  font-weight: 500;
+  color: var(--color-text-secondary);         /* soft slate */
+  font-weight: 600;
 }
 
 /* ===== Error alert ===== */
 .alert.alert-danger {
-  background: rgba(255, 77, 77, 0.12);
-  border: 1px solid rgba(255, 77, 77, 0.3);
-  color: #ff6b6b;
+  background: rgba(244, 97, 151, 0.08);       /* rose kiss tint */
+  border: 1px solid var(--color-accent);      /* rose kiss */
+  color: #b91c5b;                             /* deeper rose for readability */
   padding: 0.75rem 1rem;
-  border-radius: var(--border-radius);
+  border-radius: var(--radius-sm);
   margin-bottom: 1.25rem;
   font-size: 0.95rem;
 }
@@ -61,29 +57,29 @@ h3 {
 label {
   display: block;
   margin-bottom: 0.5rem;
-  font-weight: 500;
-  color: var(--color-text-muted);
-  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  font-size: 0.85rem;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 /* Header row number input */
 input[type="number"] {
-  background: var(--color-bg-deep);
-  border: 1px solid var(--color-border-subtle);
-  border-radius: 6px;
+  background: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
   padding: 0.6rem 0.75rem;
   color: var(--color-text-primary);
   font-size: 1rem;
   width: 120px;
-  transition: border-color var(--transition), box-shadow var(--transition);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
   outline: none;
 }
 
 input[type="number"]:focus {
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(165, 94, 150, 0.25);
+  border-color: var(--color-primary);         /* seagrass focus ring */
+  box-shadow: 0 0 0 3px rgba(44, 165, 141, 0.2);
 }
 
 /* ===== Skip rows container ===== */
@@ -98,78 +94,72 @@ input[type="number"]:focus {
 .form-group > div > label {
   display: flex;
   align-items: center;
-  background: var(--color-bg-deep);
-  border: 1px solid var(--color-border-subtle);
-  border-radius: 6px;
+  background: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
   padding: 0.4rem 0.8rem;
   font-size: 0.9rem;
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);
   cursor: pointer;
-  transition: background var(--transition), border-color var(--transition);
-  margin-bottom: 0;                     /* reset label margin */
+  transition: background var(--transition-fast), border-color var(--transition-fast);
   text-transform: none;
   letter-spacing: normal;
-  font-weight: 400;
+  font-weight: 500;
+  margin-bottom: 0;
 }
 
 .form-group > div > label:hover {
-  background: #2a353d;
-  border-color: var(--color-primary);
+  background: var(--color-blue-tint);         /* subtle Prussian blue tint */
+  border-color: var(--prussian-blue);
 }
 
 input[type="checkbox"] {
-  accent-color: var(--color-primary);   /* modern browsers */
+  accent-color: var(--color-primary);         /* seagrass tick */
   margin-right: 0.4rem;
   width: 1rem;
   height: 1rem;
   cursor: pointer;
 }
 
-/* ==========================================
-   Scrollable preview table
-   ========================================== */
+/* ===== Scrollable preview table ===== */
 .preview-section {
   margin-top: 1.5rem;
 }
 
-/* Outer container – enables horizontal scroll */
 .table-responsive {
-  background: var(--color-bg-deep);
-  border: 1px solid var(--color-border-subtle);
-  border-radius: var(--border-radius);
-  overflow-x: auto;                    /* ← horizontal scroll when many columns */
-  overflow-y: hidden;                  /* vertical scroll is optional, keep hidden if rows fit */
-  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.2);
-  max-height: 500px;                   /* optional: fixed height with vertical scroll if you prefer */
-  /* If you also want vertical scroll when many rows, change to overflow-y: auto; */
+  background: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow-x: auto;
+  max-height: 500px;
+  box-shadow: inset 0 1px 4px rgba(0,0,0,0.04);
 }
 
-/* Inner wrapper – ensures the table takes its natural width */
 .table-wrapper {
-  min-width: max-content;              /* forces full width, essential for horizontal scroll */
+  min-width: max-content;
 }
 
-/* ===== Table itself ===== */
 table.table {
   width: 100%;
   border-collapse: collapse;
   color: var(--color-text-primary);
-  white-space: nowrap;                 /* keep cells from wrapping so scroll works */
+  white-space: nowrap;
 }
 
 thead tr {
-  background: #1a2832;
+  background: #f1f5f9;                        /* very light slate – distinct from porcelain */
 }
 
 thead th {
   padding: 0.6rem 0.8rem;
-  border-bottom: 2px solid var(--color-border-subtle);
+  border-bottom: 2px solid var(--color-border);
   font-weight: 600;
   font-size: 0.9rem;
   text-align: left;
   position: sticky;
   top: 0;
   z-index: 2;
+  color: var(--prussian-blue);                /* column headers in deep blue */
 }
 
 /* Column name inputs inside header */
@@ -181,69 +171,68 @@ thead input.form-control-sm {
   color: var(--color-text-primary);
   font-size: 0.85rem;
   width: 100%;
-  transition: border-color var(--transition), background var(--transition);
+  transition: border-color var(--transition-fast), background var(--transition-fast);
   outline: none;
 }
 
 thead input.form-control-sm:hover {
-  border-color: var(--color-border-subtle);
-  background: rgba(255, 255, 255, 0.05);
+  border-color: var(--color-border);
+  background: rgba(44, 165, 141, 0.05);       /* seagrass whisper */
 }
 
 thead input.form-control-sm:focus {
   border-color: var(--color-primary);
-  background: rgba(165, 94, 150, 0.1);
-  box-shadow: 0 0 0 2px rgba(165, 94, 150, 0.2);
+  background: rgba(44, 165, 141, 0.08);
+  box-shadow: 0 0 0 2px rgba(44, 165, 141, 0.2);
 }
 
 /* ===== Table body ===== */
 tbody td {
   padding: 0.5rem 0.8rem;
-  border-top: 1px solid var(--color-border-subtle);
+  border-top: 1px solid var(--color-border);
   font-size: 0.9rem;
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);
 }
 
 tbody tr:hover {
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(132, 188, 156, 0.06);      /* muted teal tint – soft and warm */
 }
 
 tbody tr:nth-child(even) {
-  background: rgba(255, 255, 255, 0.02);
+  background: rgba(132, 188, 156, 0.03);
 }
 
 /* ===== Footer with Cancel & Confirm ===== */
 .actions-footer {
   display: flex;
-  justify-content: flex-end;           /* push buttons to the right */
+  justify-content: flex-end;
   gap: 1rem;
   margin-top: 2rem;
-  flex-wrap: wrap;                     /* allow wrapping on very narrow screens */
+  flex-wrap: wrap;
 }
 
 /* ===== Secondary (Cancel) button ===== */
 .btn.btn-secondary {
   background: transparent;
-  border: 1px solid var(--color-border-subtle);
-  border-radius: var(--border-radius);
+  border: 1px solid var(--color-border);
+  border-radius: 50px;                        /* pill shape */
   padding: 0.75rem 2rem;
   font-size: 1rem;
   font-weight: 600;
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);
   cursor: pointer;
-  letter-spacing: 0.5px;
-  transition: all var(--transition);
-  box-shadow: none;
+  letter-spacing: 0.3px;
+  transition: all var(--transition-base);
 }
 
 .btn.btn-secondary:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: var(--color-text-muted);
-  color: var(--color-text-primary);
+  background: rgba(10, 35, 66, 0.04);         /* Prussian blue hover tint */
+  border-color: var(--prussian-blue);
+  color: var(--prussian-blue);
 }
 
 .btn.btn-secondary:active:not(:disabled) {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(10, 35, 66, 0.08);
 }
 
 .btn.btn-secondary:disabled {
@@ -251,30 +240,30 @@ tbody tr:nth-child(even) {
   cursor: not-allowed;
 }
 
-/* ===== Primary (Confirm) button (unchanged) ===== */
+/* ===== Primary (Confirm) button – using both seagrass and rose kiss ===== */
 .btn.btn-primary {
-  background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+  background: linear-gradient(135deg, var(--color-primary) 0%, #1e8b76 100%);
   border: none;
-  border-radius: var(--border-radius);
+  border-radius: 50px;
   padding: 0.75rem 2rem;
   font-size: 1rem;
   font-weight: 600;
   color: #ffffff;
   cursor: pointer;
-  letter-spacing: 0.5px;
-  transition: all var(--transition);
-  box-shadow: 0 4px 14px rgba(165, 94, 150, 0.4);
+  letter-spacing: 0.3px;
+  transition: all var(--transition-base);
+  box-shadow: 0 4px 14px rgba(44, 165, 141, 0.35);
 }
 
 .btn.btn-primary:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(165, 94, 150, 0.6);
-  background: linear-gradient(135deg, var(--color-accent), var(--color-primary));
+  box-shadow: 0 6px 20px rgba(44, 165, 141, 0.5);
+  background: linear-gradient(135deg, var(--color-primary-hover) 0%, #238b76 100%);
 }
 
 .btn.btn-primary:active:not(:disabled) {
   transform: translateY(1px);
-  box-shadow: 0 2px 8px rgba(165, 94, 150, 0.4);
+  box-shadow: 0 2px 8px rgba(44, 165, 141, 0.3);
 }
 
 .btn.btn-primary:disabled {
@@ -284,14 +273,17 @@ tbody tr:nth-child(even) {
   transform: none;
 }
 
-/* ===== Scrollbar (soft, on table wrapper) ===== */
+/* ===== Scrollbar styling ===== */
 .table-responsive::-webkit-scrollbar {
   height: 6px;
 }
 .table-responsive::-webkit-scrollbar-track {
-  background: var(--color-bg-deep);
+  background: var(--color-background);
 }
 .table-responsive::-webkit-scrollbar-thumb {
-  background: var(--color-border-subtle);
+  background: var(--color-border);
   border-radius: 3px;
+}
+.table-responsive::-webkit-scrollbar-thumb:hover {
+  background: var(--prussian-blue);           /* blue scroll thumb on hover */
 }

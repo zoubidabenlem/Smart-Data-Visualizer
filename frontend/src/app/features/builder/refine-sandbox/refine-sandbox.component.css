@@ -1,22 +1,6 @@
 /* ============================================
-   Sandbox Layout – Consistent dark soft theme
+   Sandbox Layout – Light, Unified Full‑Palette
    ============================================ */
-
-/* ----- Global theme variables assumed from previous style -----
-   If not already defined, include these in your :root:
-   :root {
-     --color-bg-deep: #0a1929;
-     --color-bg-surface: #202930;
-     --color-primary: #a55e96;
-     --color-secondary: #96647E;
-     --color-accent: #DEA2B8;
-     --color-border-subtle: #2F3E46;
-     --color-text-primary: #E6F0F5;
-     --color-text-muted: #8FA3AD;
-     --border-radius: 8px;
-     --transition: 0.2s ease-in-out;
-   }
-------------------------------------------------------------- */
 
 .sandbox-container {
   display: flex;
@@ -24,8 +8,8 @@
   gap: 16px;
   padding: 16px;
   box-sizing: border-box;
-  background: var(--color-bg-deep);
-  font-family: 'Inter', 'Roboto', sans-serif;
+  background: var(--color-background); /* porcelain */
+  font-family: var(--font-family);
   color: var(--color-text-primary);
 }
 
@@ -35,12 +19,11 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
-  background: var(--color-bg-surface);
-  border: 1px solid var(--color-border-subtle);
-  border-radius: var(--border-radius);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
   padding: 16px;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.25);
-  backdrop-filter: blur(4px);
+  box-shadow: var(--shadow-sm);
 }
 
 /* Dataset info row */
@@ -49,31 +32,31 @@
   gap: 16px;
   padding: 8px 0;
   margin-bottom: 12px;
-  border-bottom: 1px solid var(--color-border-subtle);
-  color: var(--color-text-muted);
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
 }
 
 .filename {
   font-weight: 600;
-  color: var(--color-text-primary);
+  color: var(--prussian-blue);        /* deep blue for emphasis */
 }
 
 .meta {
-  color: var(--color-text-muted);
-  font-size: 0.9em;
+  color: var(--color-text-secondary);
 }
 
 /* Scrollable table wrapper */
 .preview-table-wrapper {
   overflow: auto;
   flex: 1;
-  background: var(--color-bg-deep);
-  border: 1px solid var(--color-border-subtle);
-  border-radius: var(--border-radius);
-  box-shadow: inset 0 2px 8px rgba(0,0,0,0.2);
+  background: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.04);
 }
 
-/* Scrollbar styling for the table wrapper */
+/* Scrollbar styling */
 .preview-table-wrapper::-webkit-scrollbar {
   height: 6px;
   width: 6px;
@@ -82,8 +65,11 @@
   background: transparent;
 }
 .preview-table-wrapper::-webkit-scrollbar-thumb {
-  background: var(--color-border-subtle);
+  background: var(--color-border);
   border-radius: 3px;
+}
+.preview-table-wrapper::-webkit-scrollbar-thumb:hover {
+  background: var(--prussian-blue);
 }
 
 /* Table itself */
@@ -91,51 +77,51 @@
   width: 100%;
   border-collapse: collapse;
   font-size: 13px;
-  white-space: nowrap;               /* keep cells from wrapping */
+  white-space: nowrap;
   color: var(--color-text-primary);
 }
 
 .preview-table th,
 .preview-table td {
   padding: 6px 10px;
-  border: 1px solid var(--color-border-subtle);
+  border: 1px solid var(--color-border);
   text-align: left;
 }
 
 .preview-table th {
-  background: #1a2832;                /* distinct header background */
+  background: #f1f5f9;                /* very light slate, distinct header */
   position: sticky;
   top: 0;
   z-index: 2;
   font-weight: 600;
-  color: var(--color-text-primary);
-  border-bottom: 2px solid var(--color-border-subtle);
+  color: var(--prussian-blue);        /* column headers in deep blue */
+  border-bottom: 2px solid var(--color-border);
 }
 
 .preview-table tbody tr:nth-child(even) {
-  background: rgba(255,255,255,0.02);
+  background: rgba(132, 188, 156, 0.04);   /* muted teal tint */
 }
 
 .preview-table tbody tr:hover {
-  background: rgba(255,255,255,0.05);
+  background: rgba(132, 188, 156, 0.1);    /* stronger muted teal on hover */
 }
 
 /* Status / error messages */
 .status {
   padding: 8px 12px;
-  color: var(--color-primary);
-  background: rgba(165,94,150,0.1);
-  border-radius: var(--border-radius);
+  color: var(--color-primary);             /* seagrass for success/status */
+  background: rgba(44, 165, 141, 0.08);
+  border-radius: var(--radius-sm);
   margin: 8px 0;
   font-size: 0.9em;
 }
 
 .error {
   padding: 8px 12px;
-  color: #ff6b6b;
-  background: rgba(255,77,77,0.12);
-  border: 1px solid rgba(255,77,77,0.3);
-  border-radius: var(--border-radius);
+  color: var(--color-accent);              /* rose kiss for errors */
+  background: rgba(244, 97, 151, 0.08);
+  border: 1px solid var(--color-accent);
+  border-radius: var(--radius-sm);
   margin: 8px 0;
   font-size: 0.9em;
 }
@@ -147,10 +133,9 @@
   flex-direction: column;
   gap: 16px;
   overflow-y: auto;
-  padding-right: 4px;                  /* space for scrollbar */
+  padding-right: 4px;
 }
 
-/* Custom scrollbar for right panel */
 .right-panel::-webkit-scrollbar {
   width: 6px;
 }
@@ -158,24 +143,27 @@
   background: transparent;
 }
 .right-panel::-webkit-scrollbar-thumb {
-  background: var(--color-border-subtle);
+  background: var(--color-border);
   border-radius: 3px;
+}
+.right-panel::-webkit-scrollbar-thumb:hover {
+  background: var(--prussian-blue);
 }
 
 /* Recipe section */
 .recipe-section {
-  background: var(--color-bg-surface);
-  border: 1px solid var(--color-border-subtle);
-  border-radius: var(--border-radius);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
   padding: 16px;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+  box-shadow: var(--shadow-sm);
 }
 
 .recipe-section h3,
 .recipe-section h4 {
-  color: var(--color-text-primary);
+  color: var(--prussian-blue);             /* blue headings */
   margin-top: 0;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 /* Recipe list */
@@ -187,8 +175,8 @@
 
 .recipe-list li {
   padding: 8px 0;
-  border-bottom: 1px solid var(--color-border-subtle);
-  color: var(--color-text-muted);
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
   font-size: 0.9em;
   display: flex;
   align-items: baseline;
@@ -197,28 +185,29 @@
 .step-number {
   font-weight: 700;
   margin-right: 8px;
-  color: var(--color-accent);
+  color: var(--color-primary);             /* seagrass step numbers */
   min-width: 24px;
 }
 
 .empty-recipe {
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);
   font-style: italic;
   opacity: 0.7;
 }
 
 /* Config section */
 .config-section {
-  background: var(--color-bg-surface);
-  border: 1px solid var(--color-border-subtle);
-  border-radius: var(--border-radius);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
   padding: 16px;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+  box-shadow: var(--shadow-sm);
 }
 
 .config-section h3 {
-  color: var(--color-text-primary);
+  color: var(--prussian-blue);             /* blue heading */
   margin-top: 0;
+  font-weight: 600;
 }
 
 /* Angular Material overrides – if you're using mat-select, mat-form-field */
@@ -237,16 +226,16 @@
 }
 
 ::ng-deep .action-form .mat-form-field-appearance-outline .mat-form-field-outline {
-  color: var(--color-border-subtle) !important;
+  color: var(--color-border) !important;
 }
 
 ::ng-deep .action-form .mat-form-field-label {
-  color: var(--color-text-muted) !important;
+  color: var(--color-text-secondary) !important;
 }
 
 ::ng-deep .action-form .mat-input-element {
   color: var(--color-text-primary) !important;
-  caret-color: var(--color-primary) !important;
+  caret-color: var(--color-primary) !important;   /* seagrass caret */
 }
 
 ::ng-deep .action-form .mat-select-value {
@@ -254,11 +243,11 @@
 }
 
 ::ng-deep .action-form .mat-select-arrow {
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);
 }
 
 ::ng-deep .action-form .mat-form-field-underline {
-  background-color: var(--color-border-subtle) !important;
+  background-color: var(--color-border) !important;
 }
 
 ::ng-deep .action-form .mat-form-field-ripple {
@@ -271,27 +260,26 @@
   padding-top: 8px;
 }
 
-/* Buttons – reuse the same soft styling as before */
+/* ===== Buttons ===== */
 button {
   margin-top: 12px;
   border: none;
-  border-radius: var(--border-radius);
+  border-radius: 50px;                      /* pill shape */
   padding: 0.75rem 1.5rem;
   font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
-  letter-spacing: 0.5px;
-  transition: all var(--transition);
-  background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+  letter-spacing: 0.3px;
+  transition: all var(--transition-base);
+  background: var(--color-primary);         /* seagrass primary */
   color: #fff;
-  box-shadow: 0 4px 14px rgba(165,94,150,0.3);
-  text-transform: uppercase;
+  box-shadow: var(--shadow-sm);
 }
 
 button:hover:not(:disabled) {
+  background-color: var(--color-primary-hover);
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(165,94,150,0.5);
-  background: linear-gradient(135deg, var(--color-accent), var(--color-primary));
+  box-shadow: var(--shadow-md);
 }
 
 button:active:not(:disabled) {
@@ -305,16 +293,24 @@ button:disabled {
   transform: none;
 }
 
-/* Secondary / cancel style – if needed */
+/* Secondary / cancel style */
 button.secondary {
   background: transparent;
-  border: 1px solid var(--color-border-subtle);
-  color: var(--color-text-muted);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
   box-shadow: none;
 }
 
 button.secondary:hover:not(:disabled) {
-  background: rgba(255,255,255,0.05);
-  color: var(--color-text-primary);
-  border-color: var(--color-text-muted);
+  background: rgba(10, 35, 66, 0.04);        /* Prussian blue tint */
+  color: var(--prussian-blue);
+  border-color: var(--prussian-blue);
+}
+
+/* Target the *ngSwitchCase wrapper divs inside the action-form */
+.action-form > div {
+  display: flex;
+  flex-direction: column;
+  gap: 16px; /* Adds clean spacing between the inputs */
+  width: 100%;
 }

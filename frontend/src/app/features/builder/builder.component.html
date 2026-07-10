@@ -1,24 +1,50 @@
-<div class="builder-container">
-  <h1>Builder Dashboard</h1>
+<ng-container *ngIf="setTitle('Data Builder')"></ng-container>
 
-  <!-- Upload Section -->
-  <app-dataset-upload (uploadSuccess)="onUploadSuccess()"></app-dataset-upload>
+<div class="builder-container" setTitle="Data Builder">
+  
+  <!-- ===== SLEEK META BAR & CONTROLS ===== -->
+  <div class="dashboard-action-strip">
+    <div class="meta-info">
+      <span class="pulse-indicator"></span>
+      <p class="strip-text">System operational. Ready to ingest and refine datasets.</p>
+    </div>
+    
+    <div class="strip-controls">
+      <!-- Direct trigger for the child upload process or standard data refresh -->
+      <button class="btn-action-secondary" (click)="onUploadSuccess()">
+        <span class="btn-icon">↷</span> Sync Datasets
+      </button>
+    </div>
+  </div>
 
-  <!-- Dataset List -->
-  <app-dataset-list
-    [datasets]="datasets"
-    [loading]="isLoading"
-    [error]="error"
-    (preview)="openPreview($event)"
-    (refine)="openRefine($event)"
-    (delete)="onDeleteDataset($event)"
-    (createDashboard)="createDashboard($event)">
-  </app-dataset-list>
+  <!-- ===== LAYOUT CANVAS GRID ===== -->
+  <div class="dashboard-grid-canvas">
+    
+    <!-- Upload Section Wrapper -->
+    <section class="upload-zone-wrapper">
+      <app-dataset-upload (uploadSuccess)="onUploadSuccess()"></app-dataset-upload>
+    </section>
 
-  <!-- Preview Modal -->
+    <!-- Dataset List Table Wrapper -->
+    <section class="dataset-list-wrapper">
+      <app-dataset-list
+        [datasets]="datasets"
+        [loading]="isLoading"
+        [error]="error"
+        (preview)="openPreview($event)"
+        (refine)="openRefine($event)"
+        (delete)="onDeleteDataset($event)"
+        (createDashboard)="createDashboard($event)">
+      </app-dataset-list>
+    </section>
+
+  </div>
+
+  <!-- ===== FLOATING PREVIEW MODAL ===== -->
   <app-preview-modal
     *ngIf="selectedDatasetId"
     [datasetId]="selectedDatasetId"
     (close)="selectedDatasetId = null">
   </app-preview-modal>
+  
 </div>

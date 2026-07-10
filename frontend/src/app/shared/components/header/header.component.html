@@ -1,12 +1,19 @@
 <header class="app-header">
   <div class="container header-content">
     <a routerLink="/" class="brand-identity">
+     <!-- BRAND LOGO AREA (PERMANENTLY VISIBLE) -->
+    
       <img src="assets/images/logo.png" alt="Logo" class="logo-img" />
       <span class="brand-name">Smart Data Visualizer</span>
-      <span class="page-title" *ngIf="pageTitle !== 'Smart Data Visualizer'">
-        / {{ pageTitle }}
-      </span>
     </a>
+
+    <!-- DYNAMIC ROUTE TRACKING BREADCRUMB (PERMANENTLY ALIGNED LEFT) -->
+    <div class="header-breadcrumb" *ngIf="pageTitle$ | async as title">
+      <span class="breadcrumb-separator" *ngIf="title !== 'Smart Data Visualizer' && title !== 'Home'">/</span>
+      <span class="page-title" *ngIf="title !== 'Smart Data Visualizer' && title !== 'Home'">
+        {{ title }}
+      </span>
+    </div>
 
     <nav class="main-nav">
       <!-- Logged in state -->
