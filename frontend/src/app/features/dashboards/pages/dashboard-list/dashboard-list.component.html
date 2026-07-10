@@ -1,20 +1,35 @@
 <div class="dashboard-list-container">
+
+  <!-- Header (unchanged) -->
   <div class="header">
-    <h1>My Dashboards</h1>
+     <!--  Search bar (NEW) -->
+  <h2 class="dashboard-list-title">My Dashboards</h2>
+  <div class="search-bar">
+  <mat-form-field appearance="outline" class="search-field" subscriptSizing="dynamic">
+    <mat-icon matPrefix>search</mat-icon> <input matInput
+           [value]="searchTerm"
+           (input)="onSearchInput($event)"
+           placeholder="Search dashboards...">
+  </mat-form-field>
+</div>
     <button mat-raised-button class="create-dashboard-btn" (click)="openCreateDialog()">
       <mat-icon>add</mat-icon> New Dashboard
     </button>
   </div>
 
+ 
+
+  <!-- Loading / empty states (unchanged) -->
   <div *ngIf="isLoading" class="loading-spinner">
     <mat-spinner diameter="40"></mat-spinner>
   </div>
 
   <div *ngIf="!isLoading && dashboards.length === 0" class="empty-state">
     <mat-icon>dashboard</mat-icon>
-    <p>No dashboards yet. Click "New Dashboard" to create one.</p>
+    <p>No dashboards match your search.</p>
   </div>
 
+  <!-- Dashboard grid (unchanged) -->
   <div class="dashboard-grid" *ngIf="!isLoading && dashboards.length > 0">
     <mat-card *ngFor="let dash of dashboards" class="dashboard-card" (click)="editDashboard(dash.id)">
       <mat-card-header>
@@ -32,4 +47,16 @@
       </mat-card-actions>
     </mat-card>
   </div>
+
+  <!--  Pagination (NEW) -->
+  <div class="pagination" *ngIf="totalPages > 1">
+    <button mat-button [disabled]="currentPage <= 1" (click)="prevPage()">
+      <mat-icon>chevron_left</mat-icon> Previous
+    </button>
+    <span class="page-info">Page {{ currentPage }} of {{ totalPages }} ({{ totalItems }} dashboards)</span>
+    <button mat-button [disabled]="currentPage >= totalPages" (click)="nextPage()">
+      Next <mat-icon>chevron_right</mat-icon>
+    </button>
+  </div>
+
 </div>

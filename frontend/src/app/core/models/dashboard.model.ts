@@ -130,3 +130,11 @@ export interface WidgetPositionUpdatePayload {
   widgetId: number;
   position: WidgetPosition;
 }
+
+export interface DashboardPaginatedResponse {
+  items: DashboardListItem[];
+  total: number;
+  page: number;
+  size: number;
+  pages: number;
+}

@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 // Import all generated types from your JSON schema conversion
@@ -11,6 +11,7 @@ import {
   WidgetUpdateRequest,
   WidgetResponse,
   DashboardUpdateRequest,
+  DashboardPaginatedResponse,
 } from '../models/dashboard.model';
 import { environment } from 'src/environments/environment';
 @Injectable({
@@ -27,8 +28,13 @@ export class DashboardService {
     return this.http.post<{ id: number }>(this.baseUrl, payload);
   }
 
-  listDashboards(): Observable<DashboardListItem[]> {
-    return this.http.get<DashboardListItem[]>(this.baseUrl);
+
+  listDashboards(search = '', page = 1, size = 10): Observable<DashboardPaginatedResponse> {
+    const params = new HttpParams()
+      .set('search', search)
+      .set('page', page.toString())
+      .set('size', size.toString());
+    return this.http.get<DashboardPaginatedResponse>(this.baseUrl, { params });
   }
 
   getDashboard(id: number): Observable<DashboardResponse> {

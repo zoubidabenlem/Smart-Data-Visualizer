@@ -131,3 +131,11 @@ class WidgetPositionUpdate(BaseModel):
     y: int
     cols: int
     rows: int
+
+
+class DashboardPaginatedResponse(BaseModel):
+    items: List[DashboardListItem]
+    total: int
+    page: int
+    size: int
+    pages: int

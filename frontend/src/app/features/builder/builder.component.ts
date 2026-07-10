@@ -22,7 +22,7 @@ export class BuilderComponent implements OnInit, OnDestroy {
 
   // Pagination state
   currentPage = 1;
-  pageSize = 10;
+  pageSize = 9;
   totalItems = 0;
   totalPages = 0;
 
