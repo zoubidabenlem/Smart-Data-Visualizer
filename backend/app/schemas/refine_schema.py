@@ -17,7 +17,7 @@ class MergeParameters(BaseModel):
         return v
 
 class ColumnRefineAction(BaseModel):
-    action: Literal["rename", "drop", "missing", "deduplicate", "merge"]
+    action: Literal["rename","cast", "drop", "missing", "deduplicate", "merge"]
     original_name: Optional[str] = None
     new_name: Optional[str] = None
     override_dtype: Optional[Literal["float", "int", "datetime", "string"]] = None
@@ -56,7 +56,15 @@ class ColumnRefineAction(BaseModel):
                 raise ValueError('subset must be a non‑empty list when action is "deduplicate"')
             if self.keep is None:
                 raise ValueError('keep is required when action is "deduplicate"')
-
+            
+        if action == 'cast':
+            if self.original_name is None:
+                raise ValueError("original_name is required for action 'cast'")
+            if self.override_dtype is None:
+                raise ValueError("override_dtype is required for action 'cast'")
+            # Optionally, we can forbid providing new_name (just ignore it or raise)
+            # if self.new_name is not None:
+            #     raise ValueError("new_name should not be set for action 'cast'")
         return self
     
 class RefineSchemaRequest(BaseModel):

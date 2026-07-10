@@ -1,6 +1,8 @@
+from ast import TypeVar
+
 from pydantic import BaseModel, field_validator
 from datetime import datetime
-from typing import Dict, Optional
+from typing import Dict, Generic, Optional
 
 from sqlalchemy import Column
 from app.models.dataset import SourceType
@@ -41,3 +43,11 @@ class ConfigureHeaderRequest(BaseModel):
 
 class ConfigureHeaderResponse(DatasetOut):
     pass
+
+
+class PaginatedResponse(BaseModel):
+    items: List[DatasetOut]
+    total: int
+    page: int
+    size: int
+    pages: int

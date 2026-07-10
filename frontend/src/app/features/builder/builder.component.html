@@ -1,6 +1,6 @@
-<ng-container *ngIf="setTitle('Data Builder')"></ng-container>
+<ng-container ></ng-container>
 
-<div class="builder-container" setTitle="Data Builder">
+<div class="builder-container" >
   
   <!-- ===== SLEEK META BAR & CONTROLS ===== -->
   <div class="dashboard-action-strip">
@@ -24,22 +24,38 @@
     <section class="upload-zone-wrapper">
       <app-dataset-upload (uploadSuccess)="onUploadSuccess()"></app-dataset-upload>
     </section>
-
+  </div>
+<div class="table-toolbar">
     <!-- Dataset List Table Wrapper -->
-    <section class="dataset-list-wrapper">
-      <app-dataset-list
+    <!-- Search bar -->
+    <div class="search-bar">
+    <input
+      type="text"
+      placeholder="Search datasets by filename..."
+      [value]="searchTerm"
+      (input)="onSearchInput($event)"
+    />
+  </div>
+   <!-- Pagination controls -->
+    <div class="pagination" *ngIf="totalPages > 1">
+      <button (click)="prevPage()" [disabled]="currentPage <= 1">Previous</button>
+      <span>Page {{ currentPage }} of {{ totalPages }} ({{ totalItems }} total)</span>
+      <button (click)="nextPage()" [disabled]="currentPage >= totalPages">Next</button>
+    </div>
+
+    <!-- Your existing dataset list (unchanged) -->
+    
+
+  </div>
+  <app-dataset-list
         [datasets]="datasets"
         [loading]="isLoading"
         [error]="error"
         (preview)="openPreview($event)"
         (refine)="openRefine($event)"
         (delete)="onDeleteDataset($event)"
-        (createDashboard)="createDashboard($event)">
-      </app-dataset-list>
-    </section>
-
-  </div>
-
+        (createDashboard)="createDashboard($event)"
+      ></app-dataset-list>
   <!-- ===== FLOATING PREVIEW MODAL ===== -->
   <app-preview-modal
     *ngIf="selectedDatasetId"

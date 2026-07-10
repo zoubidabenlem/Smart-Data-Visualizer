@@ -278,14 +278,9 @@ private updateAggregationValueOptions(): void {
   // ---- Data loading ----
   private loadDatasets(): void {
     console.log('[WidgetConfigDialog] loading datasets');
-    this.datasetService.getDatasets().subscribe({
-      next: (ds) => {
-        console.log('[WidgetConfigDialog] datasets loaded', ds);
-        this.datasets = ds;
-      },
-      error: (err) => {
-        console.error('[WidgetConfigDialog] Failed to load datasets', err);
-      }
+    this.datasetService.getDatasets('', 1, 10000).subscribe((res) => {
+     this.datasets = res.items;   //  now it's DatasetOut[]
+
     });
   }
 

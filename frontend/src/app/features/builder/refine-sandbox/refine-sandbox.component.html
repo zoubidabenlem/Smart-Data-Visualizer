@@ -54,7 +54,9 @@
   <mat-form-field appearance="fill" class="action-select">
     <mat-label>Action Type</mat-label>
     <mat-select [(ngModel)]="selectedActionType" (selectionChange)="onActionTypeChange($event.value)">
-      <mat-option value="rename">Rename / Change Type</mat-option>
+      <mat-option value="rename">Rename</mat-option>
+      <mat-option value="cast">Cast Type</mat-option>     <!-- NEW -->
+
       <mat-option value="drop">Drop Column</mat-option>
       <mat-option value="missing">Handle Missing</mat-option>
       <mat-option value="merge">Merge Columns</mat-option>
@@ -166,8 +168,30 @@
             </mat-select>
           </mat-form-field>
         </div>
-      </div>
+        <!-- CAST – must be inside the switch container -->
+    <!-- CAST -->
+<div *ngSwitchCase="'cast'">
+  <mat-form-field appearance="fill">
+    <mat-label>Column</mat-label>
+    <mat-select formControlName="original_name">
+      <mat-option *ngFor="let col of columns" [value]="col.name">
+        {{ col.name }} <small>({{ col.dtype }})</small>
+      </mat-option>
+    </mat-select>
+  </mat-form-field>
 
+  <mat-form-field appearance="fill">
+    <mat-label>Target Type</mat-label>
+    <mat-select formControlName="override_dtype">
+      <mat-option value="float">Float</mat-option>
+      <mat-option value="int">Integer</mat-option>
+      <mat-option value="datetime">Date/Time</mat-option>
+      <mat-option value="string">String</mat-option>
+    </mat-select>
+  </mat-form-field>
+</div>
+
+      
       <button mat-raised-button color="primary" [disabled]="loading" (click)="applyAction()">
         Apply Action
       </button>

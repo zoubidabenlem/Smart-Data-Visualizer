@@ -113,6 +113,10 @@ export class RefineSandboxComponent implements OnInit {
       merge_separator: ' ',
       merge_drop_sources: true
     });
+    // For 'cast', override_dtype must be set; provide a default
+  if (type === 'cast') {
+    this.actionForm.patchValue({ override_dtype: 'string' }); // or null, but make it required
+  }
   }
 
   // Build the payload from form values and the selected action type
@@ -149,6 +153,10 @@ export class RefineSandboxComponent implements OnInit {
           drop_sources: formValue.merge_drop_sources
         };
         break;
+      case 'cast':
+        action.original_name = formValue.original_name;
+        action.override_dtype = formValue.override_dtype;
+        break;
     }
     return action;
   }
@@ -169,6 +177,9 @@ export class RefineSandboxComponent implements OnInit {
       case 'merge':
         const sources = this.actionForm.get('merge_source_columns')?.value;
         return sources && sources.length >= 2 && !!this.actionForm.get('merge_target_column')?.value;
+      case 'cast':
+      return !!this.actionForm.get('original_name')?.value &&
+             !!this.actionForm.get('override_dtype')?.value;
       default:
         return false;
     }
@@ -244,6 +255,8 @@ export class RefineSandboxComponent implements OnInit {
       case 'missing': return `Handle missing in ${action.original_name} (${action.missing_strategy})`;
       case 'deduplicate': return `Deduplicate on [${action.subset?.join(', ')}]`;
       case 'merge': return `Merge [${action.parameters?.source_columns.join(', ')}] → ${action.parameters?.target_column}`;
+      case 'cast': return `Cast ${action.original_name} → ${action.override_dtype}`;
+
       default: return 'Unknown action';
     }
   }

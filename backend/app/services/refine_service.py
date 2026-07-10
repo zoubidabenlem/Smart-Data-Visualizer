@@ -232,7 +232,8 @@ def _apply_single_action(df: pd.DataFrame, action: ColumnRefineAction, step: int
         elif strategy == "mean":
             if not pd.api.types.is_numeric_dtype(df[col]):
                 raise ValueError(f"Step {step+1}: column '{col}' is not numeric, cannot use 'mean' strategy")
-            df[col] = df[col].fillna(df[col].mean())
+            mean_value = round(df[col].mean(), 2)
+            df[col] = df[col].fillna(mean_value)
         else:
             raise ValueError(f"Step {step+1}: unknown missing strategy '{strategy}'")
         return df
@@ -277,6 +278,15 @@ def _apply_single_action(df: pd.DataFrame, action: ColumnRefineAction, step: int
         if missing:
             raise ValueError(f"Step {step+1}: columns in subset not found: {missing}")
         return df.drop_duplicates(subset=subset, keep=keep or "first")
+    
+    # ------ CAST ------
+    elif act == "cast":
+        if col not in df.columns:
+            raise ValueError(f"Step {step+1}: column '{col}' not found for cast")
+        if action.override_dtype is None:
+            raise ValueError(f"Step {step+1}: override_dtype is required for cast")
+        df = _convert_dtype(df, col, action.override_dtype, step)
+        return df
 
     else:
         raise ValueError(f"Step {step+1}: unknown action '{act}'")

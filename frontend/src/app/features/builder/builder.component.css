@@ -1,5 +1,5 @@
 .builder-container {
-  padding: 1.5rem 2rem;
+  padding: 0.5rem 1cqmax;
   background-color: #f9fafb;
   min-height: calc(100vh - 70px);
   
@@ -13,9 +13,9 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-bottom: 1.25rem;
+  padding-bottom: 0.75rem;
   border-bottom: 1px solid #e5e7eb;
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
 }
 
 .meta-info {
@@ -62,6 +62,105 @@
   display: flex;
   flex-direction: column;
   gap: 2rem;
+}
+/* ── Search bar ──────────────────────────────────────────────────────────── */
+
+
+.search-bar input {
+  width: 100%;
+  padding: 0.75rem 1rem 0.75rem 2.8rem;
+  border: 2px solid transparent;
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: 0 4px 12px rgba(28, 57, 187, 0.08);  /* soft Persian‑blue shadow */
+  font-size: 0.95rem;
+  color: #1e2a44;
+  transition: all 0.25s ease;
+  outline: none;
+}
+
+/* Search icon – add a magnifying glass via a pseudo‑element */
+
+
+/* Optional: Prevent the search bar from stretching across the whole screen */
+.search-bar {
+  margin-bottom: 0;
+  flex-grow: 1;
+  max-width: 400px;
+}
+.search-bar::before {
+  content: "↝";
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1rem;
+  color: #1C39BB;                     /* Persian blue */
+  pointer-events: none;
+  z-index: 1;
+}
+
+.search-bar input:focus {
+  border-color: #1C39BB;
+  box-shadow: 0 4px 16px rgba(28, 57, 187, 0.18);
+  background: #ffffff;
+}
+/* ── Pagination ──────────────────────────────────────────────────────────── */
+/* New Wrapper for the top row */
+.table-toolbar {
+  display: flex;
+  justify-content: space-between; /* Search goes left, Pagination goes right */
+  align-items: center;            /* Centers them vertically */
+  margin-bottom: 1rem;            /* Adds breathing room before the table starts */
+  flex-wrap: wrap;                /* Prevents overlapping on small screens */
+  gap: 1rem;
+}
+
+/* Update your existing pagination class to remove the top margin */
+.pagination {
+  margin-top: 0;                  /* REMOVE the top margin so it aligns with search */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+
+
+.pagination span {
+  font-size: 0.9rem;
+  color: #3b4a6b;
+  font-weight: 500;
+}
+
+.pagination button {
+  background: linear-gradient(135deg, #1C39BB, #2a4fdf);  /* Persian blue gradient */
+  color: white;
+  border: none;
+  padding: 0.5rem 1.2rem;
+  border-radius: 30px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  letter-spacing: 0.3px;
+  transition: all 0.25s ease;
+  box-shadow: 0 4px 10px rgba(28, 57, 187, 0.25);
+}
+
+.pagination button:disabled {
+  background: #cbd3e6;
+  color: #7a8aac;
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+.pagination button:not(:disabled):hover {
+  background: linear-gradient(135deg, #0f2a9e, #1e44d0);
+  box-shadow: 0 6px 14px rgba(28, 57, 187, 0.35);
+  transform: scale(1.03);
+}
+
+.pagination button:not(:disabled):active {
+  transform: scale(0.97);
 }
 
 @keyframes pulse-ring {

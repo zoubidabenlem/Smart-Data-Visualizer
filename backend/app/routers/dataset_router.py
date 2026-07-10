@@ -1,8 +1,10 @@
 import asyncio
+import math
 
 from fastapi import APIRouter, Depends, UploadFile, File, HTTPException, status
+from fastapi.params import Query
 from fastapi.responses import JSONResponse
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import  Session
 from pathlib import Path
 import pandas as pd
 import os
@@ -13,7 +15,7 @@ from app.db.base import get_db
 from app.dependencies.auth_dependencies import require_admin, get_current_user
 from app.models.dataset import Dataset, SourceType
 from app.models.user import User
-from app.schemas.dataset_schemas import ConfigureHeaderRequest, ConfigureHeaderResponse, DatasetOut
+from app.schemas.dataset_schemas import ConfigureHeaderRequest, ConfigureHeaderResponse, DatasetOut, PaginatedResponse
 from app.schemas.refine_schema import *
 from app.services.fileUpload_service import save_upload, extract_metadata
 from app.core.cache import preview_cache
@@ -173,22 +175,46 @@ async def configure_header(
 # GET /datasets
 @router.get(
     "/",
-    response_model=list[DatasetOut],
+    response_model=PaginatedResponse,
     status_code=status.HTTP_200_OK,
     summary="List all datasets for current user. ",
 )
 def list_datasets(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    search: str = Query("", description="Search in filename"),
+    page: int = Query(1, ge=1),
+    size: int = Query(10, ge=1, le=10000),
 ) -> list[DatasetOut]:
     #  Returns all datasets owned by the logged-in user
-    datasets=(
-        db.query(Dataset)
-        .filter(Dataset.user_id == current_user.id)
-        .order_by(Dataset.uploaded_at.desc())
+    # Base query: only current user's datasets
+    query = db.query(Dataset).filter(Dataset.user_id == current_user.id)
+
+    # Apply search filter (case-insensitive)
+    if search:
+        query = query.filter(Dataset.filename.ilike(f"%{search}%"))
+
+    # Get total count before pagination
+    total = query.count()
+
+    # Order, offset, limit
+    datasets = (
+        query.order_by(Dataset.uploaded_at.desc())
+        .offset((page - 1) * size)
+        .limit(size)
         .all()
     )
-    return [DatasetOut.model_validate(dataset) for dataset in datasets]
+
+    items = [DatasetOut.model_validate(d) for d in datasets]
+
+    return PaginatedResponse(
+        items=items,
+        total=total,
+        page=page,
+        size=size,
+        pages=math.ceil(total / size) if total else 0,
+    )
+
 @router.get("/{dataset_id}", response_model=DatasetOut)
 def get_dataset(
     dataset_id: int,
@@ -535,7 +561,7 @@ async def apply_refine_action(
     try:
         transformed_df = apply_refine_pipeline(df.copy(), actions)  # copy to preserve original
     except ValueError as e:
-        raise HTTPException(status_code=422, detail=str(e))
+        raise HTTPException(status_code=422, detail={"message": str(e), "step": idx+1})
 
     # Save updated actions back to sandbox
     set_sandbox(dataset_id, actions)

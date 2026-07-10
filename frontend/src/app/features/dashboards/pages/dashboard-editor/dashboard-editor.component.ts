@@ -99,13 +99,8 @@ public isLeftPaneCollapsed = false;
 
     // Load datasets list for the dropdown
     console.log('[DEBUG] Fetching datasets list...');
-    this.datasetService.getDatasets().subscribe({
-      next: (data) => {
-        console.log('[DEBUG] Datasets fetched:', data);
-        this.datasets = data;
-      },
-      error: (err) => console.error('[DEBUG] Failed to load datasets:', err),
-    });
+    this.datasetService.getDatasets('', 1, 10000).subscribe(data => this.datasets = data.items);
+    
 
     // Sync local draggedWidgets with service widgets (for drag-drop later)
     this.subs.push(

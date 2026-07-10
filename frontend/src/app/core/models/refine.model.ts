@@ -1,6 +1,6 @@
 // src/app/core/models/refine.model.ts
 
-export type RefineActionType = 'rename' | 'drop' | 'missing' | 'deduplicate' | 'merge';
+export type RefineActionType = 'rename' | 'drop' | 'missing' | 'deduplicate' | 'merge' | 'cast';  // Added 'cast' action type
 export type AllowedDtype = 'float' | 'int' | 'datetime' | 'string';
 export type MissingStrategy = 'drop' | 'fill' | 'mean';
 export type DedupKeep = 'first' | 'last' | false;
@@ -14,7 +14,7 @@ export interface MergeParameters {
 
 export interface ColumnRefineAction {
   action: RefineActionType;
-  original_name?: string | null;         // required for rename/drop/missing
+  original_name?: string | null;         // required for rename/drop/missing/cast
   new_name?: string | null;              // required for rename
   override_dtype?: AllowedDtype | null;  // optional type conversion after rename
   missing_strategy?: MissingStrategy | null;

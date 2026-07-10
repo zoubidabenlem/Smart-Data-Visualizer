@@ -1,10 +1,13 @@
+/* ===== Modal – Light, Full‑Palette ===== */
+
 .modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0,0,0,0.7);
+  background: rgba(10, 35, 66, 0.5);      /* Prussian blue tint, not harsh black */
+  backdrop-filter: blur(4px);              /* subtle frosted glass */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -12,26 +15,31 @@
 }
 
 .modal-content {
-  background: var(--color-bg-surface);
-  border-radius: var(--border-radius);
+  background: var(--color-surface);        /* white */
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
   width: 90%;
   max-width: 90%;
   max-height: 80%;
   overflow: auto;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+  box-shadow: var(--shadow-lg);
 }
 
 .modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem;
-  border-bottom: 1px solid var(--color-border-subtle);
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-background);     /* porcelain strip for separation */
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
 }
 
 .modal-header h3 {
   margin: 0;
-  color: var(--color-text-primary);
+  color: var(--prussian-blue);             /* deep blue heading */
+  font-weight: 700;
+  font-size: 1.25rem;
 }
 
 .close-btn {
@@ -39,44 +47,69 @@
   border: none;
   font-size: 1.5rem;
   cursor: pointer;
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);      /* muted slate */
+  transition: color var(--transition-fast), transform var(--transition-fast);
+  line-height: 1;
 }
 
 .close-btn:hover {
-  color: var(--color-accent);
+  color: var(--color-accent);              /* rose kiss on hover – nice pop */
+  transform: rotate(90deg);                /* playful spin */
 }
 
 .modal-body {
-  padding: 1rem;
+  padding: 1.25rem;
 }
 
+/* Optional cached badge */
+.cached-badge {
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+  margin-bottom: 0.5rem;
+  background: rgba(132, 188, 156, 0.15);   /* muted teal tint */
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  border-radius: 12px;
+}
+
+/* Table (same as sandbox – light version) */
 .preview-table-wrapper {
   overflow-x: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
 }
 
 .preview-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 0.9rem;
+  color: var(--color-text-primary);
 }
 
 .preview-table th,
 .preview-table td {
   padding: 0.5rem;
-  border: 1px solid var(--color-border-subtle);
+  border: 1px solid var(--color-border);
   text-align: left;
 }
 
 .preview-table th {
-  background-color: rgba(0,0,0,0.2);
+  background: #f1f5f9;                     /* light slate, distinct from porcelain */
+  font-weight: 600;
+  color: var(--prussian-blue);             /* blue headers */
+  position: sticky;
+  top: 0;
 }
 
-.cached-badge {
-  font-size: 0.8rem;
-  color: var(--color-text-muted);
-  margin-bottom: 0.5rem;
+.preview-table tbody tr:nth-child(even) {
+  background: rgba(132, 188, 156, 0.04);   /* muted teal stripe */
 }
 
+.preview-table tbody tr:hover {
+  background: rgba(132, 188, 156, 0.1);
+}
+
+/* Error text */
 .error {
-  color: #ff6b6b;
+  color: var(--color-accent);              /* rose kiss for errors */
 }

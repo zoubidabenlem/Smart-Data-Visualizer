@@ -36,3 +36,19 @@ export interface RawPreviewResponse {
   rows: any[];
   total_rows_estimate: number;
 }
+
+//paginated response
+export interface PaginatedResponse {
+  items: DatasetOut[];
+  total: number;
+  page: number;
+  size: number;
+  pages: number;
+}
+
+export interface PaginationInfo {
+  page: number;
+  size: number;
+  total: number;
+  pages: number;
+}
