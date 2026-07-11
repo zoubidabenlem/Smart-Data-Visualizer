@@ -194,15 +194,25 @@ console.log('[DEBUG] Opening widget dialog with dataset ID snapshot:', datasetId
   }
   
   openPopup(widget: WidgetResponse): void {
-  this.dialog.open(WidgetPopupComponent, {
+  const dialogRef = this.dialog.open(WidgetPopupComponent, {
     data: { widget },
     width: 'auto',
     height: 'auto',
     maxWidth: '90vw',
     maxHeight: '90vh',
     panelClass: 'enlarged-chart-dialog',
-    disableClose: false,
-    autoFocus: false
+  });
+
+  // Wait for the dialog to finish opening, then tell the chart to resize
+  dialogRef.afterOpened().subscribe(() => {
+    // Give the layout one more frame to settle
+    requestAnimationFrame(() => {
+      // Get a reference to the chart component inside the dialog
+      const chartComponent = dialogRef.componentInstance.chartComponent;
+      if (chartComponent) {
+        chartComponent.resizeChart();
+      }
+    });
   });
 }
   saveDashboard(): void {

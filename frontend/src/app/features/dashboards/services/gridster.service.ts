@@ -10,7 +10,7 @@ export class GridsterService {
   itemMap: { [id: number]: GridsterItem } = {};
 
   gridOptions: GridsterConfig = {
-    gridType: 'fit',               // fills the container
+    gridType: 'scrollVertical',               // fills the container
     displayGrid: 'onDrag&Resize',  // show grid lines while interacting
     pushItems: true,               // push neighbours away
     draggable: { enabled: true },
@@ -136,8 +136,6 @@ private debouncedSave = new Subject<WidgetPositionUpdatePayload>();
     this.positions.set(id, position);
     this.positionChange$.next({ id, position });
   }
-
-  
 }
 
  

@@ -1,8 +1,10 @@
+/* =============================================
+   Viewer Page – Light, Unified Theme
+   ============================================= */
+/* Viewer Container – Move the background here instead */
 .viewer-container {
-  padding: 2rem;
-  background: #F9F7FD;
+  background: var(--color-background);
   min-height: 100vh;
-  font-family: 'Inter', sans-serif;
 }
 
 .viewer-header {
@@ -11,57 +13,91 @@
   align-items: center;
   margin-bottom: 2rem;
   padding-bottom: 1rem;
-  border-bottom: 2px solid #EDE4F5;
+  padding-top: 1rem;
+  border-bottom: 2px solid var(--color-border);
 }
 
 .viewer-header h1 {
-  background: linear-gradient(135deg, #2C3E66, #6F5290);
-  background-clip: text;
-  -webkit-background-clip: text;
-  color: transparent;
   font-size: 2rem;
+  font-weight: 700;
+  color: var(--prussian-blue);       /* crisp, deep blue – no gradient */
+  margin-left: 2rem;
 }
 
+/* Grid background – light & clean */
+.viewer-gridster {
+  min-height: auto; /* or remove it entirely */
+  width: 1800px;      /* 12 columns * 105px */
+  margin: 0 auto;
+  height: 100vh;   
+  background: transparent;   /* centers the grid */
+}
+
+/* Widget card – sits inside the gridster item */
+.viewer-widget-card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--transition-base), box-shadow var(--transition-base);
+  cursor: default;
+}
+
+.viewer-widget-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--color-primary);     /* seagrass border on hover – fresh accent */
+}
+
+.widget-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 16px;
+  background: var(--color-background);    /* porcelain tint for subtle separation */
+  border-bottom: 1px solid var(--color-border);
+  color: var(--prussian-blue);
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.widget-body {
+  flex: 1;
+  min-height: 0;
+  padding: 12px;
+  background: #fff;                      /* white inside for chart clarity */
+}
+
+/* Alternative grid layout (if you use .widgets-grid) */
 .widgets-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
   gap: 1.8rem;
 }
 
-.viewer-widget-card {
-  background: white;
-  border-radius: 28px;
-  border: 1px solid #EDE4F5;
-  overflow: hidden;
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.viewer-widget-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 20px 30px -12px rgba(0,0,0,0.1);
-}
-
-.widget-header {
-  display: flex;
-  justify-content: space-between;
-  padding: 1rem 1.25rem;
-  background: #FFFFFF;
-  border-bottom: 1px solid #F2EBFA;
-  font-weight: 600;
-  color: #2C3E66;
-}
-
-.widget-body {
-  padding: 1.5rem 1rem;
-  min-height: 220px;
-}
-
+/* Empty state – soft, inviting */
 .empty-state {
   text-align: center;
   padding: 3rem;
-  color: #9B87B5;
+  color: var(--color-text-secondary);
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
 }
 
+.empty-state mat-icon {
+  font-size: 64px;
+  width: 64px;
+  height: 64px;
+  color: var(--color-secondary);         /* muted teal */
+  margin-bottom: 1rem;
+}
+
+/* Loading spinner */
 .loading-spinner {
   display: flex;
   justify-content: center;

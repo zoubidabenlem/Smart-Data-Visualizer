@@ -24,21 +24,24 @@ export class AssignDashboardsDialogComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    // 1. Get all dashboards (admin sees all because of backend logic)
-    this.userService.listDashboards().subscribe(all => {
-      this.allDashboards = all;
-      this.filteredDashboards = [...all];
-      // 2. Get currently assigned dashboards for this user
-      this.userService.getUserAssignedDashboards(this.data.user.id).subscribe(assigned => {
-        this.selectedDashboards = assigned.map(d => d.id);
-      });
-    });
+  // 1. Get all dashboards (admin sees all because of backend logic)
+  this.userService.listDashboards().subscribe((res: any) => {
+    // New backend returns a paginated object → use res.items
+    // If it already returns an array (legacy), fallback to res
+    this.allDashboards = res?.items ?? res;
+    this.filteredDashboards = [...this.allDashboards];
 
-    this.searchControl.valueChanges.subscribe(term => {
-      const lower = term?.toLowerCase() || '';
-      this.filteredDashboards = this.allDashboards.filter(d => d.title.toLowerCase().includes(lower));
+    // 2. Get currently assigned dashboards for this user
+    this.userService.getUserAssignedDashboards(this.data.user.id).subscribe(assigned => {
+      this.selectedDashboards = assigned.map(d => d.id);
     });
-  }
+  });
+
+  this.searchControl.valueChanges.subscribe(term => {
+    const lower = term?.toLowerCase() || '';
+    this.filteredDashboards = this.allDashboards.filter(d => d.title.toLowerCase().includes(lower));
+  });
+}
 
   async save() {
     this.saving = true;

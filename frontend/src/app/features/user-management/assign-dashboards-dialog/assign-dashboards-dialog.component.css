@@ -1,1 +1,120 @@
-mat-selection-list { max-height: 300px; overflow: auto; }
+/* =============================================
+   Assign Dashboard Dialog – Light Theme
+   ============================================= */
+
+/* Dialog content area */
+mat-dialog-content {
+  background: var(--color-surface);          /* white */
+  padding: 1.5rem;
+  min-width: 400px;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+/* Search field inside a filled mat-form-field */
+mat-form-field {
+  width: 100%;
+  margin-bottom: 0.5rem;
+}
+
+/* Override Material filled appearance to match theme */
+::ng-deep .mat-form-field-appearance-fill .mat-form-field-flex {
+  background-color: var(--color-background); /* porcelain */
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+}
+
+::ng-deep .mat-form-field-appearance-fill .mat-form-field-underline::before {
+  background-color: var(--color-border);
+}
+
+::ng-deep .mat-form-field-appearance-fill.mat-focused .mat-form-field-flex {
+  border-color: var(--color-primary);       /* seagrass focus ring */
+  box-shadow: 0 0 0 2px rgba(44, 165, 141, 0.15);
+}
+
+::ng-deep .mat-form-field-label {
+  color: var(--color-text-secondary) !important;
+}
+
+::ng-deep .mat-input-element {
+  color: var(--color-text-primary) !important;
+  caret-color: var(--color-primary) !important;
+}
+
+::ng-deep .mat-form-field.mat-focused .mat-form-field-label {
+  color: var(--color-primary) !important;
+}
+
+/* Selection list */
+mat-selection-list {
+  margin-top: 0.5rem;
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+
+/* Individual list option */
+mat-list-option {
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text-primary);
+  font-size: 0.95rem;
+  transition: background var(--transition-fast);
+}
+
+mat-list-option:last-child {
+  border-bottom: none;
+}
+
+mat-list-option:hover {
+  background: rgba(132, 188, 156, 0.08);     /* muted teal tint */
+}
+
+/* Selected checkbox */
+::ng-deep .mat-pseudo-checkbox-checked {
+  background: var(--color-primary) !important;  /* seagrass */
+}
+
+/* ===== Dialog actions ===== */
+mat-dialog-actions {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+/* Cancel button (mat-button) */
+mat-dialog-actions button[mat-button] {
+  color: var(--color-text-secondary);
+  font-weight: 500;
+  transition: color var(--transition-fast);
+}
+
+mat-dialog-actions button[mat-button]:hover {
+  color: var(--prussian-blue);
+  background: rgba(10, 35, 66, 0.04);
+}
+
+/* Save button (mat-raised-button color="primary") */
+mat-dialog-actions button[mat-raised-button] {
+  background: var(--color-primary) !important;  /* seagrass */
+  color: #ffffff !important;
+  border-radius: 50px;
+  font-weight: 600;
+  box-shadow: var(--shadow-sm);
+  transition: background var(--transition-base), transform var(--transition-fast);
+  margin-left: 12px;
+}
+
+mat-dialog-actions button[mat-raised-button]:hover:not([disabled]) {
+  background: var(--color-primary-hover) !important;
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+mat-dialog-actions button[mat-raised-button]:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+}

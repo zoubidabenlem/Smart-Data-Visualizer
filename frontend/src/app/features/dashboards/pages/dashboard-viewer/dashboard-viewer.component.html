@@ -4,20 +4,27 @@
     <button mat-raised-button (click)="goBack()">Back to Editor</button>
   </div>
 
-  <div class="widgets-grid">
-    <div *ngFor="let widget of widgets$ | async" class="viewer-widget-card">
-      <div class="widget-header">
-        <span>{{ widget.config.title }}</span>
-        <mat-icon>{{ getWidgetIcon(widget.config.chart_type) }}</mat-icon>
+  <!-- Read‑only gridster with same item positions -->
+  <gridster [options]="viewerOptions" class="viewer-gridster">
+    <gridster-item
+      *ngFor="let widget of widgets$ | async"
+      [item]="gridService.itemMap[widget.id]"
+    >
+      <div class="viewer-widget-card">
+        <div class="widget-header">
+          <span>{{ widget.config.title }}</span>
+          <mat-icon>{{ getWidgetIcon(widget.config.chart_type) }}</mat-icon>
+        </div>
+        <div class="widget-body">
+          <app-widget-chart [widget]="widget"></app-widget-chart>
+        </div>
       </div>
-      <div class="widget-body">
-        <app-widget-chart [widget]="widget"></app-widget-chart>
-      </div>
-    </div>
-    <div *ngIf="(widgets$ | async)?.length === 0" class="empty-state">
-      <mat-icon>dashboard</mat-icon>
-      <p>No widgets added yet.</p>
-    </div>
+    </gridster-item>
+  </gridster>
+
+  <div *ngIf="(widgets$ | async)?.length === 0" class="empty-state">
+    <mat-icon>dashboard</mat-icon>
+    <p>No widgets added yet.</p>
   </div>
 </div>
 

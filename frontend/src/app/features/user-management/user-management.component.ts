@@ -1,10 +1,12 @@
 import { Component, OnInit } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from 'src/environments/environment';
 import { UserService } from 'src/app/core/services/user.service';
 import { AssignDashboardsDialogComponent } from './assign-dashboards-dialog/assign-dashboards-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
 import { SurveyService, SurveyRequest } from 'src/app/core/services/survey.service';
+import { DashboardPaginatedResponse } from 'src/app/core/models/dashboard.model';
+import { Observable } from 'rxjs';
 
 @Component({
   selector: 'app-user-management',
@@ -40,7 +42,7 @@ export class UserManagementComponent implements OnInit {
     private http: HttpClient,
     private dialog: MatDialog,
     private userService: UserService,
-    private surveyService: SurveyService
+    private surveyService: SurveyService,
   ) {}
 
   ngOnInit(): void {
@@ -58,10 +60,13 @@ export class UserManagementComponent implements OnInit {
     });
   }
 
-  loadDashboards(): void {
-    this.http.get<any[]>(`${this.api}/dashboards?all=true`)
-      .subscribe(data => this.dashboards = data);
-  }
+  loadDashboards(search = '', page = 1, size = 1000): Observable<DashboardPaginatedResponse> {
+      const params = new HttpParams()
+        .set('search', search)
+        .set('page', page.toString())
+        .set('size', size.toString());
+      return this.http.get<DashboardPaginatedResponse>(`${this.api}/dashboards/`, { params });
+    }
 
   // ── Survey requests ─────────────────────────────────────────────
   loadSurveyRequests(): void {

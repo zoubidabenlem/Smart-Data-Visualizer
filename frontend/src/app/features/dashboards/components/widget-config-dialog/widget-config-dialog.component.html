@@ -1,4 +1,5 @@
-<h2 mat-dialog-title>{{ isEditMode ? 'Edit Widget' : 'Create Widget' }}</h2>
+<!-- widget-config-dialog.component.html -->
+<h2 mat-dialog-title class="dialog-title">{{ isEditMode ? 'Edit Widget' : 'Create Widget' }}</h2>
 
 <form [formGroup]="form" (ngSubmit)="onSubmit()">
   <mat-dialog-content class="dialog-content">
@@ -37,87 +38,92 @@
 
     <!-- ========== Axes (non‑KPI) ========== -->
     <div class="form-section" *ngIf="form.get('chart_type')?.value !== 'kpi'">
-  <h3>Axes</h3>
-  <div class="two-columns">
-    <mat-form-field appearance="outline">
-      <mat-label>X Column (labels)</mat-label>
-      <mat-select formControlName="x_column">
-        <mat-option [value]="null">Auto</mat-option>
-        <mat-option *ngFor="let col of columns" [value]="col">{{ col }}</mat-option>
-      </mat-select>
-    </mat-form-field>
-    <mat-form-field appearance="outline" *ngIf="form.get('chart_type')?.value !== 'pie'">
-      <mat-label>Y Column</mat-label>
-      <mat-select formControlName="y_column">
-        <mat-option [value]="null">None</mat-option>
-        <mat-option *ngFor="let col of columns" [value]="col">{{ col }}</mat-option>
-      </mat-select>
-    </mat-form-field>
-  </div>
-</div>
- <!-- ========== Pie Value Column ========== -->
-<div class="form-section" *ngIf="form.get('chart_type')?.value === 'pie'">
-  <h3>Pie Data</h3>
-  <div *ngIf="pieValueColumnOptions.length > 0; else noAggregations">
-    <mat-form-field appearance="outline" class="full-width">
-      <mat-label>Value Column</mat-label>
-      <mat-select formControlName="y_column" required>
-        <mat-option *ngFor="let opt of pieValueColumnOptions" [value]="opt.value">
-          {{ opt.label }}
-        </mat-option>
-      </mat-select>
-      <mat-hint>Choose which aggregated value to show in the pie</mat-hint>
-    </mat-form-field>
-  </div>
-  <ng-template #noAggregations>
-    <div class="warning-hint">
-      <mat-icon>info</mat-icon>
-      <span>Add at least one aggregation (above) to populate this list.</span>
+      <h3>Axes</h3>
+      <div class="two-columns">
+        <mat-form-field appearance="outline">
+          <mat-label>X Column (labels)</mat-label>
+          <mat-select formControlName="x_column">
+            <mat-option [value]="null">Auto</mat-option>
+            <mat-option *ngFor="let col of columns" [value]="col">{{ col }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field appearance="outline" *ngIf="form.get('chart_type')?.value !== 'pie'">
+          <mat-label>Y Column</mat-label>
+          <mat-select formControlName="y_column">
+            <mat-option [value]="null">None</mat-option>
+            <mat-option *ngFor="let col of columns" [value]="col">{{ col }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
     </div>
-  </ng-template>
-</div>
 
-<!-- ========== Heatmap Value Column ========== -->
-<div class="form-section" *ngIf="form.get('chart_type')?.value === 'heatmap'">
-  <h3>Heatmap Data</h3>
-  <div *ngIf="pieValueColumnOptions.length > 0; else noAggregationsHeatmap">
-    <mat-form-field appearance="outline" class="full-width">
-      <mat-label>Value Column</mat-label>
-      <mat-select formControlName="y_column" required>
-        <mat-option *ngFor="let opt of pieValueColumnOptions" [value]="opt.value">
-          {{ opt.label }}
-        </mat-option>
-      </mat-select>
-      <mat-hint>Choose the aggregated value to colour the heatmap</mat-hint>
-    </mat-form-field>
-  </div>
-  <ng-template #noAggregationsHeatmap>
-    <div class="warning-hint">
-      <mat-icon>info</mat-icon>
-      <span>Add at least one aggregation (above) to populate this list.</span>
+    <!-- ========== Pie Value Column ========== -->
+    <div class="form-section" *ngIf="form.get('chart_type')?.value === 'pie'">
+      <h3>Pie Data</h3>
+      <div *ngIf="pieValueColumnOptions.length > 0; else noAggregations">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Value Column</mat-label>
+          <mat-select formControlName="y_column" required>
+            <mat-option *ngFor="let opt of pieValueColumnOptions" [value]="opt.value">
+              {{ opt.label }}
+            </mat-option>
+          </mat-select>
+          <mat-hint>Choose which aggregated value to show in the pie</mat-hint>
+        </mat-form-field>
+      </div>
+      <ng-template #noAggregations>
+        <div class="warning-hint">
+          <mat-icon>info</mat-icon>
+          <span>Add at least one aggregation (above) to populate this list.</span>
+        </div>
+      </ng-template>
     </div>
-  </ng-template>
-</div>
 
-<!-- ========== Scatter Data ========== -->
-<div class="form-section" *ngIf="form.get('chart_type')?.value === 'scatter'">
-  <h3>Scatter Data</h3>
-  <mat-form-field appearance="outline" class="full-width">
-    <mat-label>Value Column (Y‑axis)</mat-label>
-    <mat-select formControlName="y_column" required>
-      <mat-option *ngFor="let opt of aggregationValueOptions" [value]="opt.value">
-        {{ opt.label }}
-      </mat-option>
-    </mat-select>
-    <mat-hint *ngIf="aggregationValueOptions.length === 0" style="color: orange;">
-      Add at least one aggregation above first
-    </mat-hint>
-    <mat-hint *ngIf="aggregationValueOptions.length > 0">
-      Choose the aggregated value to plot
-    </mat-hint>
-  </mat-form-field>
-</div>
+    <!-- ========== Heatmap Value Column ========== -->
+    <div class="form-section" *ngIf="form.get('chart_type')?.value === 'heatmap'">
+      <h3>Heatmap Data</h3>
+      <div *ngIf="pieValueColumnOptions.length > 0; else noAggregationsHeatmap">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Value Column</mat-label>
+          <mat-select formControlName="y_column" required>
+            <mat-option *ngFor="let opt of pieValueColumnOptions" [value]="opt.value">
+              {{ opt.label }}
+            </mat-option>
+          </mat-select>
+          <mat-hint>Choose the aggregated value to colour the heatmap</mat-hint>
+        </mat-form-field>
+      </div>
+      <ng-template #noAggregationsHeatmap>
+        <div class="warning-hint">
+          <mat-icon>info</mat-icon>
+          <span>Add at least one aggregation (above) to populate this list.</span>
+        </div>
+      </ng-template>
+    </div>
 
+   <!-- ========== Scatter Data ========== -->
+    <div class="form-section" *ngIf="form.get('chart_type')?.value === 'scatter'">
+      <h3>Scatter Data</h3>
+      
+      <div *ngIf="aggregationValueOptions.length > 0; else noAggregationsScatter">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Value Column (Y‑axis)</mat-label>
+          <mat-select formControlName="y_column" required>
+            <mat-option *ngFor="let opt of aggregationValueOptions" [value]="opt.value">
+              {{ opt.label }}
+            </mat-option>
+          </mat-select>
+          <mat-hint>Choose the aggregated value to plot</mat-hint>
+        </mat-form-field>
+      </div>
+      
+      <ng-template #noAggregationsScatter>
+        <div class="warning-hint">
+          <mat-icon>info</mat-icon>
+          <span>Add at least one aggregation (above) to populate this list.</span>
+        </div>
+      </ng-template>
+    </div>
 
     <!-- ========== Filters ========== -->
     <div class="form-section">

@@ -1,13 +1,15 @@
-/* Make the dialog container itself have no padding and full size */
+/* ===== Widget Popup – Light, Sleek, On‑Theme ===== */
+
 :host {
   display: block;
   width: 100%;
   height: 100%;
+  min-height: 0;
 }
 
+/* Main card – light porcelain, soft shadow */
 .popup-wrapper {
-  background-color: #1a0b2e;    /* dark deep purple background for contrast */
-  border-radius: 20px;
+  background: var(--color-surface);
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -15,68 +17,69 @@
   height: 85vh;
   max-width: 1400px;
   max-height: 90vh;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  box-shadow: var(--shadow-lg);
 }
 
+/* Header – minimal, elegant */
 .popup-header {
-  background: linear-gradient(135deg, #fcd6f5 0%, #e8cbfc 100%);
-  /* very light neon purple – adjust hex as you like */
+  background: var(--color-surface);
   padding: 16px 24px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .popup-title {
   margin: 0;
-  font-size: 1.8rem;
-  font-weight: 600;
-  color: #2c0b3e;
-  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.2);
-  letter-spacing: -0.01em;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--prussian-blue);
+  letter-spacing: -0.3px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   flex: 1;
 }
 
+/* Close button – subtle, gets a rose kiss pop on hover */
 .close-btn {
-  color: #3b0b4f;
-  transition: transform 0.2s;
+  color: var(--color-text-secondary);
+  transition: color 0.2s, background 0.2s;
   margin-left: 16px;
-}
-
-.close-btn:hover {
-  transform: scale(1.15);
-  background: rgba(59, 11, 79, 0.1);
-}
-
-.popup-body {
-  flex: 1;
-  padding: 24px;
-  background: #f9f4ff;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: auto;
 }
 
-/* The enlarged chart takes almost all available space */
-.enlarged-chart {
+.close-btn:hover {
+  color: var(--color-accent);
+  background: rgba(244, 97, 151, 0.08);
+  transform: scale(1.05);
+}
+
+/* Body – porcelain tint, centers the chart perfectly */
+.popup-body {
+  flex: 1;
+  padding: 24px;
+  background: var(--color-background);
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  overflow: auto;
+  min-height: 0;
+}
+
+/* Force the host component to fill the body */
+app-widget-chart.enlarged-chart {
+  display: block;
   width: 100%;
   height: 100%;
-  min-height: 500px;  /* ensures it's big even if content small */
-  display: block;
+  flex: 1;
+  min-height: 0;
 }
 
-/* Make sure the inner chart canvas/svg expands */
-.enlarged-chart ::ng-deep canvas,
-.enlarged-chart ::ng-deep svg,
-.enlarged-chart ::ng-deep .chart-container,
-.enlarged-chart ::ng-deep .echarts,
-.enlarged-chart ::ng-deep .highcharts-container {
-  width: 100% !important;
-  height: 100% !important;
-  min-height: 500px;
-}
+/* REMOVED: The ::ng-deep canvas overrides that were causing the cramping */

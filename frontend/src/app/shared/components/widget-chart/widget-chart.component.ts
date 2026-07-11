@@ -676,6 +676,14 @@ private renderHeatmapChart(
     }
   }
 
+  // widget-chart.component.ts
+public resizeChart(): void {
+  if (this.chartInstance) {
+    this.chartInstance.resize();
+    this.chartInstance.update('none'); // optional but safe
+  }
+}
+
   private mapChartType(type: string): any {
     switch (type) {
       case 'bar': return 'bar';
