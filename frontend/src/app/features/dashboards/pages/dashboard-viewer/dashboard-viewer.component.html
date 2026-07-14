@@ -1,7 +1,7 @@
 <div class="viewer-container" *ngIf="!isLoading; else loading">
   <div class="viewer-header">
     <h1>{{ (dashboard$ | async)?.title }}</h1>
-    <button mat-raised-button (click)="goBack()">Back to Editor</button>
+    <button *ngIf="user?.role === 'admin'" mat-raised-button (click)="goBack()">Back to Editor</button>
   </div>
 
   <!-- Read‑only gridster with same item positions -->
@@ -29,5 +29,10 @@
 </div>
 
 <ng-template #loading>
-  <div class="loading-spinner"><mat-spinner diameter="50"></mat-spinner></div>
+  <div class="sleek-loader-overlay">
+    <div class="loader-content">
+      <mat-spinner diameter="60" strokeWidth="3" color="accent" ></mat-spinner>
+      <p class="loading-text">Loading your dashboard…</p>
+    </div>
+  </div>
 </ng-template>

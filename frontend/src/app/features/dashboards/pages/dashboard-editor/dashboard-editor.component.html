@@ -1,9 +1,12 @@
-  <ng-template #loading>
-  <div class="loading-container">
-    <mat-spinner diameter="50"></mat-spinner>
-    <p>Loading dashboard...</p>
+<ng-template #loading>
+  <div class="sleek-loader-overlay">
+    <div class="loader-content">
+      <mat-spinner diameter="60" strokeWidth="3" color="accent" ></mat-spinner>
+      <p class="loading-text">Loading your dashboard…</p>
+    </div>
   </div>
-</ng-template><!-- src/app/features/dashboards/pages/dashboard-editor/dashboard-editor.component.html -->
+</ng-template>
+<!-- src/app/features/dashboards/pages/dashboard-editor/dashboard-editor.component.html -->
 <div class="editor-container" *ngIf="!isLoading; else loading">
   <!-- LEFT PANE -->
   <div class="left-pane" [class.collapsed]="isLeftPaneCollapsed">

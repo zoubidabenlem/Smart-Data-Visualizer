@@ -1,0 +1,108 @@
+/* =============================================
+   Unauthorized Page – Light, Sleek, On‑Theme
+   ============================================= */
+
+:host {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 86vh;
+  background: var(--color-background);          /* porcelain */
+  font-family: var(--font-family);
+  padding: 2rem;
+}
+
+.unauthorized {
+  text-align: center;
+  background: var(--color-surface);             /* white card */
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);              /* soft round corners */
+  padding: 3rem 2.5rem;
+  max-width: 480px;
+  box-shadow: var(--shadow-md);
+  animation: fadeInUp 0.5s ease forwards;
+}
+
+/* Optional lock icon (add <mat-icon>lock</mat-icon> before h2 if you use Angular Material) */
+.unauthorized mat-icon {
+  font-size: 64px;
+  width: 64px;
+  height: 64px;
+  color: var(--color-accent);                   /* rose kiss – warm but serious */
+  margin-bottom: 1.5rem;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.unauthorized h2 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--prussian-blue);
+  margin: 0 0 0.75rem;
+  letter-spacing: -0.3px;
+}
+
+.unauthorized p {
+  font-size: 1.1rem;
+  color: var(--color-text-secondary);
+  margin: 0 0 2rem;
+  line-height: 1.5;
+}
+
+.unauthorized a {
+  display: inline-block;
+  background: var(--color-primary);             /* seagrass */
+  color: white;
+  padding: 0.7rem 2rem;
+  border-radius: 50px;                          /* pill shape */
+  font-weight: 600;
+  text-decoration: none;
+  transition: all var(--transition-base);
+  box-shadow: var(--shadow-sm);
+}
+
+.unauthorized a:hover {
+  background: var(--color-primary-hover);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+/* The button */
+.unauth {
+  display: inline-block;
+  background: var(--color-primary);             /* seagrass */
+  color: white;
+  padding: 0.7rem 2rem;
+  border-radius: 50px;                          /* pill shape */
+  border: none;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  box-shadow: var(--shadow-sm);
+}
+
+.unauth:hover {
+  background: var(--color-primary-hover);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.unauth:active {
+  transform: translateY(0);
+  box-shadow: var(--shadow-sm);
+}
+
+
+/* Subtle entrance animation */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

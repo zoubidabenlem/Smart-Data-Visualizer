@@ -7,6 +7,8 @@ import { MatDialog } from '@angular/material/dialog';
 import { SurveyService, SurveyRequest } from 'src/app/core/services/survey.service';
 import { DashboardPaginatedResponse } from 'src/app/core/models/dashboard.model';
 import { Observable } from 'rxjs';
+import { DashboardService } from 'src/app/core/services/dashboard.service';
+import { HeaderTitleService } from 'src/app/core/services/header-title.service';
 
 @Component({
   selector: 'app-user-management',
@@ -41,9 +43,10 @@ export class UserManagementComponent implements OnInit {
   constructor(
     private http: HttpClient,
     private dialog: MatDialog,
-    private userService: UserService,
+    private dashboardService: DashboardService,
     private surveyService: SurveyService,
-  ) {}
+    private headerTitle: HeaderTitleService
+  ) {this.headerTitle.setTitle('User Management'); }
 
   ngOnInit(): void {
     this.loadUsers();
@@ -60,13 +63,16 @@ export class UserManagementComponent implements OnInit {
     });
   }
 
-  loadDashboards(search = '', page = 1, size = 1000): Observable<DashboardPaginatedResponse> {
-      const params = new HttpParams()
-        .set('search', search)
-        .set('page', page.toString())
-        .set('size', size.toString());
-      return this.http.get<DashboardPaginatedResponse>(`${this.api}/dashboards/`, { params });
-    }
+   loadDashboards(): void {
+    // size=10000 gets all dashboards in one page
+    this.dashboardService.listDashboards('', 1, 1000).subscribe({
+      next: (res) => {
+        this.dashboards = res.items;   
+        console.log('Loaded dashboards:', this.dashboards);
+      },
+      error: (err) => console.error('Failed to load dashboards', err)
+    });
+  }
 
   // ── Survey requests ─────────────────────────────────────────────
   loadSurveyRequests(): void {

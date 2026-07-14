@@ -11,6 +11,8 @@ import { RouterModule } from '@angular/router';
 import { DashboardService } from 'src/app/core/services/dashboard.service';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
+import { GridsterService } from '../dashboards/services/gridster.service';
+import { DashboardsModule } from '../dashboards/dashboards.module';
 
 
 @NgModule({
@@ -24,6 +26,8 @@ import { MatCardModule } from '@angular/material/card';
     ViewerRoutingModule,
     RouterModule,
    SharedModule,
+   DashboardsModule,
+   
 
   ]
 })

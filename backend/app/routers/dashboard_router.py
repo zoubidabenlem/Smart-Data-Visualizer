@@ -84,7 +84,7 @@ def list_dashboards(
     current_user: User = Depends(get_current_user),
     search: str = Query("", description="Search in dashboard title"),
     page: int = Query(1, ge=1),
-    size: int = Query(10, ge=1, le=100),
+    size: int = Query(10, ge=1, le=10000),
 ):
     try:
         # Base query – only dashboards the user can see
@@ -134,7 +134,7 @@ def list_dashboards(
         logger.exception("Unexpected error listing dashboards")
         raise HTTPException(status_code=500, detail="Internal server error")
     
-    
+
 @router.get("/{dashboard_id}", response_model=DashboardResponse)
 def get_dashboard(
     dashboard_id: int,

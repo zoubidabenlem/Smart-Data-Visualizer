@@ -77,9 +77,7 @@ Frontend runs on:
 ```bash
 http://localhost:4200
 ```
-## Project Structure (Initial)
-
-```
+# Project Structure
 Smart-Data-Visualizer
 ├─ backend
 │  ├─ app
@@ -105,12 +103,14 @@ Smart-Data-Visualizer
 │  │  │  ├─ dashboard.py
 │  │  │  ├─ dataset.py
 │  │  │  ├─ role.py
+│  │  │  ├─ survey.py
 │  │  │  ├─ user.py
 │  │  │  └─ __init__.py
 │  │  ├─ routers
 │  │  │  ├─ auth_router.py
 │  │  │  ├─ dashboard_router.py
 │  │  │  ├─ dataset_router.py
+│  │  │  ├─ survey_router.py
 │  │  │  ├─ task_router.py
 │  │  │  ├─ user_router.py
 │  │  │  └─ __init__.py
@@ -121,6 +121,7 @@ Smart-Data-Visualizer
 │  │  │  ├─ dataset_schemas.py
 │  │  │  ├─ pipeline.py
 │  │  │  ├─ refine_schema.py
+│  │  │  ├─ survey_schemas.py
 │  │  │  └─ __init__.py
 │  │  ├─ scripts
 │  │  │  └─ test_pipeline.py
@@ -212,13 +213,14 @@ Smart-Data-Visualizer
 │  │  │  │  │  ├─ dashboard.service.ts
 │  │  │  │  │  ├─ dataset.service.spec.ts
 │  │  │  │  │  ├─ dataset.service.ts
+│  │  │  │  │  ├─ header-title.service.ts
 │  │  │  │  │  ├─ refine.service.ts
 │  │  │  │  │  ├─ services.module.ts
+│  │  │  │  │  ├─ survey.service.ts
 │  │  │  │  │  └─ user.service.ts
 │  │  │  │  └─ unauthorized
 │  │  │  │     ├─ unauthorized.component.css
 │  │  │  │     ├─ unauthorized.component.html
-│  │  │  │     ├─ unauthorized.component.spec.ts
 │  │  │  │     └─ unauthorized.component.ts
 │  │  │  ├─ features
 │  │  │  │  ├─ auth
@@ -229,11 +231,15 @@ Smart-Data-Visualizer
 │  │  │  │  │  │  ├─ login.component.html
 │  │  │  │  │  │  ├─ login.component.spec.ts
 │  │  │  │  │  │  └─ login.component.ts
-│  │  │  │  │  └─ register
-│  │  │  │  │     ├─ register.component.css
-│  │  │  │  │     ├─ register.component.html
-│  │  │  │  │     ├─ register.component.spec.ts
-│  │  │  │  │     └─ register.component.ts
+│  │  │  │  │  ├─ register
+│  │  │  │  │  │  ├─ register.component.css
+│  │  │  │  │  │  ├─ register.component.html
+│  │  │  │  │  │  ├─ register.component.spec.ts
+│  │  │  │  │  │  └─ register.component.ts
+│  │  │  │  │  └─ survey
+│  │  │  │  │     ├─ survey.component.css
+│  │  │  │  │     ├─ survey.component.html
+│  │  │  │  │     └─ survey.component.ts
 │  │  │  │  ├─ builder
 │  │  │  │  │  ├─ builder-routing.module.ts
 │  │  │  │  │  ├─ builder.component.css
@@ -286,7 +292,6 @@ Smart-Data-Visualizer
 │  │  │  │  │  │  ├─ dashboard-editor
 │  │  │  │  │  │  │  ├─ dashboard-editor.component.css
 │  │  │  │  │  │  │  ├─ dashboard-editor.component.html
-│  │  │  │  │  │  │  ├─ dashboard-editor.component.spec.ts
 │  │  │  │  │  │  │  └─ dashboard-editor.component.ts
 │  │  │  │  │  │  ├─ dashboard-list
 │  │  │  │  │  │  │  ├─ dashboard-list.component.css
@@ -303,7 +308,6 @@ Smart-Data-Visualizer
 │  │  │  │  ├─ landing
 │  │  │  │  │  ├─ landing-page.component.css
 │  │  │  │  │  ├─ landing-page.component.html
-│  │  │  │  │  ├─ landing-page.component.spec.ts
 │  │  │  │  │  ├─ landing-page.component.ts
 │  │  │  │  │  ├─ landing-routing.module.ts
 │  │  │  │  │  └─ landing.module.ts
@@ -363,7 +367,6 @@ Smart-Data-Visualizer
 │  │  ├─ index.html
 │  │  ├─ main.ts
 │  │  └─ styles.css
-│  ├─ src.zip
 │  ├─ tsconfig.app.json
 │  ├─ tsconfig.json
 │  └─ tsconfig.spec.json

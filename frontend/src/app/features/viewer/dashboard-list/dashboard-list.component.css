@@ -1,29 +1,25 @@
 /* -----------------------------------------------------
-   Softer, more polished "neon" card grid
+   Dashboard List – Clean, Light, Unified Theme
 ------------------------------------------------------ */
 .dash-list-container {
   padding: 3rem 2rem;
-  background: #faf9fe;               /* soft off-white instead of pure white */
-  min-height: 100vh;
-  color: #2d2a3e;
-  font-family: 'Inter', system-ui, sans-serif;
+  background: var(--color-background);          /* porcelain */
+  min-height: 86vh;
+  color: var(--color-text-primary);
+  font-family: var(--font-family);
 }
 
-/* Title – gradient still there but with a gentle glow */
+/* Title – crisp, deep blue instead of gradient */
 .neon-title {
   font-size: 2.25rem;
   font-weight: 700;
-  background: linear-gradient(135deg, #7c3aed, #db2777);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  color: var(--prussian-blue);                  /* deep blue – no gradient */
   margin-bottom: 2rem;
   letter-spacing: -0.5px;
-  /* replaced heavy text-shadow with subtle blur glow */
-  filter: drop-shadow(0 2px 8px rgba(219, 39, 119, 0.15));
+  /* subtle shadow replaced with none; clean and modern */
 }
 
-/* Grid – using CSS grid for better spacing and alignment */
+/* Grid – responsive card layout */
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
@@ -32,13 +28,13 @@
   margin: 0 auto;
 }
 
-/* Card – lighter, airier, with a subtle floating look */
+/* Card – soft, floating, with a gentle border */
 .neon-card {
-  background: #ffffff;
-  border: 1px solid rgba(219, 39, 119, 0.15);  /* very soft border */
-  border-radius: 16px;                         /* more rounded, less blocky */
+  background: var(--color-surface);             /* white */
+  border: 1px solid var(--color-border);        /* light grey‑blue border */
+  border-radius: var(--radius-md);              /* 10px – smooth corners */
   padding: 1.75rem;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0,0,0,0.02);
+  box-shadow: var(--shadow-sm);
   transition: all 0.3s ease;
   display: flex;
   flex-direction: column;
@@ -47,32 +43,33 @@
 
 .neon-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 12px 32px rgba(219, 39, 119, 0.1), 0 2px 8px rgba(0,0,0,0.04);
-  border-color: rgba(219, 39, 119, 0.3);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--color-primary);           /* seagrass on hover – fresh accent */
 }
 
-/* Button – clean, modern, with a solid fill on hover */
+/* Button – seagrass outline, solid fill on hover */
 .neon-btn {
   background: transparent;
-  border: 2px solid #db2777;
-  color: #db2777;
+  border: 2px solid var(--color-primary);       /* seagrass */
+  color: var(--color-primary);
   padding: 0.5rem 1.5rem;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);              /* 6px – clean, not too round */
   font-weight: 600;
   font-size: 0.875rem;
   cursor: pointer;
   transition: all 0.25s ease;
-  margin-top: auto;                /* pushes button to bottom in flex card */
+  margin-top: auto;
   align-self: flex-start;
   letter-spacing: 0.3px;
-  /* no text-shadow – cleaner */
+  background: var(--color-surface);
 }
 
 .neon-btn:hover {
-  background: #db2777;
+  background: var(--color-primary);             /* seagrass solid fill */
   color: #ffffff;
-  box-shadow: 0 4px 14px rgba(219, 39, 119, 0.35);
+  box-shadow: 0 4px 14px rgba(44, 165, 141, 0.35);  /* seagrass glow */
   transform: translateY(-1px);
+  border-color: var(--color-primary);
 }
 
 .neon-btn:active {

@@ -1,8 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Component } from '@angular/core';
 import { DashboardListItem } from 'src/app/core/models/dashboard.model';
-import { UserService } from 'src/app/core/services/user.service';
-import { environment } from 'src/environments/environment';
+import { DashboardService } from 'src/app/core/services/dashboard.service';
 
 @Component({
   selector: 'app-dashboard-list',
@@ -14,15 +13,13 @@ export class DashboardListComponent {
   dashboards: DashboardListItem[] = [];
   
 
-  constructor(private userService: UserService) {}
+  constructor(private dashboardService: DashboardService) {}
 
   ngOnInit(): void {
-   
-    console.log(this.userService.getUserAssignedDashboards)
-    this.userService.listDashboards().subscribe({
-      next: (data) => {
-        this.dashboards = data;
-        console.log(data);
+   // size=10000 – viewer will only see their own dashboards because of backend logic
+    this.dashboardService.listDashboards('', 1, 10000).subscribe({
+      next: (res) => {
+        this.dashboards = res.items;   // ✅ plain array
         this.isLoading = false;
       },
       error: () => {

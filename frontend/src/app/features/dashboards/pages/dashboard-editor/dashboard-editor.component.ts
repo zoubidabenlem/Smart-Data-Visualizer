@@ -111,6 +111,7 @@ public isLeftPaneCollapsed = false;
     );
    
   }
+  
 
   ngOnDestroy(): void {
     this.subs.forEach(s => s.unsubscribe());
@@ -173,7 +174,10 @@ console.log('[DEBUG] Opening widget dialog with dataset ID snapshot:', datasetId
   dialogRef.afterClosed().subscribe((result: boolean) => {
     if (result === true) {
       // Refresh dashboard data
-      this.editorService.refreshDashboard().subscribe();
+      this.editorService.refreshDashboard().subscribe(() => {
+      // Force all child chart components to re‑render
+      // (requires ViewChildren or similar – or simply refresh the whole list)
+    });
     }
   });
 }

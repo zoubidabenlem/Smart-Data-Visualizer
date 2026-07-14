@@ -1,7 +1,11 @@
-/* ---------- Full-page backdrop ---------- */
+/* ---------- Full‑page backdrop ---------- */
 .profile-page {
-  min-height: 100vh;
-  background: linear-gradient(135deg, #f5f3ff 0%, #fdf2f8 100%);
+  min-height: 86vh;
+  background: linear-gradient(
+    135deg,
+    var(--color-background) 0%,            /* porcelain */
+    rgba(132, 188, 156, 0.15) 100%        /* muted teal whisper */
+  );
   display: flex;
   align-items: center;
   justify-content: center;
@@ -16,18 +20,19 @@
 
 /* The card itself – soft, light, with a touch of elegance */
 .profile-card {
-  border-radius: 20px !important;            /* softer than default square */
-  background: #ffffff;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.06), 0 6px 12px rgba(0,0,0,0.03);
-  border: 1px solid rgba(236, 72, 153, 0.1); /* barely-there border */
-  padding: 0.5rem 0 0 0;                    /* let content breathe */
+  border-radius: 20px !important;
+  background: var(--color-surface);        /* white */
+  box-shadow: var(--shadow-lg);
+  border: 1px solid rgba(244, 97, 151, 0.08); /* barely‑there rose kiss border */
+  padding: 0.5rem 0 0 0;
   overflow: hidden;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .profile-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 24px 48px rgba(0,0,0,0.08), 0 8px 16px rgba(236,72,153,0.05);
+  box-shadow: 0 24px 48px rgba(10, 35, 66, 0.08),
+              0 8px 16px rgba(10, 35, 66, 0.05);
 }
 
 /* ---------- Header ---------- */
@@ -42,14 +47,14 @@
   font-size: 36px;
   width: 36px;
   height: 36px;
-  color: #db2777;
+  color: var(--color-primary);            /* seagrass – fresh, personal */
 }
 
 .header-content h2 {
   margin: 0;
   font-size: 1.5rem;
   font-weight: 600;
-  color: #1e1b4b;
+  color: var(--prussian-blue);            /* deep blue heading */
   letter-spacing: -0.3px;
 }
 
@@ -71,13 +76,13 @@ mat-card-content {
   font-size: 0.8rem;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: #9ca3af;
+  color: var(--color-text-secondary);     /* muted slate */
   font-weight: 500;
 }
 
 .value {
   font-size: 1.1rem;
-  color: #2d2a3e;
+  color: var(--color-text-primary);       /* prussian blue */
   font-weight: 500;
   word-break: break-word;
 }
@@ -89,11 +94,11 @@ mat-card-content {
   padding: 0.4rem 1.6rem !important;
   font-weight: 600 !important;
   font-size: 0.9rem !important;
-  border-radius: 12px !important;
-  background: linear-gradient(135deg, #ec4899, #a855f7) !important;
+  border-radius: 50px !important;         /* pill shape, consistent */
+  background: var(--color-primary) !important; /* seagrass */
   color: white !important;
-  box-shadow: 0 4px 12px rgba(236, 72, 153, 0.3);
-  transition: all 0.25s ease;
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-base);
   border: none;
   display: flex;
   align-items: center;
@@ -101,9 +106,9 @@ mat-card-content {
 }
 
 .logout-btn:hover {
-  box-shadow: 0 6px 18px rgba(236, 72, 153, 0.45);
+  background: var(--color-primary-hover) !important;
+  box-shadow: var(--shadow-md);
   transform: translateY(-1px);
-  filter: brightness(1.05);
 }
 
 .logout-btn mat-icon {

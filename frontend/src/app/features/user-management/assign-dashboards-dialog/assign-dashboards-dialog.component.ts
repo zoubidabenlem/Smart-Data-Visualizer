@@ -3,6 +3,7 @@ import { FormControl } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { firstValueFrom } from 'rxjs';
 import { DashboardListItem } from 'src/app/core/models/dashboard.model';
+import { DashboardService } from 'src/app/core/services/dashboard.service';
 import { UserService } from 'src/app/core/services/user.service';
 
 @Component({
@@ -20,28 +21,33 @@ export class AssignDashboardsDialogComponent implements OnInit {
   constructor(
     public dialogRef: MatDialogRef<AssignDashboardsDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: { user: any },
-    private userService: UserService
+    private userService: UserService,
+    private dashboardService: DashboardService
   ) {}
 
   ngOnInit() {
-  // 1. Get all dashboards (admin sees all because of backend logic)
-  this.userService.listDashboards().subscribe((res: any) => {
-    // New backend returns a paginated object → use res.items
-    // If it already returns an array (legacy), fallback to res
-    this.allDashboards = res?.items ?? res;
-    this.filteredDashboards = [...this.allDashboards];
+  /// 1. Get all dashboards (admin sees all)
+    this.dashboardService.listDashboards('', 1, 1000).subscribe({
+      next: (res) => {
+        this.allDashboards = res.items;      // ✅ always a plain array
+        this.filteredDashboards = [...this.allDashboards];
 
-    // 2. Get currently assigned dashboards for this user
-    this.userService.getUserAssignedDashboards(this.data.user.id).subscribe(assigned => {
-      this.selectedDashboards = assigned.map(d => d.id);
+        // 2. Get currently assigned dashboards for this user
+        this.userService.getUserAssignedDashboards(this.data.user.id).subscribe(assigned => {
+          this.selectedDashboards = assigned.map(d => d.id);
+        });
+      },
+      error: (err) => console.error('Failed to load dashboards', err)
     });
-  });
 
-  this.searchControl.valueChanges.subscribe(term => {
-    const lower = term?.toLowerCase() || '';
-    this.filteredDashboards = this.allDashboards.filter(d => d.title.toLowerCase().includes(lower));
-  });
-}
+    // Search filter (works because allDashboards is an array)
+    this.searchControl.valueChanges.subscribe(term => {
+      const lower = term?.toLowerCase() || '';
+      this.filteredDashboards = this.allDashboards.filter(d =>
+        d.title.toLowerCase().includes(lower)
+      );
+    });
+  }
 
   async save() {
     this.saving = true;

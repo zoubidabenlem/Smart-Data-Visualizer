@@ -49,6 +49,7 @@ import { GridsterService } from './services/gridster.service';
     SharedModule,
   ],
   providers: [DashboardEditorService, GridsterService],
+  exports: [DashboardViewerComponent]
   
 })
 export class DashboardsModule { }

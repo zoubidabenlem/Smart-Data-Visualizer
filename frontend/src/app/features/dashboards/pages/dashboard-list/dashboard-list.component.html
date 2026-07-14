@@ -20,9 +20,14 @@
  
 
   <!-- Loading / empty states (unchanged) -->
-  <div *ngIf="isLoading" class="loading-spinner">
-    <mat-spinner diameter="40"></mat-spinner>
+  <ng-template #loading>
+  <div class="sleek-loader-overlay">
+    <div class="loader-content">
+      <mat-spinner diameter="60" strokeWidth="3" color="accent"></mat-spinner>
+      <p class="loading-text">Loading your dashboard…</p>
+    </div>
   </div>
+</ng-template>
 
   <div *ngIf="!isLoading && dashboards.length === 0" class="empty-state">
     <mat-icon>dashboard</mat-icon>

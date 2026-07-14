@@ -1,6 +1,7 @@
 import {
   Component, Input, OnChanges, OnDestroy, SimpleChanges,
-  ElementRef, ViewChild, AfterViewInit, NgZone
+  ElementRef, ViewChild, AfterViewInit, NgZone,
+  ChangeDetectorRef
 } from '@angular/core';
 import  { Chart } from 'chart.js/auto';
 import { WidgetResponse, WidgetConfig } from 'src/app/core/models/dashboard.model';
@@ -13,25 +14,42 @@ Chart.register(...registerables, MatrixController, MatrixElement);
   templateUrl: './widget-chart.component.html',
   styleUrls: ['./widget-chart.component.css']
 })
-export class WidgetChartComponent implements OnChanges, OnDestroy, AfterViewInit {
-  @Input() widget!: WidgetResponse;
+export class WidgetChartComponent implements OnDestroy, AfterViewInit {
+  private _widget!: WidgetResponse;
+
+@Input() set widget(val: WidgetResponse) {
+  this._widget = val;
+  // only render if we have data and a non‑kpi widget (kpi doesn’t need canvas)
+  if (val) {
+    if (val.config.chart_type === 'kpi') {
+      this.renderKpi();
+    } else {
+      this.tryRenderChart();
+    }}
+}
+get widget(): WidgetResponse {
+  return this._widget;
+}
   @ViewChild('chartCanvas') canvasRef!: ElementRef<HTMLCanvasElement>;
 
   private chartInstance: Chart | null = null;
   private resizeObserver: ResizeObserver | null = null;
+  private renderAttempts = 0;
+  private maxAttempts = 12; // ~200ms total
 
   kpiValue: string | number = '';
 
-  constructor(private ngZone: NgZone) {
+  constructor(private ngZone: NgZone, private cdr: ChangeDetectorRef) {
     console.log('[WidgetChart] component constructed');
   }
 
   ngAfterViewInit(): void {
-    console.log('[WidgetChart] ngAfterViewInit', { widget: !!this.widget, canvasReady: !!this.canvasRef?.nativeElement });
-    setTimeout(() => {
-      if (this.widget) this.renderChart();
-    }, 0);
+    console.log('[WidgetChart] ngAfterViewInit', {
+      widget: !!this.widget,
+      canvasReady: !!this.canvasRef?.nativeElement
+    });
 
+    // Setup resize observer (keep as before)
     if (this.canvasRef) {
       const container = this.canvasRef.nativeElement.parentElement;
       if (container) {
@@ -43,18 +61,40 @@ export class WidgetChartComponent implements OnChanges, OnDestroy, AfterViewInit
         this.resizeObserver.observe(container);
       }
     }
-  }
 
-  ngOnChanges(changes: SimpleChanges): void {
-    console.log('[WidgetChart] ngOnChanges', changes);
-    if (changes['widget'] && !changes['widget'].firstChange) {
-      this.renderChart();
+    // If the widget was already set, start attempting to render
+    if (this.widget && this.widget.config.chart_type !== 'kpi') {
+      this.tryRenderChart();
     }
   }
+
+  
 
   ngOnDestroy(): void {
     this.chartInstance?.destroy();
     this.resizeObserver?.disconnect();
+
+  }
+
+  private tryRenderChart(): void {
+    // Ready if canvas exists and data is non‑empty
+    if (this.canvasRef?.nativeElement && this.widget?.chart_data?.length) {
+      this.renderAttempts = 0;
+      this.renderChart();
+      return;
+    }
+
+    if (this.renderAttempts >= this.maxAttempts) {
+      console.error('[WidgetChart] Canvas never became available');
+      return;
+    }
+
+    this.renderAttempts++;
+    requestAnimationFrame(() => {
+      // Force Angular to update the view (especially inside gridster)
+      this.cdr.detectChanges();
+      this.tryRenderChart();
+    });
   }
 
   private renderChart(): void {

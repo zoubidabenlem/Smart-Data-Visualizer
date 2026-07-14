@@ -8,7 +8,10 @@ import { DashboardViewerComponent } from './features/dashboards/pages/dashboard-
 import { SurveyComponent } from './features/auth/survey/survey.component';
 const routes: Routes = [
   // Landing page (public)
-  { path: '', loadChildren: () => import('./features/landing/landing.module').then(m => m.LandingModule) },
+  { path: '',
+     loadChildren: () => import('./features/landing/landing.module').then(m => m.LandingModule) ,
+    title: ''
+    },
   //surveypage (public)
   {
     path: 'login',

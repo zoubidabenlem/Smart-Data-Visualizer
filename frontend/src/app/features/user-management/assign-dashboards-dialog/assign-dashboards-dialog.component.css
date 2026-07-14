@@ -1,120 +1,168 @@
 /* =============================================
-   Assign Dashboard Dialog – Light Theme
+   Assign Dashboard Dialog – MDC Compliant
    ============================================= */
+/* Header cleanup */
+.dialog-header {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding-bottom: 16px;
+}
 
-/* Dialog content area */
-mat-dialog-content {
-  background: var(--color-surface);          /* white */
-  padding: 1.5rem;
+.dialog-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #0f2d4a; /* Dark navy brand color */
+}
+
+.dialog-subtitle {
+  font-size: 0.9rem;
+  font-weight: 400;
+  color: #5c6b73;
+}
+
+.dialog-subtitle strong {
+  color: #1b4d3e; /* Dark green accent from your design */
+}
+/* --- Dialog Content Wrapper --- */
+.assign-dialog-content {
+  padding: 0.5rem !important;
   min-width: 400px;
-  max-height: 60vh;
+  max-height: 60vh !important;
   overflow-y: auto;
-}
-
-/* Search field inside a filled mat-form-field */
-mat-form-field {
-  width: 100%;
-  margin-bottom: 0.5rem;
-}
-
-/* Override Material filled appearance to match theme */
-::ng-deep .mat-form-field-appearance-fill .mat-form-field-flex {
-  background-color: var(--color-background); /* porcelain */
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-}
-
-::ng-deep .mat-form-field-appearance-fill .mat-form-field-underline::before {
-  background-color: var(--color-border);
-}
-
-::ng-deep .mat-form-field-appearance-fill.mat-focused .mat-form-field-flex {
-  border-color: var(--color-primary);       /* seagrass focus ring */
-  box-shadow: 0 0 0 2px rgba(44, 165, 141, 0.15);
-}
-
-::ng-deep .mat-form-field-label {
-  color: var(--color-text-secondary) !important;
-}
-
-::ng-deep .mat-input-element {
-  color: var(--color-text-primary) !important;
-  caret-color: var(--color-primary) !important;
-}
-
-::ng-deep .mat-form-field.mat-focused .mat-form-field-label {
-  color: var(--color-primary) !important;
-}
-
-/* Selection list */
-mat-selection-list {
-  margin-top: 0.5rem;
-  max-height: 300px;
-  overflow-y: auto;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
   background: var(--color-surface);
 }
 
-/* Individual list option */
+/* --- SEARCH BAR (Sleek Pill Shape) --- */
+.search-field-wrapper {
+  width: 100%;
+  margin-bottom: 0.5rem;
+  padding: 0.25rem 0.5rem;
+}
+
+.search-icon {
+  margin-right: 8px;
+  color: #5c6b73;
+}
+
+/* Override internal MDC Wrapper */
+::ng-deep .search-field-wrapper .mat-mdc-text-field-wrapper {
+  background-color: var(--color-background) !important;
+  border-radius: 50px !important;
+  border: 1px solid var(--color-border) !important;
+  padding-left: 12px !important;
+  height: 48px !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+::ng-deep .search-field-wrapper .mdc-notched-outline__leading,
+::ng-deep .search-field-wrapper .mdc-notched-outline__notch,
+::ng-deep .search-field-wrapper .mdc-notched-outline__trailing {
+  border: none !important; /* Hide Material's internal outline since we use our own border */
+}
+
+/* Search Bar Focus State */
+::ng-deep .search-field-wrapper.mat-focused .mat-mdc-text-field-wrapper {
+  border-color: var(--color-primary) !important;
+  box-shadow: 0 0 0 4px rgba(44, 165, 141, 0.1) !important;
+}
+
+::ng-deep .search-field-wrapper input {
+  color: var(--color-text-primary) !important;
+}
+
+::ng-deep .search-field-wrapper .mat-mdc-form-field-subscript-wrapper {
+  display: none !important; /* Remove the hint/error line space to make it clean */
+}
+
+::ng-deep .search-field-wrapper mat-icon {
+  color: var(--color-text-secondary);
+  margin-right: 4px;
+}
+
+/* --- SELECTION LIST --- */
+.selection-wrapper {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.custom-selection-list {
+  padding: 0 !important;
+}
+
+/* List Options */
 mat-list-option {
   border-bottom: 1px solid var(--color-border);
   color: var(--color-text-primary);
   font-size: 0.95rem;
   transition: background var(--transition-fast);
+  height: 48px !important;
 }
 
 mat-list-option:last-child {
   border-bottom: none;
 }
 
-mat-list-option:hover {
-  background: rgba(132, 188, 156, 0.08);     /* muted teal tint */
+/* MDC List Hover State */
+::ng-deep mat-list-option:hover .mdc-list-item__content {
+  background: rgba(132, 188, 156, 0.08) !important; /* Muted teal tint */
 }
 
-/* Selected checkbox */
-::ng-deep .mat-pseudo-checkbox-checked {
-  background: var(--color-primary) !important;  /* seagrass */
+/* Checkbox inside MDC List Option */
+::ng-deep mat-list-option .mat-mdc-checkbox .mdc-checkbox .mdc-checkbox__native-control:enabled:checked ~ .mdc-checkbox__background {
+  background-color: var(--color-primary) !important;
+  border-color: var(--color-primary) !important;
 }
 
-/* ===== Dialog actions ===== */
-mat-dialog-actions {
+/* --- DIALOG ACTIONS --- */
+.assign-dialog-actions {
   padding: 1rem 1.5rem;
   border-top: 1px solid var(--color-border);
   background: var(--color-surface);
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
 }
 
-/* Cancel button (mat-button) */
-mat-dialog-actions button[mat-button] {
+/* Cancel Button */
+.assign-dialog-actions button[mat-button] {
   color: var(--color-text-secondary);
   font-weight: 500;
   transition: color var(--transition-fast);
 }
 
-mat-dialog-actions button[mat-button]:hover {
+.assign-dialog-actions button[mat-button]:hover {
   color: var(--prussian-blue);
   background: rgba(10, 35, 66, 0.04);
 }
 
-/* Save button (mat-raised-button color="primary") */
-mat-dialog-actions button[mat-raised-button] {
+/* Save Button */
+.assign-dialog-actions button[mat-raised-button] {
   background: var(--color-primary) !important;  /* seagrass */
   color: #ffffff !important;
-  border-radius: 50px;
-  font-weight: 600;
+  border-radius: 50px !important;
+  padding: 0 1.8rem !important;
+  height: 40px !important;
+  font-weight: 600 !important;
   box-shadow: var(--shadow-sm);
   transition: background var(--transition-base), transform var(--transition-fast);
-  margin-left: 12px;
 }
 
-mat-dialog-actions button[mat-raised-button]:hover:not([disabled]) {
+.assign-dialog-actions button[mat-raised-button]:hover:not([disabled]) {
   background: var(--color-primary-hover) !important;
   transform: translateY(-1px);
   box-shadow: var(--shadow-md);
 }
 
-mat-dialog-actions button[mat-raised-button]:disabled {
-  opacity: 0.5;
+.assign-dialog-actions button[mat-raised-button]:disabled {
+  background: rgba(44, 165, 141, 0.4) !important; /* Muted seagrass, not ugly gray! */
+  color: #ffffff !important;
   cursor: not-allowed;
   box-shadow: none;
+  transform: none;
 }

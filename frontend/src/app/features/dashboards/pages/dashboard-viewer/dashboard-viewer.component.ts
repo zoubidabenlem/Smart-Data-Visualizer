@@ -16,6 +16,7 @@ export class DashboardViewerComponent implements OnInit {
   dashboard$ = this.editorService.dashboard$;
   widgets$ = this.editorService.widgets$;
   isLoading = true;
+  user = JSON.parse(localStorage.getItem('currentUser') || '{}') as { role: string } | null;
 
   @ViewChild(GridsterComponent) gridster!: GridsterComponent;
 
@@ -91,4 +92,5 @@ export class DashboardViewerComponent implements OnInit {
   goBack(): void {
     this.router.navigate(['/dashboards', this.dashboardId, 'edit']);
   }
+
 }
