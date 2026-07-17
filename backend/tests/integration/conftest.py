@@ -30,7 +30,7 @@ SOURCE_DB = "source_test"
 SOURCE_USER = "root"
 SOURCE_PASS = "test_root_pass"
 SOURCE_HOST = "localhost"
-SOURCE_PORT = 3306  # inside Docker it's 3306, but mapped to 3307 on host; container sees 3306
+SOURCE_PORT = 3307  # inside Docker it's 3306, but mapped to 3307 on host; container sees 3306
 
 @pytest.fixture(scope="session", autouse=True)
 def setup_databases():
@@ -70,9 +70,12 @@ def client(db_session):
 @pytest.fixture
 def auth_headers(db_session):
     # Create admin role and user
-    role = Role(name="admin", permissions_json={})
-    db_session.add(role)
-    db_session.commit()
+    role = db_session.query(Role).filter_by(name="admin").first()
+    if not role:
+        role = Role(name="admin", permissions_json={})
+        db_session.add(role)
+        db_session.commit()
+
     user = User(
         email="admin@test.com",
         password_hash=hash_password("admin123"),
@@ -103,6 +106,7 @@ def source_db_setup():
             ('Gadget', 29.99, '2025-01-02'),
             ('Widget', 22.50, '2025-01-03')
         """))
+        conn.commit()
     yield
     # Clean up after tests
     with src_engine.connect() as conn:

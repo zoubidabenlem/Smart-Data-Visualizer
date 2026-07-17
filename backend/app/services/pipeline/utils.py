@@ -1,3 +1,5 @@
+#backend\app\services\pipeline\utils.py
+from datetime import datetime
 import hashlib
 import json
 import pandas as pd
@@ -35,6 +37,14 @@ def dataframe_to_json_safe(df: pd.DataFrame) -> List[Dict[str, Any]]:
             df_clean[col] = df_clean[col].apply(
                 lambda x: str(x) if pd.notnull(x) else None
             )
+            # -- NEW: handle date columns (e.g., from MySQL DATE type)
+        elif df_clean[col].dtype == 'object':
+            # Check if the column actually contains datetime.date objects
+            sample = df_clean[col].dropna()
+            if len(sample) > 0 and isinstance(sample.iloc[0], datetime.date):
+                df_clean[col] = df_clean[col].apply(
+                    lambda x: x.isoformat() if isinstance(x, datetime.date) else x
+                )
 
     # Replace NaN and NaT with None
     df_clean = df_clean.where(pd.notnull(df_clean), None)
@@ -50,16 +60,14 @@ def sanitize_records(records: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     """
     def _clean_value(obj: Any) -> Any:
         if isinstance(obj, dict):
-            return {k: _clean_value(v) for k, v in obj.items()}
+            # Force all keys to strings (safety net for any non‑string keys)
+            return {str(k): _clean_value(v) for k, v in obj.items()}
         if isinstance(obj, list):
             return [_clean_value(item) for item in obj]
-        # handle numpy floats that may be NaN/Inf
         if isinstance(obj, float) and (math.isnan(obj) or math.isinf(obj)):
             return None
-        # Handle numpy generic numbers (e.g., np.int64, np.float32)
-        if isinstance(obj, np.generic):  # numpy scalar
+        if isinstance(obj, np.generic):
             try:
-                # Convert to Python native, then check for NaN/Inf again
                 py_obj = obj.item()
                 if isinstance(py_obj, float) and (math.isnan(py_obj) or math.isinf(py_obj)):
                     return None

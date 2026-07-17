@@ -10,7 +10,7 @@ class TestMySQLIntegration:
         conn_payload = {
             "name": "Test Source DB",
             "host": "localhost",
-            "port": 3306,
+            "port": 3307,
             "database": "source_test",
             "username": "root",
             "password": "test_root_pass"
@@ -40,10 +40,10 @@ class TestMySQLIntegration:
         rows = resp.json()["rows"]
         assert len(rows) == 3
 
-        # 6. Import as dataset
+        # 6. Import as dataset (endpoint is in MySQL connection router)
         import_payload = {"connection_id": conn_id, "table_name": "sales"}
-        resp = client.post("/datasets/import", json=import_payload, headers=auth_headers)
-        assert resp.status_code == 201  # dataset creation returns 201
+        resp = client.post("/connections/mysql/import", json=import_payload, headers=auth_headers)
+        assert resp.status_code == 200
         dataset = resp.json()
         dataset_id = dataset["id"]
 
@@ -55,7 +55,7 @@ class TestMySQLIntegration:
         prepare_payload = {
             "filters": [],
             "group_by": ["product"],
-            "agg_func": "sum",
+            "agg_func": "SUM",
             "value_col": "amount"
         }
         resp = client.post(f"/datasets/{dataset_id}/prepare", json=prepare_payload, headers=auth_headers)

@@ -1,0 +1,387 @@
+{
+  "info": {
+    "name": "Smart Data Visualizer – MySQL Integration",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000"
+    },
+    {
+      "key": "token",
+      "value": ""
+    },
+    {
+      "key": "connection_id",
+      "value": ""
+    },
+    {
+      "key": "dataset_id",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register (Admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// This will set the token if registration returns one, but usually you need to login after"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@test.com\",\n  \"password\": \"secret123\",\n  \"name\": \"Admin\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "pm.collectionVariables.set('token', jsonData.access_token);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@test.com\",\n  \"password\": \"secret123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "login"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "MySQL Connections",
+      "item": [
+        {
+          "name": "Create Connection",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "pm.collectionVariables.set('connection_id', jsonData.id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"My Test DB\",\n  \"host\": \"localhost\",\n  \"port\": 3307,\n  \"database\": \"source_test\",\n  \"username\": \"root\",\n  \"password\": \"test_root_pass\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/connections/mysql/",
+              "host": ["{{base_url}}"],
+              "path": ["connections", "mysql", ""]
+            }
+          }
+        },
+        {
+          "name": "List Connections",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/connections/mysql/",
+              "host": ["{{base_url}}"],
+              "path": ["connections", "mysql", ""]
+            }
+          }
+        },
+        {
+          "name": "Get Connection",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/connections/mysql/{{connection_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["connections", "mysql", "{{connection_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Update Connection",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated DB Name\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/connections/mysql/{{connection_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["connections", "mysql", "{{connection_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Connection",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/connections/mysql/{{connection_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["connections", "mysql", "{{connection_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Test Connection",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/connections/mysql/{{connection_id}}/test",
+              "host": ["{{base_url}}"],
+              "path": ["connections", "mysql", "{{connection_id}}", "test"]
+            }
+          }
+        },
+        {
+          "name": "List Tables",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Can assert that 'sales' exists",
+                  "var data = pm.response.json();",
+                  "pm.expect(data.tables).to.include('sales');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/connections/mysql/{{connection_id}}/tables",
+              "host": ["{{base_url}}"],
+              "path": ["connections", "mysql", "{{connection_id}}", "tables"]
+            }
+          }
+        },
+        {
+          "name": "Get Table Schema",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/connections/mysql/{{connection_id}}/tables/sales/schema",
+              "host": ["{{base_url}}"],
+              "path": ["connections", "mysql", "{{connection_id}}", "tables", "sales", "schema"]
+            }
+          }
+        },
+        {
+          "name": "Preview Table",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/connections/mysql/{{connection_id}}/tables/sales/preview",
+              "host": ["{{base_url}}"],
+              "path": ["connections", "mysql", "{{connection_id}}", "tables", "sales", "preview"]
+            }
+          }
+        },
+        {
+          "name": "Import Table as Dataset",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "pm.collectionVariables.set('dataset_id', jsonData.id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"connection_id\": {{connection_id}},\n  \"table_name\": \"sales\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/connections/mysql/import",
+              "host": ["{{base_url}}"],
+              "path": ["connections", "mysql", "import"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Datasets",
+      "item": [
+        {
+          "name": "Preview Dataset",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/datasets/{{dataset_id}}/preview",
+              "host": ["{{base_url}}"],
+              "path": ["datasets", "{{dataset_id}}", "preview"]
+            }
+          }
+        },
+        {
+          "name": "Prepare (Aggregate)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"filters\": [],\n  \"group_by\": [\"product\"],\n  \"agg_func\": \"SUM\",\n  \"value_col\": \"amount\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/datasets/{{dataset_id}}/prepare",
+              "host": ["{{base_url}}"],
+              "path": ["datasets", "{{dataset_id}}", "prepare"]
+            }
+          }
+        },
+        {
+          "name": "Get Dataset Columns",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/datasets/{{dataset_id}}/columns",
+              "host": ["{{base_url}}"],
+              "path": ["datasets", "{{dataset_id}}", "columns"]
+            }
+          }
+        },
+        {
+          "name": "Delete Dataset",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/datasets/{{dataset_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["datasets", "{{dataset_id}}"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
