@@ -5,7 +5,7 @@ import pandas as pd
 from typing import List, Tuple, Dict, Any
 from app.schemas.refine_schema import ColumnRefineAction, RefinedColumnInfo
 from app.models.dataset import SourceType
-
+from app.services.dataset_loader import DatasetLoader
 #DEPRACATED MONOLITH BATCH OPERATION
 def apply_refine_transformations(df: pd.DataFrame, actions: List[ColumnRefineAction]) -> Tuple[pd.DataFrame, List[RefinedColumnInfo]]:
     """
@@ -144,26 +144,15 @@ def get_refined_cache_key(dataset_id: int) -> str:
 # In-memory cache for the original DataFrame (before any refinement)
 original_df_cache: dict = {}          # simple dict; use TTLCache if you prefer memory‑bound
 
-def get_original_df(dataset) -> pd.DataFrame:
+from app.services.dataset_loader import DatasetLoader
+
+def get_original_df(dataset, db):
     """Return the original DataFrame, cached in memory after first read."""
     dataset_id = dataset.id
     if dataset_id in original_df_cache:
         return original_df_cache[dataset_id]
 
-    file_path = Path(str(dataset.source_path))
-    if not file_path.exists():
-        raise HTTPException(400, "Dataset file missing")
-
-    if dataset.source_type == SourceType.csv:
-        try:
-            df = pd.read_csv(file_path, encoding="utf-8")
-        except UnicodeDecodeError:
-            df = pd.read_csv(file_path, encoding="latin-1")
-    elif dataset.source_type == SourceType.excel:
-        df = pd.read_excel(file_path)
-    else:
-        raise HTTPException(400, "Unsupported source type")
-
+    df = DatasetLoader.load_dataframe(dataset, db)
     original_df_cache[dataset_id] = df
     return df
 

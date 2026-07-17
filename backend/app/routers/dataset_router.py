@@ -1,56 +1,82 @@
 import asyncio
 import math
+import os
+from pathlib import Path
+from typing import List, Dict, Any, cast
 
-from fastapi import APIRouter, Depends, UploadFile, File, HTTPException, status
+# Standard data libs
+import numpy as np
+import pandas as pd
+
+# FastAPI
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from fastapi.params import Query
 from fastapi.responses import JSONResponse
-from sqlalchemy.orm import  Session
-from pathlib import Path
-import pandas as pd
-import os
-from app.services.refine_service import apply_refine_pipeline, apply_refine_transformations, get_original_df, get_refined_cache_key
-from app.core.cache import refined_cache
+from fastapi.encoders import jsonable_encoder
+
+# SQLAlchemy
+from sqlalchemy import Column
+from sqlalchemy.orm import Session
+
+# App core/config/logging/cache
+from app.core.config import settings
+from app.core.cache import (
+    preview_cache,
+    prepared_cache,
+    refined_cache,
+    refined_df_cache,
+)
 from app.core.logging_config import logger
+from app.core.redis_client import delete_cache
+
+# Models, DB, auth
 from app.db.base import get_db
 from app.dependencies.auth_dependencies import require_admin, get_current_user
 from app.models.dataset import Dataset, SourceType
 from app.models.user import User
-from app.schemas.dataset_schemas import ConfigureHeaderRequest, ConfigureHeaderResponse, DatasetOut, PaginatedResponse
-from app.schemas.refine_schema import *
-from app.services.fileUpload_service import save_upload, extract_metadata
-from app.core.cache import preview_cache
-from app.core.config import settings
-#JSON SAFE OBJ FROM DF
-from fastapi.encoders import jsonable_encoder
-import pandas as pd
-import numpy as np
-from app.core.redis_client import delete_cache
 
-from app.services.pipeline.utils import dataframe_to_json_safe
-from app.services.pipeline.utils import sanitize_records
-#DATA PREP IMPORTS
-from sqlalchemy import Column
+# Schemas
+from app.schemas.dataset_schemas import (
+    ConfigureHeaderRequest,
+    ConfigureHeaderResponse,
+    DatasetOut,
+    PaginatedResponse,
+)
+from app.schemas.pipeline import PrepareRequest, PrepareResponse, MissingConfig, MissingOverride
+from app.schemas.refine_schema import *
+
+# Services
+from app.services.fileUpload_service import save_upload, extract_metadata
+from app.services.dataset_loader import DatasetLoader
+from app.services.refine_service import (
+    apply_refine_pipeline,
+    apply_refine_transformations,
+    get_original_df,
+    get_refined_cache_key,
+    original_df_cache,
+)
 from app.services.pipeline.orchestrator import run_pipeline
-from app.services.pipeline.utils import get_prepared_cache_key
-from app.services.pipeline.utils import preview_cache_key
-##validation imports
+from app.services.pipeline.utils import (
+    dataframe_to_json_safe,
+    get_prepared_cache_key,
+    preview_cache_key,
+    sanitize_records,
+)
 from app.services.pipeline.validation import (
     validate_filters,
-      validate_aggregation,
-        validate_missing_config ,
-        validate_refine_deduplicate,
+    validate_aggregation,
+    validate_missing_config,
+    validate_refine_deduplicate,
     validate_refine_merge,
-        validate_refine_missing,
-          PipelineValidationError 
-    ) 
-from typing import List, Dict, Any, cast
-from app.services.refine_service import get_refined_cache_key
-from app.core.cache import prepared_cache, refined_cache, refined_df_cache
-from app.schemas.pipeline import PrepareRequest, PrepareResponse, MissingConfig, MissingOverride
-#async
+    validate_refine_missing,
+    PipelineValidationError,
+)
 from app.services.task_manager import task_cache, run_in_background, create_task
 from app.services.sandbox_service import clear_sandbox, get_sandbox, set_sandbox
-from app.services.refine_service import original_df_cache
+
+# Misc
+from app.core.cache import refined_cache
+from app.services.refine_service import get_refined_cache_key
 
 router = APIRouter(prefix="/datasets", tags=["Datasets"])
 #POST /datasets/upload
@@ -133,8 +159,10 @@ async def configure_header(
     try:
         if dataset.source_type == SourceType.csv:
             df = pd.read_csv(file_path, header=config.header_row, skiprows=config.skip_rows or [])
-        else:
+        elif dataset.source_type == SourceType.excel:
             df = pd.read_excel(file_path, header=config.header_row, skiprows=config.skip_rows or [])
+        elif dataset.source_type == SourceType.mysql:
+            raise HTTPException(400, "Header configuration is not available for MySQL datasets.")
     except Exception as e:
         raise HTTPException(400, f"Error reading file with new header settings: {e}")
 
@@ -270,7 +298,7 @@ def delete_dataset(
 async def raw_preview(
     dataset_id: int,
     header_row: int = 0,
-    skip_rows: str = "",   # comma‑separated list of integers
+    skip_rows: str = "",
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -278,32 +306,40 @@ async def raw_preview(
     if not dataset:
         raise HTTPException(404, "Dataset not found")
 
+    # --- Branch: MySQL datasets (no file path, header/skip not applicable) ---
+    if dataset.source_type == SourceType.mysql:
+        try:
+            preview_data = DatasetLoader.load_preview(dataset, db)
+            columns_list = [col["name"] for col in (dataset.column_schema or [])]
+        except Exception as e:
+            raise HTTPException(400, f"Could not load MySQL preview: {e}")
+        return {
+            "columns": columns_list,
+            "rows": preview_data,
+            "total_rows_estimate": len(preview_data)
+        }
+
+    # --- File‑based datasets (existing logic) ---
     file_path = Path(dataset.source_path)
     if not file_path.exists():
         raise HTTPException(400, "File missing")
 
-    # 1. Safely extract your row configurations
     skip_list = [int(x) for x in skip_rows.split(",") if x.strip()] if skip_rows else []
-    
+
     try:
-        # 2. Apply parameters directly to the Pandas readers with encoding fallback paths
-        if dataset.source_type == SourceType.csv:  # type: ignore
+        if dataset.source_type == SourceType.csv:
             try:
                 df = pd.read_csv(file_path, header=header_row, skiprows=skip_list, nrows=50)
             except UnicodeDecodeError:
-                # Safe fallback if user uploads a Windows/Excel formatted local CSV
                 df = pd.read_csv(file_path, header=header_row, skiprows=skip_list, nrows=50, encoding='latin1')
         else:
             df = pd.read_excel(file_path, header=header_row, skiprows=skip_list, nrows=50)
-            
+
         columns_list = list(df.columns)
 
-        # 3. Clean up the dataframe before extraction
         df = dataframe_to_json_safe(df)
         df = sanitize_records(df)
-        
-        # 4. FIXED: If your cleaning utilities convert the DF into a list of dicts, 
-        # do not call .to_dict() again. 
+
         if isinstance(df, list):
             preview_data = df
         else:
@@ -313,8 +349,8 @@ async def raw_preview(
         raise HTTPException(400, f"Cannot parse: {e}")
 
     return {
-        "columns": columns_list, 
-        "rows": preview_data, 
+        "columns": columns_list,
+        "rows": preview_data,
         "total_rows_estimate": len(preview_data)
     }
 
@@ -360,22 +396,10 @@ def preview_dataset(
             return {"cached": False, "data": safe_rows, "refined": True}
 
     # Original file
-    file_path = Path(str(dataset.source_path))
-    if not file_path.exists():
-        raise HTTPException(400, "File missing, please re-upload")
-
     try:
-        if dataset.source_type == SourceType.csv:  # type: ignore
-            df = pd.read_csv(file_path, nrows=50)
-        else:
-            df = pd.read_excel(file_path, nrows=50)
-
-        # Use unified JSON-safe conversion
-        safe_rows = dataframe_to_json_safe(df)
-        safe_rows = sanitize_records(safe_rows)
+        safe_rows = DatasetLoader.load_preview(dataset, db)
     except Exception as e:
-        #  Better error code for file corruption
-        raise HTTPException(400, f"Could not read file: {str(e)}")
+        raise HTTPException(400, f"Could not read dataset: {str(e)}")
 
     #  Store with refined=False
     preview_cache[cache_key] = {"data": safe_rows, "refined": False}
@@ -551,7 +575,7 @@ async def apply_refine_action(
 
     # Load original DataFrame
     try:
-        df = get_original_df(dataset)
+        df = get_original_df(dataset, db)
     except HTTPException:
         raise
     except Exception as e:
@@ -603,7 +627,7 @@ async def undo_refine_action(
     if not actions:
         # No actions: return original preview
         try:
-            df = get_original_df(dataset)
+            df = get_original_df(dataset,db)
         except Exception as e:
             raise HTTPException(400, f"Error reading file: {str(e)}")
         preview_data = dataframe_to_json_safe(df.head(50))
@@ -616,7 +640,7 @@ async def undo_refine_action(
     set_sandbox(dataset_id, actions)  # save updated list (could be empty)
 
     try:
-        df = get_original_df(dataset)
+        df = get_original_df(dataset,db)
     except Exception as e:
         raise HTTPException(400, f"Error reading file: {str(e)}")
 
@@ -662,7 +686,7 @@ async def finalize_refinement(
 
     # Load full original DataFrame
     try:
-        df = get_original_df(dataset)
+        df = get_original_df(dataset, db)
     except Exception as e:
         raise HTTPException(400, f"Error reading original file: {str(e)}")
 
@@ -751,13 +775,10 @@ async def prepare_dataset(
         if (dataset.is_refined is True) and refined_key in refined_df_cache:
             df = refined_df_cache[refined_key]
         else:
-            file_path = Path(str(dataset.source_path))
-            if not file_path.exists():
-                raise HTTPException(400, "Source file missing")
-            if dataset.source_type == SourceType.csv: #type: ignore
-                df = pd.read_csv(file_path)
-            else:
-                df = pd.read_excel(file_path)
+            try:
+                df = DatasetLoader.load_dataframe(dataset, db)
+            except Exception as e:
+                raise HTTPException(400, f"Could not load dataset: {e}")
 
         # Validation block
         dataset_columns = list(df.columns)
