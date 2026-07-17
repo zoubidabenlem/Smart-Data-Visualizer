@@ -4,6 +4,7 @@ from sqlalchemy.sql import func
 from app.models.base import Base
 from app.models.dashboard import dashboard_assignment  # import the association table
 from app.models.mysql_connection import MySQLConnection
+
 class User(Base):
     __tablename__ = 'users'
     id = Column(Integer, primary_key=True, index=True)

@@ -23,7 +23,7 @@ class Dataset(Base):
     column_schema = Column(JSON, nullable=True)
     # column_schema stores: [{"name": "revenue", "dtype": "float64"}, ...]
     #refine step 
-    source_path = Column(String(1024), nullable=False)
+    source_path = Column(String(1024), nullable=True)
     is_refined = Column(Boolean, default=False)
     refined_column_schema = Column(JSON, nullable=True)
     header_row = Column(Integer, nullable=False, default=0)   # 0‑based row index of the header
