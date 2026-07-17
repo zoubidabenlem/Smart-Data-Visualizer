@@ -3,7 +3,7 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.models.base import Base
 from app.models.dashboard import dashboard_assignment  # import the association table
-
+from app.models.mysql_connection import MySQLConnection
 class User(Base):
     __tablename__ = 'users'
     id = Column(Integer, primary_key=True, index=True)
@@ -22,3 +22,7 @@ class User(Base):
         secondary=dashboard_assignment,
         back_populates="assigned_users"
     )
+    # mysql
+    mysql_connections = relationship("MySQLConnection", back_populates="owner")
+
+

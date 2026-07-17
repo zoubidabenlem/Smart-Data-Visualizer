@@ -6,6 +6,7 @@ from app.models.survey import SurveyRequest, SurveyStatus
 from app.models.dataset import Dataset, SourceType
 from app.models.dashboard import Dashboard, Widget
 from app.models.cache_entry import CacheEntry
+from app.models.mysql_connection import MySQLConnection
 
 '''
 SQLAlchemy's Base.metadata.create_all() only creates tables

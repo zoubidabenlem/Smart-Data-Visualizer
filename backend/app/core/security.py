@@ -7,8 +7,11 @@ from passlib.context import CryptContext
 
 from app.core.config import settings
 
+from cryptography.fernet import Fernet
+
 # Password hashing ──────────────────────────────────────────────────────────
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto", bcrypt__rounds=12)
+cipher = Fernet(settings.fernet_key)
 
 
 def hash_password(plain: str) -> str:
@@ -46,3 +49,12 @@ def decode_access_token(token: str) -> dict:
     Raises JWTError on invalid/expired tokens.
     """
     return jwt.decode(token, settings.jwt_secret, algorithms=[settings.jwt_algorithm])
+
+# ENCRYPTION HELPER 
+# The key must be 32 url-safe base64-encoded bytes. Add FERNET_KEY to your .env
+
+def encrypt_password(plain_text: str) -> str:
+    return cipher.encrypt(plain_text.encode()).decode()
+
+def decrypt_password(encrypted: str) -> str:
+    return cipher.decrypt(encrypted.encode()).decode()

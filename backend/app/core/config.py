@@ -37,6 +37,9 @@ class Settings(BaseSettings):
     SANDBOX_KEY_PREFIX : str
     REFINE_SANDBOX_TTL : int
 
+    #FERNET KEY
+    fernet_key: str
+
     # CORS
     cors_origin: str = "http://localhost:4200"
 

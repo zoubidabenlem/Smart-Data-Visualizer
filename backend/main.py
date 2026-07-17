@@ -2,10 +2,19 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pathlib import Path                
 from app.db.init_db import init_db
+
+#ROUTERS ___________________________________________________________________________________________
 from app.routers import auth_router as auth_router
 from app.routers import dataset_router as dataset_router
 from app.routers import task_router as task_router
 from app.routers import dashboard_router as dashboard_router
+from app.routers import mysql_connection_router as mysql_connection_router
+from app.routers import user_router
+
+#
+#
+
+#_________________________________________________________________________________________________
 #Exception handlers
 from app.core.exception_handlers import (
     pydantic_validation_handler,
@@ -18,7 +27,6 @@ from app.core.exception_handlers import (
 from pydantic import ValidationError
 from app.services.pipeline.validation import PipelineValidationError
 from app.core.logging_middleware import LoggingMiddleware
-from app.routers import user_router
 from app.core.redis_client import ping_redis
 from app.routers import survey_router
 
@@ -47,11 +55,12 @@ app.add_exception_handler(Exception, unhandled_exception_handler)
 
 # ── Routers ───────────────────────────────────────────────────────────────────
 app.include_router(auth_router.router)
-
 #survey
 app.include_router(survey_router.router)  # Survey endpoints
 # (Phase 2+) Add datasetrouters here
 app.include_router(dataset_router.router)
+# (data source :mysql connection)
+app.include_router(mysql_connection_router.router)
 # (Phase 3) user management router (admin-only)
 app.include_router(user_router.router)  # Admin-only user management endpoints
 #app.include_router(mysql_router.router)
@@ -64,7 +73,6 @@ app.include_router(dashboard_router.router)
 @app.get("/", tags=["Health"])
 def root():
     return {"message": "Smart Data Visualizer API is running", "version": "1.0.0"}
-
 
 @app.on_event("startup")
 def on_startup():
