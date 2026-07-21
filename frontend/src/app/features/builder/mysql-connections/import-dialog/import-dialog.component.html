@@ -1,0 +1,17 @@
+<h2 mat-dialog-title>Import MySQL Table as Dataset</h2>
+
+<mat-dialog-content>
+  <p>
+    You are about to import the table <strong>{{ data.tableName }}</strong>
+    from connection <strong>#{{ data.connectionId }}</strong>.
+  </p>
+  <p>The table will be scanned and stored as a static dataset. Continue?</p>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="onCancel()">Cancel</button>
+  <button mat-raised-button color="primary" (click)="onConfirm()" [disabled]="importing">
+    <mat-spinner *ngIf="importing" diameter="20"></mat-spinner>
+    {{ importing ? 'Importing...' : 'Import' }}
+  </button>
+</mat-dialog-actions>

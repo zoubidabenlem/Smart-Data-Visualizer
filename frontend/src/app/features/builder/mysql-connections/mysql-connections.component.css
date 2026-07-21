@@ -1,0 +1,177 @@
+/* =============================================
+   MySQL Connections – Light, Unified Theme
+   ============================================= */
+
+:host {
+  display: block;
+  background: var(--color-background);        /* porcelain */
+  min-height: 100vh;
+  font-family: var(--font-family);
+  padding: 2rem;
+}
+
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+/* ---------- Page header ---------- */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid var(--color-border);
+}
+
+.page-header h2 {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--prussian-blue);
+  margin: 0;
+}
+
+/* Primary button – already uses color="primary" but we polish it */
+.page-header button[mat-raised-button] {
+  border-radius: 50px;
+  font-weight: 600;
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-base);
+}
+
+.page-header button[mat-raised-button]:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+/* ---------- Loading state (inline) ---------- */
+.sleek-loader-overlay {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  background: rgba(255, 253, 247, 0.7);       /* porcelain tint */
+  backdrop-filter: blur(4px);
+  border-radius: var(--radius-md);
+  margin: 2rem 0;
+}
+
+.loader-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.loading-text {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--color-text-secondary);
+  font-weight: 500;
+  animation: pulse 1.8s ease-in-out infinite;
+}
+
+/* Override spinner color */
+::ng-deep .sleek-loader-overlay .mat-progress-spinner circle,
+::ng-deep .sleek-loader-overlay .mat-spinner circle {
+  stroke: var(--color-primary) !important;
+}
+
+/* ---------- Empty state ---------- */
+.empty-state {
+  text-align: center;
+  padding: 3rem 2rem;
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  color: var(--color-text-secondary);
+  margin: 2rem 0;
+  border: 1px dashed var(--color-border);
+}
+
+.empty-state mat-icon {
+  font-size: 64px;
+  width: 64px;
+  height: 64px;
+  color: var(--color-secondary);              /* muted teal – calm */
+  margin-bottom: 1rem;
+}
+
+.empty-state p {
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+
+/* ---------- Table wrapper ---------- */
+.table-wrapper {
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--color-border);
+}
+
+/* Table styling */
+table.mat-table {
+  width: 100%;
+  background: transparent;
+}
+
+/* Header row */
+tr.mat-header-row {
+  background: var(--color-background);        /* porcelain header */
+  border-bottom: 2px solid var(--color-border);
+}
+
+th.mat-header-cell {
+  color: var(--prussian-blue);
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 12px 16px;
+}
+
+/* Body cells */
+td.mat-cell {
+  color: var(--color-text-primary);
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--color-border);
+  font-size: 0.95rem;
+}
+
+/* Row hover */
+tr.mat-row:hover {
+  background: rgba(132, 188, 156, 0.06);      /* muted teal tint */
+}
+
+/* ---------- Action buttons ---------- */
+.action-cell {
+  white-space: nowrap;
+}
+
+.action-cell button[mat-icon-button] {
+  color: var(--color-text-secondary);
+  transition: color var(--transition-fast), background var(--transition-fast);
+  margin: 0 2px;
+}
+
+.action-cell button[mat-icon-button]:hover {
+  background: rgba(44, 165, 141, 0.08);       /* seagrass tint */
+  color: var(--color-primary);
+}
+
+/* Delete button gets a rose kiss warning on hover */
+.action-cell button[mat-icon-button]:last-child:hover {
+  background: rgba(244, 97, 151, 0.1);
+  color: var(--color-accent);
+}
+
+/* Tooltip not affected by CSS, but icons are clean */
+
+/* ---------- Animations ---------- */
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}

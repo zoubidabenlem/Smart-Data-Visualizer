@@ -25,6 +25,12 @@ import { DatasetListComponent } from './dataset-list/dataset-list.component';
 import { PreviewModalComponent } from './preview-modal/preview-modal.component';
 import { RefineService } from 'src/app/core/services/refine.service';
 import { RefineSandboxComponent } from './refine-sandbox/refine-sandbox.component';
+import { ConnectionFormComponent } from './mysql-connections/connection-form/connection-form.component';
+import { TableExplorerComponent } from './mysql-connections/table-explorer/table-explorer.component';
+import { ImportDialogComponent } from './mysql-connections/import-dialog/import-dialog.component';
+import { MySQLConnectionsComponent } from './mysql-connections/mysql-connections.component';
+import { MatTableModule } from '@angular/material/table';
+import { MatExpansionModule } from '@angular/material/expansion';
 
 @NgModule({
   declarations: [
@@ -35,9 +41,14 @@ import { RefineSandboxComponent } from './refine-sandbox/refine-sandbox.componen
     PreviewModalComponent,
     ConfigureHeaderComponent,
     RefineSandboxComponent,
+    MySQLConnectionsComponent,
+    ConnectionFormComponent,
+    TableExplorerComponent,
+    ImportDialogComponent,
   ],
   imports: [
     CommonModule,
+    MatExpansionModule,
     ReactiveFormsModule,
     FormsModule,
     BuilderRoutingModule,
@@ -47,6 +58,7 @@ import { RefineSandboxComponent } from './refine-sandbox/refine-sandbox.componen
     MatInputModule,
     MatButtonModule,
     MatIconModule,
+    MatTableModule,
     MatChipsModule,
     OverlayModule,
     ScrollingModule,

@@ -9,6 +9,8 @@ import { roleGuard } from 'src/app/core/auth/role.guard';
 import { RefineGuard } from 'src/app/core/guards/refine.guard';
 import { ConfigureHeaderComponent } from './configure-header/configure-header.component';
 import { RefineSandboxComponent } from './refine-sandbox/refine-sandbox.component';
+import { MySQLConnectionsComponent } from './mysql-connections/mysql-connections.component';
+import { TableExplorerComponent } from './mysql-connections/table-explorer/table-explorer.component';
 const routes: Routes = [
 { 
   path: '',
@@ -30,7 +32,10 @@ const routes: Routes = [
     component: RefineSandboxComponent,
        data: { title: 'Data Refinement' }        // will show "Builder" in the header
 
-  }
+  },
+  // ---------- new MySQL routes ----------
+  { path: 'mysql-connections', component: MySQLConnectionsComponent, data: { title: 'MySQL Connections' } },
+  { path: 'mysql-connections/:id/explore', component: TableExplorerComponent, data: { title: 'Explore MySQL Tables' } }
 
 ];
 

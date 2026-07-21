@@ -2,6 +2,14 @@
   <h3>Upload Dataset</h3>
   <p>CSV or Excel files (max 50 MB)</p>
 
+  <!-- Added margin-top to this container -->
+  <div class="upload-options" style="margin-top: var(--space-md)">
+    <span>Or</span>
+    <button mat-stroked-button color="primary" (click)="navigateToMySQL()">
+      <mat-icon>storage</mat-icon> Connect to MySQL Database
+    </button>
+  </div>
+
   <div class="file-input-wrapper">
     <input type="file" id="fileInput" (change)="onFileSelected($event)" accept=".csv,.xlsx,.xls">
     <button class="upload-btn" (click)="upload()" [disabled]="uploading">

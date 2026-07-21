@@ -2,6 +2,7 @@
 
 import { Component, Input, Output, EventEmitter, HostListener } from '@angular/core';
 import { DatasetOut } from '../../../core/models/dataset.model';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-dataset-list',
@@ -16,6 +17,10 @@ export class DatasetListComponent {
   @Output() refine = new EventEmitter<number>();
   @Output() delete = new EventEmitter<number>();
   @Output() createDashboard = new EventEmitter<number>();
+
+
+  constructor(private router: Router) {} 
+
 
   // Track which row's menu is open (null = none)
   openMenuId: number | null = null;
@@ -34,6 +39,10 @@ export class DatasetListComponent {
       case 'dashboard': this.createDashboard.emit(datasetId); break;
     }
   }
+
+  goToMySQLConnections(): void {
+  this.router.navigate(['/builder/mysql-connections']);
+}
   // Inside the class
 @HostListener('document:click', ['$event'])
 onDocumentClick(event: MouseEvent) {

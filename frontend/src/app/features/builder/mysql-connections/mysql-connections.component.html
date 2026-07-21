@@ -1,0 +1,67 @@
+<div class="container">
+  <header class="page-header">
+    <h2>MySQL Connections</h2>
+    <button mat-raised-button color="primary" (click)="onAdd()">
+      <mat-icon>add</mat-icon> New Connection
+    </button>
+  </header>
+
+  <!-- Loading state -->
+  <div *ngIf="isLoading" class="sleek-loader-overlay">
+    <div class="loader-content">
+      <mat-spinner diameter="40"></mat-spinner>
+      <p class="loading-text">Loading connections…</p>
+    </div>
+  </div>
+
+  <!-- Empty state -->
+  <div *ngIf="!isLoading && connections.length === 0" class="empty-state">
+    <mat-icon>cloud_off</mat-icon>
+    <p>No MySQL connections yet.</p>
+  </div>
+
+  <!-- Connections table -->
+  <div *ngIf="!isLoading && connections.length > 0" class="table-wrapper">
+    <table mat-table [dataSource]="connections" class="mat-elevation-z2">
+      <!-- Name -->
+      <ng-container matColumnDef="name">
+        <th mat-header-cell *matHeaderCellDef>Name</th>
+        <td mat-cell *matCellDef="let conn">{{ conn.name }}</td>
+      </ng-container>
+
+      <!-- Host -->
+      <ng-container matColumnDef="host">
+        <th mat-header-cell *matHeaderCellDef>Host</th>
+        <td mat-cell *matCellDef="let conn">{{ conn.host }}:{{ conn.port }}</td>
+      </ng-container>
+
+      <!-- Database -->
+      <ng-container matColumnDef="database">
+        <th mat-header-cell *matHeaderCellDef>Database</th>
+        <td mat-cell *matCellDef="let conn">{{ conn.database }}</td>
+      </ng-container>
+
+      <!-- Actions -->
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef>Actions</th>
+        <td mat-cell *matCellDef="let conn" class="action-cell">
+          <button mat-icon-button matTooltip="Test connection" (click)="onTest(conn)">
+            <mat-icon>check_circle</mat-icon>
+          </button>
+          <button mat-icon-button matTooltip="Explore tables" (click)="onExplore(conn)">
+            <mat-icon>table_chart</mat-icon>
+          </button>
+          <button mat-icon-button matTooltip="Edit" (click)="onEdit(conn)">
+            <mat-icon>edit</mat-icon>
+          </button>
+          <button mat-icon-button matTooltip="Delete" (click)="onDelete(conn)">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+    </table>
+  </div>
+</div>

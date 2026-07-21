@@ -1,0 +1,305 @@
+/* =============================================
+   Explore Tables – Light, Unified Theme
+   ============================================= */
+
+:host {
+  display: block;
+  background: var(--color-background);        /* porcelain */
+  min-height: 100vh;
+  font-family: var(--font-family);
+  padding: 2rem;
+}
+
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+/* ---------- Page header with back button ---------- */
+.page-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid var(--color-border);
+}
+
+.page-header h2 {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--prussian-blue);
+  margin: 0;
+}
+
+/* Back button */
+.page-header button[mat-icon-button] {
+  color: var(--color-text-secondary);
+  transition: color var(--transition-fast), background var(--transition-fast);
+}
+
+.page-header button[mat-icon-button]:hover {
+  background: rgba(10, 35, 66, 0.05);         /* Prussian blue tint */
+  color: var(--prussian-blue);
+}
+
+/* ---------- Error message ---------- */
+.error-message {
+  background: rgba(244, 97, 151, 0.08);
+  border: 1px solid var(--color-accent);
+  color: #b91c5b;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-sm);
+  margin-bottom: 1.5rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+/* ---------- Loading state ---------- */
+.sleek-loader-overlay {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 2rem;
+  background: rgba(255, 253, 247, 0.7);
+  backdrop-filter: blur(4px);
+  border-radius: var(--radius-md);
+  margin: 2rem 0;
+}
+
+.loader-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.loading-text {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--color-text-secondary);
+  font-weight: 500;
+  animation: pulse 1.8s ease-in-out infinite;
+}
+
+::ng-deep .sleek-loader-overlay .mat-progress-spinner circle,
+::ng-deep .sleek-loader-overlay .mat-spinner circle {
+  stroke: var(--color-primary) !important;
+}
+
+/* ---------- Empty state ---------- */
+.empty-state {
+  text-align: center;
+  padding: 3rem 2rem;
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  color: var(--color-text-secondary);
+  margin: 2rem 0;
+  border: 1px dashed var(--color-border);
+}
+
+.empty-state mat-icon {
+  font-size: 64px;
+  width: 64px;
+  height: 64px;
+  color: var(--color-secondary);              /* muted teal */
+  margin-bottom: 1rem;
+}
+
+.empty-state p {
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+
+/* ---------- Accordion / Expansion panels ---------- */
+.mat-accordion {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.mat-expansion-panel {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md) !important;
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.mat-expansion-panel-header {
+  padding: 0 1.5rem;
+  height: auto !important;
+  min-height: 56px;
+  background: var(--color-background);
+  border-bottom: 1px solid var(--color-border);
+  transition: background var(--transition-fast);
+}
+
+.mat-expansion-panel-header:hover {
+  background: rgba(132, 188, 156, 0.08);      /* muted teal tint */
+}
+
+.mat-panel-title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-weight: 600;
+  color: var(--prussian-blue);
+  font-size: 1rem;
+}
+
+.mat-panel-title mat-icon {
+  color: var(--color-primary);                /* seagrass */
+}
+
+.mat-panel-description {
+  color: var(--color-text-secondary);
+  margin-right: 0;
+}
+
+.mat-panel-description button[mat-button] {
+  color: var(--color-primary) !important;
+  font-weight: 600;
+  border-radius: 50px;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.mat-panel-description button[mat-button]:hover {
+  background: rgba(44, 165, 141, 0.08);
+}
+
+/* ---------- Panel content (schema + preview) ---------- */
+.panel-content {
+  padding: 1.5rem;
+  background: var(--color-surface);
+}
+
+.schema-section,
+.preview-section {
+  margin-bottom: 2rem;
+}
+
+.schema-section:last-child,
+.preview-section:last-child {
+  margin-bottom: 0;
+}
+
+.schema-section h4,
+.preview-section h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--prussian-blue);
+  margin: 0 0 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* ---------- Schema mat-table ---------- */
+table.mat-table {
+  width: 100%;
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+tr.mat-header-row {
+  background: var(--color-background);
+  border-bottom: 2px solid var(--color-border);
+}
+
+th.mat-header-cell {
+  color: var(--prussian-blue);
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 10px 16px;
+}
+
+td.mat-cell {
+  color: var(--color-text-primary);
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--color-border);
+  font-size: 0.9rem;
+}
+
+tr.mat-row:hover td.mat-cell {
+  background: rgba(132, 188, 156, 0.04);
+}
+
+/* ---------- Preview table (plain HTML table) ---------- */
+.preview-table-wrapper {
+  overflow-x: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+}
+
+.simple-preview-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--color-surface);
+  font-size: 0.9rem;
+  color: var(--color-text-primary);
+}
+
+.simple-preview-table thead tr {
+  background: var(--color-background);        /* porcelain */
+  border-bottom: 2px solid var(--color-border);
+}
+
+.simple-preview-table th {
+  padding: 10px 12px;
+  text-align: left;
+  font-weight: 600;
+  color: var(--prussian-blue);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  font-size: 0.85rem;
+  border-bottom: 2px solid var(--color-border);
+  white-space: nowrap;
+}
+
+.simple-preview-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--color-border);
+  white-space: nowrap;
+}
+
+.simple-preview-table tbody tr:hover {
+  background: rgba(132, 188, 156, 0.06);      /* muted teal tint */
+}
+
+/* Empty preview text */
+.empty-preview {
+  text-align: center;
+  color: var(--color-text-secondary);
+  font-style: italic;
+  padding: 2rem;
+}
+
+/* ---------- Scrollbar styling ---------- */
+.preview-table-wrapper::-webkit-scrollbar {
+  height: 6px;
+}
+
+.preview-table-wrapper::-webkit-scrollbar-track {
+  background: var(--color-background);
+}
+
+.preview-table-wrapper::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 3px;
+}
+
+.preview-table-wrapper::-webkit-scrollbar-thumb:hover {
+  background: var(--prussian-blue);
+}
+
+/* ---------- Animations ---------- */
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}

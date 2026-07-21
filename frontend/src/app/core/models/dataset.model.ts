@@ -14,7 +14,10 @@ export interface DatasetOut {
   uploaded_at: string;          // matches backend field name
   is_refined: boolean;          // ← required for guard
   refined_column_schema?: ColumnSchema[];  // optional, present if refined // or uploaded_at, adjust based on backend
- 
+ // ---------- MySQL specific ----------
+  connection_id?: number;        // reference to MySQLConnection
+  source_table?: string;         // original table name (if imported via static import)
+  source_type?: string;          // 'file' or 'mysql'
 }
 
 export interface DatasetPreview {

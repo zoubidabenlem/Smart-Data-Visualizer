@@ -1,0 +1,141 @@
+/* =============================================
+   MySQL Connection Dialog – Light Theme
+   ============================================= */
+
+/* Dialog content area */
+mat-dialog-content {
+  background: var(--color-surface);          /* white */
+  padding: 1.5rem 2rem;
+  margin: 0;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+/* Dialog title */
+mat-dialog-title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--prussian-blue);
+  margin: 0;
+  padding: 1.5rem 2rem 0;
+  border-bottom: none;
+}
+
+/* Form inside dialog */
+.connection-form {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Two‑column grid for the fields */
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;            /* two equal columns */
+  gap: 1rem 1.5rem;                          /* row gap, column gap */
+}
+
+/* Full-width class used on each field – already width: 100% */
+.full-width {
+  width: 100%;
+}
+
+/* ---------- Outlined Material fields ---------- */
+::ng-deep .mat-form-field-appearance-outline .mat-form-field-outline {
+  color: var(--color-border);                /* light grey‑blue border */
+}
+
+::ng-deep .mat-form-field-appearance-outline.mat-focused .mat-form-field-outline-thick {
+  color: var(--color-primary) !important;    /* seagrass focus ring */
+}
+
+::ng-deep .mat-form-field-label {
+  color: var(--color-text-secondary) !important;
+  font-weight: 500;
+}
+
+::ng-deep .mat-form-field.mat-focused .mat-form-field-label {
+  color: var(--color-primary) !important;
+}
+
+::ng-deep .mat-input-element {
+  color: var(--color-text-primary) !important;
+  caret-color: var(--color-primary) !important;
+}
+
+/* Placeholder styling */
+::ng-deep .mat-input-element::placeholder {
+  color: var(--color-text-secondary);
+  opacity: 0.7;
+}
+
+/* Error message */
+::ng-deep .mat-error {
+  color: var(--color-accent);                /* rose kiss */
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+/* ---------- Dialog actions (bottom bar) ---------- */
+mat-dialog-actions {
+  padding: 1rem 2rem 1.5rem;
+  border-top: 1px solid var(--color-border);
+  background: var(--color-background);       /* porcelain strip */
+  margin: 0;
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+}
+
+/* Cancel button (mat-button) */
+mat-dialog-actions button[mat-button] {
+  color: var(--color-text-secondary);
+  font-weight: 600;
+  border-radius: 50px;
+  padding: 0 24px;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+mat-dialog-actions button[mat-button]:hover {
+  background: rgba(10, 35, 66, 0.05);        /* Prussian blue tint */
+  color: var(--prussian-blue);
+}
+
+/* Save button (mat-raised-button color="primary") */
+mat-dialog-actions button[mat-raised-button] {
+  background: var(--color-primary) !important; /* seagrass */
+  color: #ffffff !important;
+  border-radius: 50px;
+  font-weight: 600;
+  padding: 0 28px;
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-base);
+}
+
+mat-dialog-actions button[mat-raised-button]:hover:not([disabled]) {
+  background: var(--color-primary-hover) !important;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+mat-dialog-actions button[mat-raised-button]:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* Spinner inside the save button */
+mat-dialog-actions button[mat-raised-button] mat-spinner {
+  margin-right: 8px;
+}
+
+::ng-deep mat-dialog-actions button[mat-raised-button] .mat-progress-spinner circle,
+::ng-deep mat-dialog-actions button[mat-raised-button] .mat-spinner circle {
+  stroke: #ffffff !important;                /* white spinner on seagrass */
+}
+
+/* ---------- Responsive: stack to single column on small screens ---------- */
+@media (max-width: 600px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+}

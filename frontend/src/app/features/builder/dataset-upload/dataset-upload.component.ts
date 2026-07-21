@@ -24,6 +24,10 @@ export class DatasetUploadComponent {
     }
   }
 
+  navigateToMySQL(): void {
+  this.router.navigate(['/builder/mysql-connections']);
+}
+
   upload(): void {
     if (!this.selectedFile) {
       this.error = 'Please select a file.';

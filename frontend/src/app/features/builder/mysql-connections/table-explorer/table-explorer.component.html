@@ -1,0 +1,86 @@
+<div class="container">
+  <header class="page-header">
+    <button mat-icon-button routerLink="/builder/mysql-connections">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <h2>Explore Tables – {{ connection?.name }}</h2>
+  </header>
+
+  <div *ngIf="error" class="error-message">{{ error }}</div>
+
+  <div *ngIf="isLoading" class="sleek-loader-overlay">
+    <div class="loader-content">
+      <mat-spinner diameter="40"></mat-spinner>
+      <p class="loading-text">Loading tables…</p>
+    </div>
+  </div>
+
+  <div *ngIf="!isLoading && tables.length > 0" class="table-list">
+    <mat-accordion>
+      <mat-expansion-panel
+        *ngFor="let table of tables"
+        (opened)="viewSchema(table); viewPreview(table)"
+      >
+        <mat-expansion-panel-header>
+          <mat-panel-title>
+            <mat-icon>table_chart</mat-icon>
+            {{ table }}
+          </mat-panel-title>
+          <mat-panel-description>
+            <button
+              mat-button
+              color="primary"
+              (click)="openImportDialog(table); $event.stopPropagation()"
+            >
+              <mat-icon>file_download</mat-icon> Import as Dataset
+            </button>
+          </mat-panel-description>
+        </mat-expansion-panel-header>
+
+        <div class="panel-content">
+          <!-- Schema table (using mat-table, this is fine) -->
+          <div class="schema-section">
+            <h4>Schema</h4>
+            <table mat-table [dataSource]="schemaColumns" class="mat-elevation-z0">
+              <ng-container matColumnDef="name">
+                <th mat-header-cell *matHeaderCellDef>Column</th>
+                <td mat-cell *matCellDef="let col">{{ col.name }}</td>
+              </ng-container>
+              <ng-container matColumnDef="dtype">
+                <th mat-header-cell *matHeaderCellDef>Type</th>
+                <td mat-cell *matCellDef="let col">{{ col.dtype }}</td>
+              </ng-container>
+              <tr mat-header-row *matHeaderRowDef="['name', 'dtype']"></tr>
+              <tr mat-row *matRowDef="let row; columns: ['name', 'dtype'];"></tr>
+            </table>
+          </div>
+
+          <!-- Preview section (plain HTML table) -->
+          <div class="preview-section">
+            <h4>Data Preview (first 10 rows)</h4>
+            <div class="preview-table-wrapper" *ngIf="previewRows.length">
+              <table class="simple-preview-table">
+                <thead>
+                  <tr>
+                    <th *ngFor="let col of schemaColumns">{{ col.name }}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let row of previewRows">
+                    <td *ngFor="let col of schemaColumns">{{ row[col.name] }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <p *ngIf="!previewRows.length" class="empty-preview">Click to load preview</p>
+          </div>
+        </div>
+      </mat-expansion-panel>
+    </mat-accordion>
+  </div>
+
+  <div *ngIf="!isLoading && tables.length === 0 && !error" class="empty-state">
+    <mat-icon>info</mat-icon>
+    <p>No tables found in this database.</p>
+  </div>
+</div>
