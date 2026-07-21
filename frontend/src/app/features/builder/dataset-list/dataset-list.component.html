@@ -5,12 +5,7 @@
   No datasets found. Upload one above.
 </div>
 
-<!-- Moved "Connect MySQL" button here, near the top of the list area -->
-<div *ngIf="!loading && datasets.length > 0" style="margin-bottom: var(--space-md);">
-  <button mat-raised-button color="accent" (click)="goToMySQLConnections()">
-    <mat-icon>storage</mat-icon> Connect MySQL
-  </button>
-</div>
+
 
 <!-- Table wrapper -->
 <div *ngIf="!loading && datasets.length > 0" class="datasets-table-wrapper">

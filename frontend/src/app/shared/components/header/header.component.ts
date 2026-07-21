@@ -36,7 +36,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   get shouldShowWelcomeMessage(): boolean {
     const currentUrl = this.router.url || '';
-    return !currentUrl.includes('/dashboards') && !currentUrl.includes('/builder/refine')  && !currentUrl.includes('/builder') && !currentUrl.includes('/admin/users') && !currentUrl.includes('/survey-requests')&& !currentUrl.includes('/');
+    return !currentUrl.includes('/dashboards') && !currentUrl.includes('/builder/refine')   && !currentUrl.includes('/admin/users') && !currentUrl.includes('/survey-requests')&& !currentUrl.includes('/');
   }
 
   logout(): void {

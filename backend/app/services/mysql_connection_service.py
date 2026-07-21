@@ -7,7 +7,7 @@ from app.models.mysql_connection import MySQLConnection
 from app.models.dataset import Dataset, SourceType
 from app.core.security import decrypt_password
 from app.core.logging_config import logger
-
+import traceback
 class MySQLConnectionService:
 
     @staticmethod
@@ -31,15 +31,15 @@ class MySQLConnectionService:
 
     @staticmethod
     def list_tables(connection: MySQLConnection) -> List[str]:
-        """List all tables and views in the connected database."""
         engine = MySQLConnectionService._build_engine(connection)
         try:
             inspector = inspect(engine)
             tables = inspector.get_table_names() + inspector.get_view_names()
             return sorted(tables)
         except Exception as e:
+            logger.error(f"Failed to list tables: {traceback.format_exc()}")
             raise HTTPException(status_code=400, detail=f"Could not list tables: {str(e)}")
-
+        
     @staticmethod
     def get_table_schema(connection: MySQLConnection, table_name: str) -> List[dict]:
         """Return column names and frontend-friendly types for a table."""

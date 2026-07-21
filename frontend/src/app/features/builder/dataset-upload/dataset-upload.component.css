@@ -30,6 +30,7 @@
 .file-input-wrapper {
   display: flex;
   justify-content: center;
+  
   gap: 1rem;
   align-items: center;
   flex-wrap: wrap;
@@ -51,6 +52,7 @@
   border-color: var(--color-blue-accent);
   box-shadow: 0 0 0 3px rgba(10, 35, 66, 0.15);
 }
+
 
 .upload-btn {
   background: var(--color-primary);
@@ -91,4 +93,21 @@
   margin-top: 1rem;
   color: var(--color-accent);
   font-weight: 500;
+}
+
+.mysql-option {
+  margin-top: 1rem;
+  font-size: 0.9rem;
+  color: var(--color-text-secondary);
+}
+.text-link {
+  color: var(--color-primary);
+  cursor: pointer;
+  text-decoration: underline;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.text-link:hover {
+  color: var(--color-primary-hover);
 }

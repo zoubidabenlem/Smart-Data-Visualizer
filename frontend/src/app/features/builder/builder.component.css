@@ -1,7 +1,7 @@
 .builder-container {
   padding: 0.5rem 1cqmax;
   background-color: #f9fafb;
-  min-height: calc(100vh - 70px);
+  height: auto;
   
   --color-primary: var(--prussian-blue);
   --color-primary-hover: #081d35;
@@ -84,7 +84,8 @@
 
 /* Optional: Prevent the search bar from stretching across the whole screen */
 .search-bar {
-  margin-bottom: 0;
+  margin-top: 1rem;
+  margin-bottom: 1px;
   flex-grow: 1;
   max-width: 400px;
 }
@@ -163,9 +164,6 @@
   transform: scale(0.97);
 }
 
-::ng-deep app-footer {
-  display: none !important;
-}
 
 @keyframes pulse-ring {
   0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
