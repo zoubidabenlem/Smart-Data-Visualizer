@@ -1,7 +1,7 @@
 #create tables and seed roles
-from app.models import Base, engine
 from app.models.role import Role
-from app.models.base import SessionLocal
+from app.db.base import Base, engine, SessionLocal
+
 
 def init_db():
     # Creates all tables if they don't exist (safe to run multiple times)

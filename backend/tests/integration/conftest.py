@@ -32,6 +32,18 @@ SOURCE_PASS = "test_root_pass"
 SOURCE_HOST = "localhost"
 SOURCE_PORT = 3307  # inside Docker it's 3306, but mapped to 3307 on host; container sees 3306
 
+import socket
+def is_mysql_reachable(host, port):
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.settimeout(2)
+    try:
+        s.connect((host, port))
+        return True
+    except:
+        return False
+
+assert is_mysql_reachable("localhost", 3307), "Test MySQL container not running!"
+
 @pytest.fixture(scope="session", autouse=True)
 def setup_databases():
     # Create both databases if they don't exist (connect without db)

@@ -27,23 +27,22 @@
       "item": [
         {
           "name": "Register (Admin)",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "// This will set the token if registration returns one, but usually you need to login after"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
           "request": {
             "method": "POST",
-            "header": [],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"admin@test.com\",\n  \"password\": \"secret123\",\n  \"name\": \"Admin\"\n}"
+              "raw": "{\n  \"email\": \"admin@test.com\",\n  \"password\": \"secret123\",\n  \"name\": \"Admin\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
             "url": {
               "raw": "{{base_url}}/auth/register",
@@ -68,10 +67,20 @@
           ],
           "request": {
             "method": "POST",
-            "header": [],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"admin@test.com\",\n  \"password\": \"secret123\"\n}"
+              "raw": "{\n  \"email\": \"admin@test.com\",\n  \"password\": \"secret123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
             "url": {
               "raw": "{{base_url}}/auth/login",
@@ -105,11 +114,20 @@
               {
                 "key": "Authorization",
                 "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"My Test DB\",\n  \"host\": \"localhost\",\n  \"port\": 3307,\n  \"database\": \"source_test\",\n  \"username\": \"root\",\n  \"password\": \"test_root_pass\"\n}"
+              "raw": "{\n  \"name\": \"My Test DB\",\n  \"host\": \"localhost\",\n  \"port\": 3307,\n  \"database\": \"source_test\",\n  \"username\": \"root\",\n  \"password\": \"test_root_pass\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
             "url": {
               "raw": "{{base_url}}/connections/mysql/",
@@ -160,11 +178,20 @@
               {
                 "key": "Authorization",
                 "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Updated DB Name\"\n}"
+              "raw": "{\n  \"name\": \"Updated DB Name\",\n  \"host\": \"localhost\",\n  \"port\": 3307,\n  \"database\": \"source_test\",\n  \"username\": \"root\",\n  \"password\": \"test_root_pass\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
             "url": {
               "raw": "{{base_url}}/connections/mysql/{{connection_id}}",
@@ -209,19 +236,6 @@
         },
         {
           "name": "List Tables",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "// Can assert that 'sales' exists",
-                  "var data = pm.response.json();",
-                  "pm.expect(data.tables).to.include('sales');"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
           "request": {
             "method": "GET",
             "header": [
@@ -291,11 +305,20 @@
               {
                 "key": "Authorization",
                 "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"connection_id\": {{connection_id}},\n  \"table_name\": \"sales\"\n}"
+              "raw": "{\n  \"connection_id\": {{connection_id}},\n  \"table_name\": \"sales\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
             "url": {
               "raw": "{{base_url}}/connections/mysql/import",
@@ -334,11 +357,20 @@
               {
                 "key": "Authorization",
                 "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"filters\": [],\n  \"group_by\": [\"product\"],\n  \"agg_func\": \"SUM\",\n  \"value_col\": \"amount\"\n}"
+              "raw": "{\n  \"filters\": [],\n  \"group_by\": [\"product\"],\n  \"agg_func\": \"SUM\",\n  \"value_col\": \"amount\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
             "url": {
               "raw": "{{base_url}}/datasets/{{dataset_id}}/prepare",
