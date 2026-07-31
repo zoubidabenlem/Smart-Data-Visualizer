@@ -83,8 +83,8 @@ class RefinedColumnInfo(BaseModel):
 class RefineSchemaResponse(BaseModel):
     dataset_id: int
     refined_columns: List[RefinedColumnInfo]
-    is_refined: bool
-
+    status: str 
+    
 #sequnetial treatmenet 
 class SandboxPreviewResponse(BaseModel):
     preview: List[Dict[str, Any]]          # first 50 rows as JSON-safe

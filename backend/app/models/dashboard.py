@@ -2,7 +2,6 @@ from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Enum, JSON
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.models.base import Base
-
 from pydantic import BaseModel, model_validator
 
 
@@ -19,7 +18,7 @@ class Widget(Base):
 
     id           = Column(Integer, primary_key=True, index=True)
     dashboard_id = Column(Integer, ForeignKey("dashboards.id"), nullable=False)
-    dataset_id   = Column(Integer, ForeignKey("datasets.id"), nullable=False)
+    model_id = Column(Integer, ForeignKey("data_models.id", ondelete="CASCADE"), nullable=False)    
     config_json  = Column(JSON, nullable=False)   # full widget config (chart_type, filters, etc.)
     position     = Column(JSON, nullable=True)    # e.g. {"x":0, "y":0, "w":6, "h":4}
     created_at   = Column(DateTime, server_default=func.now())
@@ -27,8 +26,8 @@ class Widget(Base):
 
     # Relationships
     dashboard = relationship("Dashboard", back_populates="widgets")
-    dataset   = relationship("Dataset", back_populates="widgets")  # add to Dataset model as well
-
+    model = relationship("DataModel", back_populates="widgets")
+    
 #container for dahsboard widgets
 class Dashboard(Base):
     __tablename__ = "dashboards"

@@ -7,6 +7,9 @@ from app.models.dataset import Dataset, SourceType
 from app.models.dashboard import Dashboard, Widget
 from app.models.cache_entry import CacheEntry
 from app.models.mysql_connection import MySQLConnection
+from app.models.table_relationship import TableRelationship
+from app.models.data_model import DataModel  # adjust import path
+
 
 '''
 SQLAlchemy's Base.metadata.create_all() only creates tables

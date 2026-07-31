@@ -5,7 +5,7 @@ from app.db.init_db import init_db
 
 #ROUTERS ___________________________________________________________________________________________
 from app.routers import auth_router as auth_router
-from app.routers import dataset_router as dataset_router
+from app.routers.datasets import router as datasets_router
 from app.routers import task_router as task_router
 from app.routers import dashboard_router as dashboard_router
 from app.routers import mysql_connection_router as mysql_connection_router
@@ -58,7 +58,7 @@ app.include_router(auth_router.router)
 #survey
 app.include_router(survey_router.router)  # Survey endpoints
 # (Phase 2+) Add datasetrouters here
-app.include_router(dataset_router.router)
+app.include_router(datasets_router)
 # (data source :mysql connection)
 app.include_router(mysql_connection_router.router)
 # (Phase 3) user management router (admin-only)

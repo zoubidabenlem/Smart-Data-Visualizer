@@ -8,7 +8,7 @@ from pydantic import BaseModel
 ALLOWED_CHART_TYPES = {"bar", "line", "pie", "scatter", "area", "heatmap","kpi"}
 
 class WidgetConfig(BaseModel):
-    dataset_id: int
+    model_id: int               # <-- changed from dataset_id
     chart_type: Literal["bar", "line", "pie", "scatter", "area", "heatmap","kpi"]
     title: str
     x_column: Optional[str] = None

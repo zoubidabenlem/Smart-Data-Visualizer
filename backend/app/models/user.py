@@ -18,6 +18,7 @@ class User(Base):
     role        = relationship("Role", back_populates="users")
     datasets    = relationship("Dataset", back_populates="owner")
     dashboards = relationship("Dashboard", back_populates="owner")
+    data_models = relationship("DataModel", back_populates="owner")
     assigned_dashboards = relationship(
         "Dashboard",
         secondary=dashboard_assignment,

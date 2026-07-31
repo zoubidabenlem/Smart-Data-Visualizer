@@ -19,7 +19,25 @@ services:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       timeout: 10s
       retries: 5
+  flyway:
+    image: flyway/flyway:9
+    container_name: smartdata-flyway
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      - FLYWAY_URL=jdbc:mysql://mysql:3306/${MYSQL_DATABASE}?allowPublicKeyRetrieval=true&useSSL=false
+      - FLYWAY_USER=${MYSQL_USER}
+      - FLYWAY_PASSWORD=${MYSQL_PASSWORD}
+      - FLYWAY_CONNECT_RETRIES=10
+      - FLYWAY_BASELINE_ON_MIGRATE=true
+      - FLYWAY_BASELINE_VERSION=0
+    command: migrate
+    volumes:
+      - ./backend/app/db/migrations:/flyway/sql
+    restart: on-failure
 
+    
   api:
     build: ./backend                # Dockerfile req
     container_name: smartdata-api

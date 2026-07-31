@@ -10,6 +10,12 @@ class SourceType(str, enum.Enum):
     excel = "excel"
     mysql = "mysql"
 
+class DatasetStatus(str, enum.Enum):
+    UPLOADED = "UPLOADED"
+    REFINING = "REFINING"
+    REFINED = "REFINED"
+    ERROR = "ERROR"
+
 class Dataset(Base):
     __tablename__ = 'datasets'
 
@@ -24,18 +30,21 @@ class Dataset(Base):
     # column_schema stores: [{"name": "revenue", "dtype": "float64"}, ...]
     #refine step 
     source_path = Column(String(1024), nullable=True)
-    is_refined = Column(Boolean, default=False)
+    status = Column(Enum(DatasetStatus), nullable=False, default=DatasetStatus.UPLOADED)
     refined_column_schema = Column(JSON, nullable=True)
     header_row = Column(Integer, nullable=False, default=0)   # 0‑based row index of the header
     skip_rows = Column(JSON, nullable=True)                    # list of ints (rows skipped before header)
     custom_column_names = Column(JSON, nullable=True)  
      # dict mapping original -> new name (optional)
-
+    @property
+    def is_refined(self):
+        return self.status == DatasetStatus.REFINED
     connection_id = Column(Integer, ForeignKey("mysql_connections.id"), nullable=True)
     source_table = Column(String(255), nullable=True)   # the table/view name we imported
 
     # Relationships
     owner      = relationship("User", back_populates="datasets")
-    widgets = relationship("Widget", back_populates="dataset")
     connection = relationship("MySQLConnection", back_populates="datasets")
+    model_links = relationship("ModelDataset", back_populates="dataset",cascade="all, delete-orphan",passive_deletes=True)     # optional; relies on DB-level cascade if you want
+
 

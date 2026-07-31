@@ -43,6 +43,27 @@ refined_cache         = RedisBackedCache(ttl=settings.cache_ttl_seconds)   # ref
 refined_df_cache      = TTLCache(maxsize=100, ttl=600)                    # actual pd.DataFrames
 dataset_df_cache      = TTLCache(maxsize=50, ttl=3600)   # general dataset DataFrame cache
 
+
+# ----------------------------------------------------------------------
+#  Cache‑key builders
+# ----------------------------------------------------------------------
+def preview_cache_key(dataset_id: int, is_refined: bool) -> str:
+    """Generates a consistent key for the preview cache."""
+    return f"preview:{dataset_id}:{int(is_refined)}"
+
+def get_refined_cache_key(dataset_id: int) -> str:
+    """Generates a key for the refined data cache."""
+    return f"refined:{dataset_id}"
+
+def get_prepared_cache_key(dataset_id: int, payload_dict: dict) -> str:
+    """Generates a key for the prepared/chart data cache.
+       Uses a hash of the payload to distinguish different pipeline requests."""
+    import hashlib, json
+    payload_hash = hashlib.md5(
+        json.dumps(payload_dict, sort_keys=True, default=str).encode()
+    ).hexdigest()
+    return f"prepared:{dataset_id}:{payload_hash}"
+
 # ----------------------------------------------------------------------
 #  Backward‑compatible helper functions (used by routers)
 # ----------------------------------------------------------------------

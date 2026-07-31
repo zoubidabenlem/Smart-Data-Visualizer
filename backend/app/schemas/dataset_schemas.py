@@ -5,7 +5,7 @@ from datetime import datetime
 from typing import Dict, Generic, Optional
 
 from sqlalchemy import Column
-from app.models.dataset import SourceType
+from app.models.dataset import DatasetStatus, SourceType
 from typing import List
 from sqlalchemy import String
 #Column struct
@@ -24,8 +24,10 @@ class DatasetOut(BaseModel):
     uploaded_at: datetime
     model_config={"from_attributes": True}  #for pydantic to read sqlAlchemy objs
     source_path: Optional[str] = None
-    is_refined: bool                              
+    status: DatasetStatus               # new field
+    model_id: Optional[int] = None      # optional, to help frontend later                              
     refined_column_schema: Optional[List[ColumnInfo]] = None
+    
 
 #req/res for schema header configuration
 
