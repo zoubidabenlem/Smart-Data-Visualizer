@@ -10,9 +10,8 @@ from app.routers import task_router as task_router
 from app.routers import dashboard_router as dashboard_router
 from app.routers import mysql_connection_router as mysql_connection_router
 from app.routers import user_router
+from app.routers.models import router as models_router
 
-#
-#
 
 #_________________________________________________________________________________________________
 #Exception handlers
@@ -60,6 +59,8 @@ app.include_router(survey_router.router)  # Survey endpoints
 # (Phase 2+) Add datasetrouters here
 app.include_router(datasets_router)
 # (data source :mysql connection)
+# data models :  multi table support
+app.include_router(models_router)
 app.include_router(mysql_connection_router.router)
 # (Phase 3) user management router (admin-only)
 app.include_router(user_router.router)  # Admin-only user management endpoints

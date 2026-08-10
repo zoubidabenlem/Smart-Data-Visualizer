@@ -27,6 +27,12 @@ class DataModelOut(BaseModel):
     class Config:
         from_attributes = True
 
+class PaginatedModelsOut(BaseModel):
+    total: int
+    page: int
+    size: int
+    models: List[DataModelOut]
+
 
 # ------------------ Model ↔ Dataset Junction ------------------
 class ModelDatasetCreate(BaseModel):

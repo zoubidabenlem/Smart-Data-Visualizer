@@ -1,0 +1,6 @@
+ticket_id,customer_id,issue_priority,resolution_status,created_at
+9001,1001,High,Resolved,2026-01-12
+9002,1002,Low,Resolved,2026-01-16
+9003,1001,Medium,Open,2026-01-22
+9004,1004,High,Open,2026-03-01
+9005,1005,Low,Resolved,2026-03-10

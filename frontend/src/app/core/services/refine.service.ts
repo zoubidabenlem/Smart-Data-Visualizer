@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { ColumnRefineAction, SandboxPreviewResponse } from '../models/refine.model';
+import { DatasetOut } from '../models/dataset.model';
 
 @Injectable({
   providedIn: 'root'
@@ -31,14 +32,18 @@ export class RefineService {
     );
   }
 
-  /**
-   * Finalize the refinement pipeline. Returns the dataset info (like old RefineSchemaResponse).
-   * We'll define a simple response interface or reuse DatasetOut.
-   */
-  finalize(datasetId: number): Observable<{ dataset_id: number; refined_columns: any[]; is_refined: boolean }> {
-    return this.http.post<{ dataset_id: number; refined_columns: any[]; is_refined: boolean }>(
-      `${this.baseUrl}/${datasetId}/refine/finalize`,
-      {}
-    );
-  }
+
+// ...
+
+/**
+ * Finalize the refinement pipeline.
+ * Backend returns a full DatasetOut with updated status and refined_column_schema.
+ */
+finalize(datasetId: number): Observable<DatasetOut> {
+  return this.http.post<DatasetOut>(
+    `${this.baseUrl}/${datasetId}/refine/finalize`,
+    {}
+  );
+}
+
 }

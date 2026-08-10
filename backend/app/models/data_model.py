@@ -15,7 +15,7 @@ class DataModel(Base):
 
     owner = relationship("User", back_populates="data_models")
     base_dataset = relationship("Dataset", foreign_keys=[base_dataset_id])
-    model_datasets = relationship("ModelDataset", back_populates="model", cascade="all, delete-orphan")
+    datasets = relationship("ModelDataset", back_populates="model", cascade="all, delete-orphan")
     relationships = relationship("TableRelationship", back_populates="model", cascade="all, delete-orphan")
     widgets = relationship("Widget", back_populates="model")
 
@@ -26,5 +26,5 @@ class ModelDataset(Base):
     dataset_id = Column(Integer, ForeignKey("datasets.id", ondelete="CASCADE"), primary_key=True)
     alias = Column(String(64), nullable=True)   # user-friendly table alias
 
-    model = relationship("DataModel", back_populates="model_datasets")
+    model = relationship("DataModel", back_populates="datasets")
     dataset = relationship("Dataset", back_populates="model_links")

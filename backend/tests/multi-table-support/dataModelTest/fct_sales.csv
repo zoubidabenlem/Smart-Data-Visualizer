@@ -1,0 +1,7 @@
+sale_id,customer_id,product_category,amount_usd,sale_date
+5001,1001,Electronics,1200.50,2026-01-10
+5002,1003,Furniture,450.00,2026-01-11
+5003,1002,Clothing,85.25,2026-01-15
+5004,1001,Electronics,45.00,2026-01-20
+5005,1005,Software,299.99,2026-02-01
+5006,1003,Electronics,899.00,2026-02-05

@@ -5,25 +5,32 @@ export interface ColumnSchema {
   type: 'number' | 'date' | 'text';
 }
 
+export type DatasetStatus = 'UPLOADED' | 'REFINING' | 'REFINED' | 'ERROR';
+
+export type SourceType = 'csv' | 'excel' | 'mysql';
+
 export interface DatasetOut {
   id: number;
   filename: string;
-  row_count: number;
-  col_count: number;
-  column_schema: ColumnSchema[];
-  uploaded_at: string;          // matches backend field name
-  is_refined: boolean;          // ← required for guard
-  refined_column_schema?: ColumnSchema[];  // optional, present if refined // or uploaded_at, adjust based on backend
+  source_type: SourceType;               // now required, matches backend
+  row_count: number | null;
+  col_count: number | null;
+  column_schema: ColumnSchema[] | null;
+  uploaded_at: string;
+  source_path?: string | null;
+  status: DatasetStatus;                 // new – replaces derived is_refined
+  model_id?: number | null;              // new – auto‑created model ID (from upload)
+  refined_column_schema?: ColumnSchema[] | null;
+
  // ---------- MySQL specific ----------
   connection_id?: number;        // reference to MySQLConnection
   source_table?: string;         // original table name (if imported via static import)
-  source_type?: string;          // 'file' or 'mysql'
 }
 
 export interface DatasetPreview {
   cached: boolean;
   data: any[];   // array of objects
-  refined?: boolean;
+  status: DatasetStatus;
 
 }
 
