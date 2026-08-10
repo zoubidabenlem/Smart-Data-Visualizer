@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session, joinedload
 from app.db.base import get_db
 from app.dependencies.auth_dependencies import get_current_user
 from app.models.data_model import DataModel, ModelDataset
+from app.models.table_relationship import TableRelationship
 from app.models.user import User
 from app.schemas.model_schemas import (
     DataModelCreate,
@@ -69,11 +70,12 @@ def get_model(
     current_user: User = Depends(get_current_user),
 ):
     model = (
-        db.query(DataModel)
+         db.query(DataModel)
         .filter(DataModel.id == model_id, DataModel.user_id == current_user.id)
         .options(
-            joinedload(DataModel.datasets).joinedload(ModelDataset),
-            joinedload(DataModel.relationships),
+            joinedload(DataModel.datasets).joinedload(ModelDataset.dataset),  # ✅ correct
+            joinedload(DataModel.relationships).joinedload(TableRelationship.left_dataset),
+            joinedload(DataModel.relationships).joinedload(TableRelationship.right_dataset),
         )
         .first()
     )

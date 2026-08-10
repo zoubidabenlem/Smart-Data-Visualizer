@@ -1,0 +1,137 @@
+<div class="studio-header">
+  <div class="header-left">
+    <a routerLink="/models" class="back-link">← Back to Models</a>
+    <!-- Bind model name securely if loaded -->
+    <input 
+      *ngIf="model" 
+      type="text" 
+      [(ngModel)]="model.name" 
+      placeholder="Model Name..." 
+      class="model-name-input"
+    />
+  </div>
+  <div class="header-right">
+    <!-- Save Action Button -->
+   <button 
+  (click)="saveModelLayout()" 
+  [disabled]="isLoading || attachedDatasets.length === 0" 
+  class="global-save-btn">
+  {{ isLoading ? 'Saving...' : '◉ Save Model Layout' }}
+</button>
+
+  </div>
+</div>
+
+<div class="studio-container">
+
+  <!-- LEFT SIDEBAR -->
+  <div class="sidebar">
+
+  <!-- ===== SECTION 1: Recent Datasets ===== -->
+  <div class="sidebar-section">
+    <div class="section-header" (click)="toggleDatasets()">
+      <span>⊟ Recent Datasets</span>
+      <span class="toggle-icon">{{ isDatasetsCollapsed ? '▶' : '▼' }}</span>
+    </div>
+    <div class="section-body" *ngIf="!isDatasetsCollapsed">
+      <input type="text" placeholder="↻ Search..." (input)="searchDatasets($event)" />
+      <ul>
+        <li *ngFor="let ds of recentDatasets" (click)="addDatasetToModel(ds)" class="dataset-item">
+          {{ ds.filename }}
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ===== SECTION 2: Existing Relationships ===== -->
+  <div class="sidebar-section">
+    <div class="section-header" (click)="toggleExistingRelations()">
+      <span>⇆ Existing Relationships</span>
+      <span class="toggle-icon">{{ isExistingRelationsCollapsed ? '▶' : '▼' }}</span>
+    </div>
+    <div class="section-body" *ngIf="!isExistingRelationsCollapsed">
+      <div *ngIf="model && model.relationships && model.relationships.length > 0; else noRels">
+        <div *ngFor="let rel of model.relationships" class="rel-item">
+          <span>
+            {{ rel.left_dataset?.filename || 'Dataset' }}.{{ rel.left_column }}
+            ➜
+            {{ rel.right_dataset?.filename || 'Dataset' }}.{{ rel.right_column }}
+            ({{ rel.join_type }})
+          </span>
+          <button (click)="deleteRelationship(rel.id)" class="delete-rel-btn">✕</button>
+        </div>
+      </div>
+      <ng-template #noRels>
+        <p style="font-size:0.85rem; color:#94a3b8; margin:0.5rem 0;">No relationships defined yet.</p>
+      </ng-template>
+    </div>
+  </div>
+
+  <!-- ===== SECTION 3: Relationship Properties (builder) ===== -->
+  <div class="sidebar-section" *ngIf="sourceColumn && targetColumn">
+    <div class="section-header" (click)="toggleRelationship()">
+      <span>⇲ Relationship Properties</span>
+      <span class="toggle-icon">{{ isRelationshipCollapsed ? '▶' : '▼' }}</span>
+    </div>
+    <div class="section-body" *ngIf="!isRelationshipCollapsed">
+      <p>
+        <strong>{{ sourceColumn.column }}</strong> (from dataset {{ sourceColumn.datasetId }})
+        →
+        <strong>{{ targetColumn.column }}</strong> (from dataset {{ targetColumn.datasetId }})
+      </p>
+      <label>
+        Join Type:
+        <select [(ngModel)]="pendingJoinType">
+          <option value="INNER">INNER JOIN</option>
+          <option value="LEFT">LEFT JOIN</option>
+          <option value="RIGHT">RIGHT JOIN</option>
+          <option value="FULL">FULL JOIN</option>
+        </select>
+      </label>
+      <div class="panel-actions">
+        <button (click)="saveRelationship()" class="save-btn">Save</button>
+        <button (click)="clearSelection()" class="cancel-btn">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Optional: hint when no columns selected -->
+  <div *ngIf="!sourceColumn || !targetColumn" class="sidebar-section">
+    <div class="section-header" style="opacity:0.6; cursor:default;">
+      <span>⇲ Relationship Properties</span>
+    </div>
+    <div class="section-body" style="color:#94a3b8; font-size:0.85rem; padding:0.5rem 0;">
+      Select a source column (click), then a target column in another dataset.
+    </div>
+  </div>
+
+</div>
+
+  <!-- MAIN CANVAS -->
+  <div class="canvas" #canvasContainer>
+      <!-- SVG overlay for relationship lines -->
+  <svg class="relationship-lines" #lineSvg></svg>
+  
+    <div *ngIf="attachedDatasets.length === 0" class="prompt">
+      ✕ No datasets attached yet.<br />
+      Click a dataset from the left sidebar to add it.
+    </div>
+  
+    <div *ngFor="let box of attachedDatasets" class="dataset-box" [attr.data-id]="box.dataset.id">
+      <div class="box-header">
+        <h5>{{ box.dataset.filename }}</h5>
+        <span class="remove" (click)="removeDataset(box.dataset.id)">✕</span>
+      </div>
+      <ul>
+        <li
+          *ngFor="let col of box.columns"
+          [class.selected]="isColumnSelected(box.dataset.id, col.name)"
+          (click)="selectColumn(box.dataset.id, col.name)"
+        >
+          {{ col.name }} <span class="col-type">({{ col.type }})</span>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+</div>

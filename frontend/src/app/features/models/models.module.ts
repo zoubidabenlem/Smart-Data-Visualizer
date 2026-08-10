@@ -7,12 +7,16 @@ import { ModelCreateComponent } from './model-create/model-create.component';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatDialogModule } from '@angular/material/dialog';
+import { ModelStudioComponent } from './model-studio/model-studio.component';
+import { ModelDetailComponent } from './model-detail/model-detail.component';
 
 
 @NgModule({
   declarations: [
     ModelListComponent,
-    ModelCreateComponent
+    ModelCreateComponent,
+    ModelStudioComponent,
+    ModelDetailComponent
   ],
   imports: [
     CommonModule,

@@ -2,6 +2,7 @@ import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { ModelListComponent } from './model-list/model-list.component';
 import { ModelCreateComponent } from './model-create/model-create.component';
+import { ModelStudioComponent } from './model-studio/model-studio.component';
 
 const routes: Routes = [
   {
@@ -12,6 +13,11 @@ const routes: Routes = [
     path: 'new',
     component: ModelCreateComponent, // Step 2 (or use dialog)
   },
+    { 
+      path: ':id/studio',
+       component: ModelStudioComponent 
+      },   // <-- add this
+
  
 ];
 
