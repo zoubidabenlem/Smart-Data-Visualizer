@@ -26,7 +26,7 @@ def list_models(
         db.query(DataModel)
         .filter(DataModel.user_id == current_user.id)
         .options(
-            joinedload(DataModel.datasets).joinedload(ModelDataset),
+            joinedload(DataModel.datasets).joinedload(ModelDataset.dataset),
             joinedload(DataModel.relationships),
         )
         .order_by(DataModel.created_at.desc())

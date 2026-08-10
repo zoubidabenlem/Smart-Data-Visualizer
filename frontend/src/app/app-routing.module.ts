@@ -26,6 +26,13 @@ const routes: Routes = [
   title: 'Data Builder',
   loadChildren: () => import('./features/builder/builder.module').then(m => m.BuilderModule)
 },
+/////////////// MULTI TABLE SUP : MODELING  routes — protected by BOTH guards, run in order
+{
+  path: 'models',
+  canActivate: [authGuard, roleGuard],
+  data: { roles: ['admin'] },
+  loadChildren: () => import('./features/models/models.module').then(m => m.ModelsModule)
+},
 ///////////////DASHBOARD  routes — protected by BOTH guards, run in order
   {
   path: 'dashboards',

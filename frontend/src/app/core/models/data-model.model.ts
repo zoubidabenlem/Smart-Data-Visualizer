@@ -21,6 +21,14 @@ export interface ModelDatasetOut {
   dataset: DatasetOut;         // nested full dataset info
 }
 
+// Paginated response for model list
+export interface PaginatedModelsOut {
+  total: number;
+  page: number;
+  size: number;
+  models: DataModelOut[];
+}
+
 export interface TableRelationshipOut {
   id: number;
   model_id: number;

@@ -70,8 +70,8 @@ export class RefineSandboxComponent implements OnInit {
       next: (dataset) => {
         this.datasetInfo = {
           filename: dataset.filename,
-          rowCount: dataset.row_count,
-          colCount: dataset.col_count
+          rowCount: dataset.row_count ?? 0,
+          colCount: dataset.col_count ?? 0
         };
         // Fetch the initial preview (raw data, no actions applied yet)
         this.loadPreview();

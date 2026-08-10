@@ -1,0 +1,16 @@
+<!-- model-create.component.html -->
+<div class="dialog">
+  <h2>Create New Data Model</h2>
+  <form [formGroup]="form" (ngSubmit)="onSubmit()">
+    <label>Model Name</label>
+    <input formControlName="name" placeholder="Enter name..." />
+
+    <label>Description</label>
+    <input formControlName="description" placeholder="Optional description..." />
+
+    <div class="actions">
+      <button type="button" (click)="onCancel()">Cancel</button>
+      <button type="submit" [disabled]="form.invalid">Create</button>
+    </div>
+  </form>
+</div>

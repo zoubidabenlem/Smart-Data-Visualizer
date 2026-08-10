@@ -25,6 +25,12 @@ export interface DatasetOut {
  // ---------- MySQL specific ----------
   connection_id?: number;        // reference to MySQLConnection
   source_table?: string;         // original table name (if imported via static import)
+// Derived convenience property (added by mapper)
+  is_refined: boolean;
+}
+
+export function mapDatasetOut(raw: any): DatasetOut {
+  return { ...raw, is_refined: raw.status === 'REFINED' };
 }
 
 export interface DatasetPreview {

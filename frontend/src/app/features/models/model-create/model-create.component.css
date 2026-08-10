@@ -1,0 +1,138 @@
+/* =============================================
+   Create Data Model – Centered Modal Card
+   ============================================= */
+
+:host {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 20vh;
+border-radius: var(--radius-lg);
+width: 100%;
+max-width: 480px;
+  background: rgba(255, 253, 247, 0.6);      /* soft porcelain overlay */
+  backdrop-filter: blur(4px);
+  font-family: var(--font-family);
+}
+
+/* The card itself */
+.dialog {
+  background: var(--color-surface);           /* white */
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  padding: 2.5rem 2rem;
+  width: 100%;
+  max-width: 480px;
+  animation: fadeInUp 0.4s ease;
+}
+
+/* Title */
+.dialog h2 {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--prussian-blue);
+  margin: 0 0 1.5rem;
+  letter-spacing: -0.3px;
+}
+
+/* ---------- Form ---------- */
+form {
+  display: flex;
+  flex-direction: column;
+}
+
+label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.25rem;
+}
+
+input {
+  padding: 0.7rem 0.9rem;
+  margin-bottom: 1.25rem;
+  background: var(--color-background);        /* porcelain */
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: 1rem;
+  color: var(--color-text-primary);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  outline: none;
+}
+
+input::placeholder {
+  color: var(--color-text-secondary);
+  opacity: 0.7;
+}
+
+input:focus {
+  border-color: var(--color-primary);         /* seagrass */
+  box-shadow: 0 0 0 3px rgba(44, 165, 141, 0.15);
+}
+
+/* ---------- Action buttons ---------- */
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+/* Cancel button */
+.actions button[type="button"] {
+  background: transparent;
+  border: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
+  border-radius: 50px;
+  padding: 0.6rem 1.5rem;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+
+.actions button[type="button"]:hover {
+  background: rgba(10, 35, 66, 0.04);
+  border-color: var(--prussian-blue);
+  color: var(--prussian-blue);
+}
+
+/* Create button */
+.actions button[type="submit"] {
+  background: var(--color-primary);           /* seagrass */
+  border: none;
+  color: #ffffff;
+  border-radius: 50px;
+  padding: 0.6rem 1.8rem;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-base);
+}
+
+.actions button[type="submit"]:hover:not(:disabled) {
+  background: var(--color-primary-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.actions button[type="submit"]:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* Subtle entrance animation */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

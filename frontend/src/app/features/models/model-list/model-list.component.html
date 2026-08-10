@@ -1,0 +1,51 @@
+<!-- Loading, error, and empty state -->
+<div *ngIf="isLoading" class="loading">Loading models…</div>
+
+<div *ngIf="errorMessage" class="error-message">{{ errorMessage }}</div>
+
+<div *ngIf="!isLoading && models.length === 0" class="no-data">
+  No data models yet. <a routerLink="/models/new">Create your first model</a>.
+</div>
+<h1>Data Models</h1>
+<!-- model-list.component.html -->
+<button class="create-button" (click)="openCreateDialog()">Create New Model</button>
+<!-- Table wrapper -->
+<div *ngIf="!isLoading && models.length > 0" class="datasets-table-wrapper">
+  <table class="datasets-table">
+    <thead>
+      <tr>
+        <th>Model Name</th>
+        <th>Datasets</th>
+        <th>Created</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let model of models; trackBy: trackById">
+        <td>
+          <!-- Optional: small dot to indicate if a model has datasets (like status) -->
+<!-- Replace your current span with this structure -->
+<span class="status-dot" [ngClass]="getStatusClass(model)"></span>
+          {{ model.name }}
+        </td>
+        <td>{{ model.datasets?.length || 0 }}</td>
+        <td>{{ model.created_at | date:'medium' }}</td>
+        <td class="action-cell">
+          <button class="menu-trigger" (click)="toggleMenu(model.id)">⋮</button>
+          <div class="action-menu" *ngIf="openMenuId === model.id">
+            <button [routerLink]="['/models', model.id, 'studio']">Edit in Studio</button>
+            <button (click)="onMenuAction('delete', model.id)">Delete</button>
+          </div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <mat-paginator 
+  [length]="total"
+  [pageSize]="size"
+  [pageIndex]="page - 1"
+  [pageSizeOptions]="[5, 10, 20, 50]"
+  (page)="handleMaterialPageEvent($event)">
+</mat-paginator>
+
+</div>
