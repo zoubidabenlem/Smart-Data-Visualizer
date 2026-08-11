@@ -16,7 +16,7 @@
   (click)="saveModelLayout()" 
   [disabled]="isLoading || attachedDatasets.length === 0" 
   class="global-save-btn">
-  {{ isLoading ? 'Saving...' : '◉ Save Model Layout' }}
+  {{ isLoading ? 'Saving...' : '⚙ Save Model Layout' }}
 </button>
 
   </div>
@@ -28,9 +28,9 @@
   <div class="sidebar">
 
   <!-- ===== SECTION 1: Recent Datasets ===== -->
-  <div class="sidebar-section">
-    <div class="section-header" (click)="toggleDatasets()">
-      <span>⊟ Recent Datasets</span>
+  <div class="sidebar-section" style="overflow: auto; max-height: auto;">
+    <div class="section-header" (click)="toggleDatasets()"  >
+      <span>↺ Recent Datasets</span>
       <span class="toggle-icon">{{ isDatasetsCollapsed ? '▶' : '▼' }}</span>
     </div>
     <div class="section-body" *ngIf="!isDatasetsCollapsed">
@@ -44,7 +44,7 @@
   </div>
 
   <!-- ===== SECTION 2: Existing Relationships ===== -->
-  <div class="sidebar-section">
+  <div class="sidebar-section"  style="overflow-y: auto; max-height: 250px;">
     <div class="section-header" (click)="toggleExistingRelations()">
       <span>⇆ Existing Relationships</span>
       <span class="toggle-icon">{{ isExistingRelationsCollapsed ? '▶' : '▼' }}</span>

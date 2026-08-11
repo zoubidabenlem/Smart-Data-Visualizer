@@ -5,7 +5,8 @@ import { takeUntil } from 'rxjs/operators';
 import { DataModelOut } from 'src/app/core/models/data-model.model';
 import { DataModelService } from 'src/app/core/services/data-model.service';
 import { ModelCreateComponent } from '../model-create/model-create.component';
-
+import { Router } from '@angular/router';
+import { HeaderTitleService } from 'src/app/core/services/header-title.service';
 @Component({
   selector: 'app-model-list',
   templateUrl: './model-list.component.html',
@@ -15,15 +16,18 @@ export class ModelListComponent implements OnInit, OnDestroy {
   models: DataModelOut[] = [];
   total = 0;
   page = 1;
-  size = 20;
+  size = 10;
   isLoading = false;
   errorMessage = '';
   openMenuId: number | null = null;
 
 
   private destroy$ = new Subject<void>();
+  
 
-  constructor(private modelService: DataModelService, private dialog: MatDialog) {}
+  constructor(private modelService: DataModelService, private dialog: MatDialog, private router: Router, private headerTitleService: HeaderTitleService) 
+  {   this.headerTitleService.setTitle('Model Explorer');}
+  
 
   ngOnInit(): void {
     this.loadModels();
@@ -104,7 +108,9 @@ onMenuAction(action: string, id: number): void {
   // Add this line at the very top of your TS class properties to make Math usable in HTML
 protected readonly Math = Math;
 
-
+goToDetail(id: number) {
+  this.router.navigate(['/models', id]);
+}
 
 // Use this for Option 2 (Angular Material Paginator)
 handleMaterialPageEvent(event: any): void {
@@ -115,7 +121,7 @@ handleMaterialPageEvent(event: any): void {
 // model-list.component.ts
 openCreateDialog(): void {
   const dialogRef = this.dialog.open(ModelCreateComponent, {
-    width: '500px',
+    width: '480px',
     // You can pass data if needed: data: { some: 'value' }
   });
 

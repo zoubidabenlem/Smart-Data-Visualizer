@@ -35,6 +35,7 @@
           <div class="action-menu" *ngIf="openMenuId === model.id">
             <button [routerLink]="['/models', model.id, 'studio']">Edit in Studio</button>
             <button (click)="onMenuAction('delete', model.id)">Delete</button>
+            <button (click)="goToDetail(model.id)">View Details</button>
           </div>
         </td>
       </tr>

@@ -3,6 +3,7 @@ import { RouterModule, Routes } from '@angular/router';
 import { ModelListComponent } from './model-list/model-list.component';
 import { ModelCreateComponent } from './model-create/model-create.component';
 import { ModelStudioComponent } from './model-studio/model-studio.component';
+import { ModelDetailComponent } from './model-detail/model-detail.component';
 
 const routes: Routes = [
   {
@@ -17,6 +18,10 @@ const routes: Routes = [
       path: ':id/studio',
        component: ModelStudioComponent 
       },   // <-- add this
+  {
+    path: ':id',
+    component: ModelDetailComponent, // Step 3
+  }
 
  
 ];

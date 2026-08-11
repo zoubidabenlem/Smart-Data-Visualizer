@@ -12,6 +12,12 @@ class JoinType(str, enum.Enum):
     RIGHT = "RIGHT"
     FULL = "FULL"
 
+class Cardinality(str, enum.Enum):
+    ONE_TO_ONE = "one_to_one"
+    ONE_TO_MANY = "one_to_many"
+    MANY_TO_ONE = "many_to_one"
+    MANY_TO_MANY = "many_to_many"
+
 class TableRelationship(Base):
     __tablename__ = "table_relationships"
 
@@ -22,6 +28,7 @@ class TableRelationship(Base):
     left_column = Column(String(255), nullable=False)
     right_column = Column(String(255), nullable=False)
     join_type = Column(Enum(JoinType), nullable=False, default=JoinType.INNER)
+    cardinality = Column(Enum(Cardinality), nullable=False, default=Cardinality.MANY_TO_ONE)
     description = Column(String(1024), nullable=True)   # or Text
 
     model = relationship("DataModel", back_populates="relationships")

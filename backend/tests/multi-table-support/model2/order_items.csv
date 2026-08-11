@@ -1,0 +1,11 @@
+item_id,order_id,product_category,quantity,item_price
+I1,O1001,Electronics,1,120.50
+I2,O1002,Clothing,2,22.50
+I3,O1003,Home & Kitchen,3,70.00
+I4,O1004,Books,1,89.99
+I5,O1005,Groceries,5,3.10
+I6,O1006,Electronics,1,340.00
+I7,O1007,Clothing,1,65.25
+I8,O1008,Home & Kitchen,2,55.00
+I9,O1009,Electronics,2,115.20
+I10,O1010,Books,2,25.00

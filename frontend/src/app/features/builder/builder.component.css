@@ -1,7 +1,7 @@
 .builder-container {
   padding: 0.5rem 1cqmax;
   background-color: #f9fafb;
-  height: auto;
+  height: 85.60vh;
   
   --color-primary: var(--prussian-blue);
   --color-primary-hover: #081d35;

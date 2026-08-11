@@ -8,6 +8,7 @@ class DataModel(Base):
     __tablename__ = "data_models"
 
     id = Column(Integer, primary_key=True, index=True)
+    description = Column(String(1024), nullable=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     name = Column(String(255), nullable=False)
     base_dataset_id = Column(Integer, ForeignKey("datasets.id", ondelete="SET NULL"), nullable=True)

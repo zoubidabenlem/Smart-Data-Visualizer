@@ -31,7 +31,8 @@ const routes: Routes = [
   path: 'models',
   canActivate: [authGuard, roleGuard],
   data: { roles: ['admin'] },
-  loadChildren: () => import('./features/models/models.module').then(m => m.ModelsModule)
+  loadChildren: () => import('./features/models/models.module').then(m => m.ModelsModule),
+  title: 'Data Modeling'
 },
 ///////////////DASHBOARD  routes — protected by BOTH guards, run in order
   {

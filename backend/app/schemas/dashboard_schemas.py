@@ -1,84 +1,77 @@
 from typing import Any, Dict, Optional, List, Literal
 from pydantic import BaseModel, Field, field_validator, model_validator
-from app.schemas.pipeline import AggregationSpec, FilterCondition, MissingConfig
+from app.schemas.pipeline import FilterCondition, MissingConfig
 from app.models.dashboard import WidgetPosition
-from pydantic import BaseModel
 
+ALLOWED_CHART_TYPES = {"bar", "line", "pie", "scatter", "area", "heatmap", "kpi"}
 
-ALLOWED_CHART_TYPES = {"bar", "line", "pie", "scatter", "area", "heatmap","kpi"}
+# ------------------------------------------------------------
+# Reusable building blocks
+# ------------------------------------------------------------
+class ColumnRef(BaseModel):
+    dataset_id: int
+    column: str
 
+class MeasureSpec(BaseModel):
+    dataset_id: int
+    column: str
+    aggregation: Literal["SUM", "AVG", "COUNT", "MIN", "MAX"]
+    alias: Optional[str] = None   # required when >1 measure
+
+class OrderByClause(BaseModel):
+    field: str                     # alias of a measure or dimension
+    direction: Literal["asc", "desc"] = "asc"
+
+# FilterCondition is imported from app.schemas.pipeline – make sure it has dataset_id
+    
+class WidgetPositionUpdate(BaseModel):
+    widget_id: int
+    position: Dict[str, Any]   # e.g., {"x": 0, "y": 0, "w": 4, "h": 3}
+
+# ------------------------------------------------------------
+# Main WidgetConfig
+# ------------------------------------------------------------
 class WidgetConfig(BaseModel):
-    model_id: int               # <-- changed from dataset_id
-    chart_type: Literal["bar", "line", "pie", "scatter", "area", "heatmap","kpi"]
+    model_id: int
+    chart_type: Literal["bar", "line", "pie", "scatter", "area", "heatmap", "kpi"]
     title: str
-    x_column: Optional[str] = None
-    y_column: Optional[str] = None
-    filters: List[FilterCondition] = Field(default_factory=list)  # defaults to empty list
-    group_by: Optional[List[str]] = None
-    agg_func: Optional[Literal["SUM", "MEAN", "COUNT","MAX","MIN"]] = None
-    value_col: Optional[str] = None
-    missing_config: Optional[MissingConfig] = None
-    color_scheme: str = "default"  # consistent naming with default value
-    aggregations: Optional[List[AggregationSpec]]
 
-    # Optional: keep validators for custom logic (though Literal already catches invalid values)
+    # Multi‑table dimensions & measures
+    dimensions: List[ColumnRef] = Field(default_factory=list)
+    measures: List[MeasureSpec] = Field(default_factory=list)
+
+    # Filters, sorting, row limit
+    filters: List[FilterCondition] = Field(default_factory=list)
+    order_by: List[OrderByClause] = Field(default_factory=list)
+    limit: Optional[int] = None
+
+    # Styling / misc
+    color_scheme: str = "default"
+    missing_config: Optional[MissingConfig] = None
+
+    # ----- Structural validators (zero chart logic) -----
     @field_validator("chart_type")
     @classmethod
     def validate_chart_type(cls, v: str) -> str:
         if v not in ALLOWED_CHART_TYPES:
-            raise ValueError(f"Invalid chart type: {v}. Allowed types: {ALLOWED_CHART_TYPES}")
+            raise ValueError(f"Invalid chart type: {v}. Allowed: {ALLOWED_CHART_TYPES}")
         return v
 
-    @field_validator("agg_func")
-    @classmethod
-    def validate_agg_func(cls, v: Optional[str]) -> Optional[str]:
-        if v is not None and v.upper() not in {"SUM", "MEAN", "COUNT", "MAX", "MIN"}:
-            raise ValueError(f"Invalid aggregation function: {v}. Allowed: SUM, MEAN, COUNT, MAX, MIN")
-        return v.upper() if v else None
-
     @model_validator(mode="after")
-    def check_aggregation_consistency(self) -> "WidgetConfig":
-        # KPI can have a single agg_func/value_col without group_by
-        if self.chart_type == "kpi":
-            # allow single aggregation with no group_by
-            return self
-
-        has_old_style = self.agg_func and self.value_col
-        has_new_style = bool(self.aggregations)
-
-        if has_old_style and has_new_style:
-            raise ValueError("Use either 'aggregations' or 'agg_func'/'value_col', not both")
-
-        if has_old_style:
-            # Must also have group_by
-            if not self.group_by or len(self.group_by) == 0:
-                raise ValueError("group_by must be a non‑empty list when using agg_func and value_col")
-            # Normalise into aggregations inside the router before creating PrepareRequest
-            # (see step 4)
-
-        if has_new_style and not self.group_by:
-            # For charts, aggregation without group_by is allowed? Original rule required group_by.
-            # If you want to allow global aggregation (e.g., total SUM) without group_by,
-            # remove this check. Let's keep the old rule: group_by required for non-KPI.
-            raise ValueError("group_by is required when aggregations are used for chart widgets")
-
-        return self
-    
-    @model_validator(mode="after")
-    def check_aliases(self):
-        if self.aggregations and len(self.aggregations) > 1:
-            for spec in self.aggregations:
-                if not spec.alias:
-                    raise ValueError("Alias is required when multiple aggregations are used")
+    def check_measure_aliases(self):
+        if len(self.measures) > 1:
+            for i, m in enumerate(self.measures):
+                if not m.alias:
+                    raise ValueError(
+                        f"Measure {i} (dataset {m.dataset_id}, col {m.column}) "
+                        "must have an alias when multiple measures are used."
+                    )
         return self
 
     model_config = {
         "extra": "forbid",
         "str_strip_whitespace": True,
     }
-class WidgetPositionUpdate(BaseModel):
-    widget_id: int
-    position: Dict[str, Any]   # e.g., {"x": 0, "y": 0, "w": 4, "h": 3}
 
 # ------------------------------------------------------------------
 # API request / response models for dashboard CRUD

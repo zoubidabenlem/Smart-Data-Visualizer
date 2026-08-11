@@ -1,0 +1,11 @@
+customer_id,name,age,signup_date,location
+C101,Alice Smith,28,2024-01-15,New York
+C102,Bob Jones,34,2023-11-20,Chicago
+C103,Charlie Brown,22,2024-02-10,Los Angeles
+C104,Diana Prince,45,2023-05-12,Houston
+C105,Evan Wright,31,2024-03-01,Phoenix
+C106,Fiona Gallagher,29,2023-08-19,Philadelphia
+C107,George Clark,50,2023-01-05,San Antonio
+C108,Hannah Abbott,26,2024-04-02,San Diego
+C109,Ian Malcolm,39,2023-07-22,Dallas
+C110,Julia Roberts,33,2023-10-11,San Jose

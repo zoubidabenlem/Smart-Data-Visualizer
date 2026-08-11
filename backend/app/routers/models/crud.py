@@ -51,6 +51,7 @@ def create_model(
     model = DataModel(
         user_id=current_user.id,
         name=payload.name,
+        description=payload.description,
         base_dataset_id=payload.base_dataset_id,
     )
     db.add(model)
@@ -95,6 +96,8 @@ def update_model(
         model.name = payload.name
     if payload.base_dataset_id is not None:
         model.base_dataset_id = payload.base_dataset_id
+    if payload.description is not None:
+        model.description = payload.description
     try:
         db.commit()
     except Exception as e:

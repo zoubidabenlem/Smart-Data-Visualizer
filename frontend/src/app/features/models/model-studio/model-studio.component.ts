@@ -4,7 +4,7 @@ import { DataModelService } from 'src/app/core/services/data-model.service';
 import { DatasetService } from 'src/app/core/services/dataset.service'; // adjust path
 import { DataModelOut, DataModelUpdateRequest } from 'src/app/core/models/data-model.model'; // adjust imports
 import { ColumnSchema, DatasetOut } from 'src/app/core/models/dataset.model';
-
+import { HeaderTitleService } from 'src/app/core/services/header-title.service';
 // Local interface for attached datasets (with alias & columns)
 interface DatasetBox {
   dataset: DatasetOut;
@@ -58,13 +58,16 @@ isExistingRelationsCollapsed = false;
 
 @ViewChild('canvasContainer') canvasContainer!: ElementRef<HTMLDivElement>;
   @ViewChild('lineSvg') lineSvg!: ElementRef<SVGElement>;
+ 
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private modelService: DataModelService,
-    private datasetService: DatasetService
-  ) {}
+    private datasetService: DatasetService,
+    private headerTitleService: HeaderTitleService
+  ) {    this.headerTitleService.setTitle('Model Studio');
+ }
   ngAfterViewInit(): void {
      this.drawRelationshipLines();
 }
@@ -82,6 +85,7 @@ onResize(): void {
     }
     this.loadModel();
     this.loadRecentDatasets();
+    this.drawRelationshipLines();
   }
    // Toggle methods
   toggleDatasets(): void {
@@ -108,6 +112,7 @@ toggleExistingRelations(): void {
       error: () => this.router.navigate(['/models'])
     });
   }
+  filteredRecentDatasets: DatasetOut[] = [];   // <-- new
 
   loadRecentDatasets(): void {
     // Adjust method signature to match your service – e.g., listDatasets(search, page, size)
@@ -115,11 +120,23 @@ toggleExistingRelations(): void {
       next: (res) => {
         // Assume res.items is the array; if your service returns a different shape, adapt
         this.recentDatasets = res.items || res || [];
+        this.filteredRecentDatasets = [...this.recentDatasets]; // initialise
+
       },
       error: (err) => console.error('Failed to load recent datasets', err)
     });
   }
-
+  // Optional: search filtering on recent datasets
+  searchDatasets(event: Event): void {
+  
+    const input = event.target as HTMLInputElement;
+    const term = input.value.trim().toLowerCase();
+    this.searchTerm = term;
+    this.filteredRecentDatasets = this.recentDatasets.filter(ds =>
+      ds.filename.toLowerCase().includes(term)
+    );
+  }
+  
   buildAttachedBoxes(): void {
     if (!this.model) return;
     this.attachedDatasets = this.model.datasets.map(md => ({
@@ -127,6 +144,7 @@ toggleExistingRelations(): void {
       alias: md.alias,
       columns: md.dataset.column_schema || []
     }));
+
   }
 
   // ---------- Sidebar: Add Dataset ----------
@@ -225,13 +243,7 @@ toggleExistingRelations(): void {
     });
   }
 
-  // Optional: search filtering on recent datasets
-  searchDatasets(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    this.searchTerm = input.value;
-    // You could call the service with the search term, or filter locally
-    // For now, we'll keep it simple – you can implement a local filter
-  }
+  
 
   // In the class, add:
 isSaving = false;
@@ -254,7 +266,7 @@ saveModelLayout(): void {
       this.isSaving = false;
       this.saveSuccess = true;
       setTimeout(() => this.saveSuccess = false, 3000); // auto-hide success
-      this.router.navigate(['/models', this.modelId, 'view']); // optional: refresh or navigate
+      this.router.navigate(['/models', this.modelId]); // optional: refresh or navigate
     },
     error: (err) => {
       console.error('Save failed:', err);

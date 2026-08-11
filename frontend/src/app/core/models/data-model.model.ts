@@ -8,6 +8,7 @@ export type JoinType = 'INNER' | 'LEFT' | 'RIGHT' | 'FULL';
 export interface DataModelOut {
   id: number;
   name: string;
+  description: string | null;
   user_id: number;
   base_dataset_id: number | null;
   created_at: string;
@@ -46,11 +47,13 @@ export interface TableRelationshipOut {
 
 export interface DataModelCreateRequest {
   name: string;
+  description?: string;
   base_dataset_id?: number;
 }
 
 export interface DataModelUpdateRequest {
   name?: string;
+  description?: string;
   base_dataset_id?: number;
 }
 
