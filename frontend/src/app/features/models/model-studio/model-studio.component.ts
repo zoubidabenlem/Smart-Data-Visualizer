@@ -2,30 +2,21 @@ import { AfterViewInit, Component, ElementRef, HostListener, OnInit, ViewChild }
 import { ActivatedRoute, Router } from '@angular/router';
 import { DataModelService } from 'src/app/core/services/data-model.service';
 import { DatasetService } from 'src/app/core/services/dataset.service'; // adjust path
-import { DataModelOut, DataModelUpdateRequest } from 'src/app/core/models/data-model.model'; // adjust imports
+import { AddDatasetsToModelRequest, Cardinality, DataModelOut, DataModelUpdateRequest, JoinType, TableRelationshipCreateRequest } from 'src/app/core/models/data-model.model'; // adjust imports
 import { ColumnSchema, DatasetOut } from 'src/app/core/models/dataset.model';
 import { HeaderTitleService } from 'src/app/core/services/header-title.service';
+import { CdkDragEnd } from '@angular/cdk/drag-drop';
+
 // Local interface for attached datasets (with alias & columns)
 interface DatasetBox {
   dataset: DatasetOut;
   alias: string | null;
   columns: ColumnSchema[];
-}
+  x: number; // for drag position
+  y: number; // for drag position
+  isCollapsed: boolean; // <-- Add this
 
-// Request payloads (define these in your core models if not already)
-interface AddDatasetsToModelRequest {
-  datasets: { dataset_id: number }[];
 }
-
-interface TableRelationshipCreateRequest {
-  left_dataset_id: number;
-  right_dataset_id: number;
-  left_column: string;
-  right_column: string;
-  join_type: 'INNER' | 'LEFT' | 'RIGHT' | 'FULL';
-}
-
-type JoinType = 'INNER' | 'LEFT' | 'RIGHT' | 'FULL';
 
 @Component({
   selector: 'app-model-studio',
@@ -55,6 +46,8 @@ export class ModelStudioComponent implements OnInit,AfterViewInit {
   isLoading=false;
   // Add these properties inside the component class
 isExistingRelationsCollapsed = false;
+
+pendingCardinality: 'one_to_one' | 'one_to_many' | 'many_to_one' | 'many_to_many' = 'many_to_one';
 
 @ViewChild('canvasContainer') canvasContainer!: ElementRef<HTMLDivElement>;
   @ViewChild('lineSvg') lineSvg!: ElementRef<SVGElement>;
@@ -137,15 +130,59 @@ toggleExistingRelations(): void {
     );
   }
   
-  buildAttachedBoxes(): void {
-    if (!this.model) return;
-    this.attachedDatasets = this.model.datasets.map(md => ({
-      dataset: md.dataset,
-      alias: md.alias,
-      columns: md.dataset.column_schema || []
-    }));
+ buildAttachedBoxes(): void {
+  if (!this.model) return;
+  this.attachedDatasets = this.model.datasets.map((md, index) => ({
+    dataset: md.dataset,
+    alias: md.alias,
+    columns: md.dataset.column_schema || [],
+    x: index * 400,
+    y: 50,
+    isCollapsed: false // <-- Initialize false
+  }));
+}
 
+// 3. Add the toggle method
+toggleDatasetCollapse(datasetId: number): void {
+  const box = this.attachedDatasets.find(b => b.dataset.id === datasetId);
+  if (box) {
+    box.isCollapsed = !box.isCollapsed;
+    this.drawRelationshipLines(); // Redraw lines instantly so they hook to the collapsed box
   }
+}
+
+// Handle the drag end event
+onDragEnded(event: CdkDragEnd, datasetId: number): void {
+  const box = this.attachedDatasets.find(b => b.dataset.id === datasetId);
+  if (box) {
+    // Update the stored coordinates with the new CDK transform position
+    const newPosition = event.source.getFreeDragPosition();
+    box.x = newPosition.x;
+    box.y = newPosition.y;
+    
+    // Redraw the lines immediately after the drop
+    this.drawRelationshipLines();
+  }
+}
+// Inside the ModelStudioComponent class:
+
+// Helper to determine which columns to show when collapsed
+getConnectedColumns(datasetId: number): string[] {
+  if (!this.model?.relationships) return [];
+  
+  const rels = this.model.relationships.filter(
+    r => r.left_dataset_id === datasetId || r.right_dataset_id === datasetId
+  );
+  
+  // Extract column names and remove duplicates (in case a column joins to 2+ tables)
+  const colNames = rels.map(r => {
+    if (r.left_dataset_id === datasetId) return r.left_column;
+    if (r.right_dataset_id === datasetId) return r.right_column;
+    return '';
+  });
+  
+  return [...new Set(colNames)];
+}
 
   // ---------- Sidebar: Add Dataset ----------
   addDatasetToModel(dataset: DatasetOut): void {
@@ -210,6 +247,7 @@ toggleExistingRelations(): void {
       left_column: this.sourceColumn.column,
       right_column: this.targetColumn.column,
       join_type: this.pendingJoinType,
+      cardinality: this.pendingCardinality,  // <-- Add this
     };
 
     this.modelService.createRelationship(this.modelId, payload).subscribe({
@@ -243,6 +281,10 @@ toggleExistingRelations(): void {
     });
   }
 
+getOutgoingRelations(datasetId: number): any[] {
+  if (!this.model?.relationships) return [];
+  return this.model.relationships.filter(r => r.left_dataset_id === datasetId);
+}
   
 
   // In the class, add:
@@ -278,6 +320,7 @@ saveModelLayout(): void {
   /**
  * Draws SVG arrows between dataset boxes that have relationships.
  */
+   // ---------- SIMPLIFIED drawRelationshipLines ----------
 drawRelationshipLines(): void {
   if (!this.model?.relationships?.length || !this.canvasContainer) {
     if (this.lineSvg) this.lineSvg.nativeElement.innerHTML = '';
@@ -288,22 +331,31 @@ drawRelationshipLines(): void {
   const svg = this.lineSvg.nativeElement;
   const containerRect = container.getBoundingClientRect();
 
-  // Resize SVG to cover the scrollable area
   svg.style.width = container.scrollWidth + 'px';
   svg.style.height = container.scrollHeight + 'px';
 
   let svgContent = '';
+  // We find boxes based on the DOM
   const boxes = Array.from(container.querySelectorAll('.dataset-box')) as HTMLElement[];
 
+  const getLabel = (cardinality: string, side: 'left' | 'right'): string => {
+    const map: { [key: string]: { left: string, right: string } } = {
+      'one_to_one': { left: '1', right: '1' },
+      'one_to_many': { left: '1', right: '*' },
+      'many_to_one': { left: '*', right: '1' },
+      'many_to_many': { left: '*', right: '*' }
+    };
+    return map[cardinality]?.[side] || '?';
+  };
+
+  // We just draw straight lines now. Routing logic is handled by the user dragging tables!
   this.model.relationships.forEach(rel => {
-    // Find the dataset boxes
     const leftBox = boxes.find(b => parseInt(b.getAttribute('data-id') || '0') === rel.left_dataset_id);
     const rightBox = boxes.find(b => parseInt(b.getAttribute('data-id') || '0') === rel.right_dataset_id);
 
     if (!leftBox || !rightBox) return;
 
-    // IMPORTANT: Find the specific <li> containing the column name
-    // We use `textContent.trim().startsWith()` to match just the column name before the type
+    // Find columns in the DOM
     const leftLi = Array.from(leftBox.querySelectorAll('li')).find(li => 
       li.textContent?.trim().startsWith(rel.left_column)
     );
@@ -311,34 +363,50 @@ drawRelationshipLines(): void {
       li.textContent?.trim().startsWith(rel.right_column)
     );
 
-    // If we found the column LI, use it; otherwise, fallback to the entire box
     const leftRect = leftLi ? leftLi.getBoundingClientRect() : leftBox.getBoundingClientRect();
     const rightRect = rightLi ? rightLi.getBoundingClientRect() : rightBox.getBoundingClientRect();
 
-    // Calculate points: Right edge of left column, Left edge of right column
-    const x1 = leftRect.right - containerRect.left;
+    // Offsets to keep the dashed line away from the column text
+    const lineBuffer = 20;
+    const x1 = leftRect.right - containerRect.left + lineBuffer;
     const y1 = leftRect.top + leftRect.height / 2 - containerRect.top;
-    const x2 = rightRect.left - containerRect.left;
+    const x2 = rightRect.left - containerRect.left - lineBuffer;
     const y2 = rightRect.top + rightRect.height / 2 - containerRect.top;
 
-    // Draw dashed line
-    svgContent += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" 
-                       stroke="#2ca58d" stroke-width="2.5" stroke-dasharray="6,4" />`;
+    // Draw straight line
+    svgContent += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#2ca58d" stroke-width="2" stroke-dasharray="5,4" />`;
 
-    // Arrowhead
+    // Draw Arrowhead
     const angle = Math.atan2(y2 - y1, x2 - x1);
-    const headLen = 12;
+    const headLen = 10;
     const headAngle = Math.PI / 6;
     const ax = x2 - headLen * Math.cos(angle - headAngle);
     const ay = y2 - headLen * Math.sin(angle - headAngle);
     const bx = x2 - headLen * Math.cos(angle + headAngle);
     const by = y2 - headLen * Math.sin(angle + headAngle);
+    svgContent += `<polygon points="${x2},${y2} ${ax},${ay} ${bx},${by}" fill="#2ca58d" />`;
 
-    svgContent += `<polygon points="${x2},${y2} ${ax},${ay} ${bx},${by}" 
-                         fill="#2ca58d" />`;
+    // Draw Cardinality Chips (1 or *)
+    const chipSize = 20;
+    const gap = 8;
+    const labelLeft = getLabel(rel.cardinality, 'left');
+    const labelRight = getLabel(rel.cardinality, 'right');
+
+    const lX = x1 - chipSize - gap;
+    const lY = y1 - chipSize / 2;
+    svgContent += `<g transform="translate(${lX}, ${lY})">
+      <rect x="0" y="0" width="${chipSize}" height="${chipSize}" rx="4" fill="#ffffff" stroke="#94a3b8" stroke-width="1.5" />
+      <text x="${chipSize/2}" y="${chipSize/2}" text-anchor="middle" dominant-baseline="central" font-size="14" font-family="sans-serif" fill="#334155" font-weight="600">${labelLeft}</text>
+    </g>`;
+
+    const rX = x2 + gap;
+    const rY = y2 - chipSize / 2;
+    svgContent += `<g transform="translate(${rX}, ${rY})">
+      <rect x="0" y="0" width="${chipSize}" height="${chipSize}" rx="4" fill="#ffffff" stroke="#94a3b8" stroke-width="1.5" />
+      <text x="${chipSize/2}" y="${chipSize/2}" text-anchor="middle" dominant-baseline="central" font-size="14" font-family="sans-serif" fill="#334155" font-weight="600">${labelRight}</text>
+    </g>`;
   });
 
   svg.innerHTML = svgContent;
 }
-
 }

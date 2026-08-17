@@ -56,7 +56,7 @@
             {{ rel.left_dataset?.filename || 'Dataset' }}.{{ rel.left_column }}
             ➜
             {{ rel.right_dataset?.filename || 'Dataset' }}.{{ rel.right_column }}
-            ({{ rel.join_type }})
+            ({{ rel.join_type }}, {{ rel.cardinality | titlecase }})
           </span>
           <button (click)="deleteRelationship(rel.id)" class="delete-rel-btn">✕</button>
         </div>
@@ -88,6 +88,17 @@
           <option value="FULL">FULL JOIN</option>
         </select>
       </label>
+
+      <label>
+        Cardinality:
+        <select [(ngModel)]="pendingCardinality">
+          <option value="one_to_one">One-to-One</option>
+          <option value="one_to_many">One-to-Many (left→right)</option>
+          <option value="many_to_one">Many-to-One (left→right)</option>
+          <option value="many_to_many">Many-to-Many</option>
+        </select>
+      </label>
+
       <div class="panel-actions">
         <button (click)="saveRelationship()" class="save-btn">Save</button>
         <button (click)="clearSelection()" class="cancel-btn">Cancel</button>
@@ -100,7 +111,7 @@
     <div class="section-header" style="opacity:0.6; cursor:default;">
       <span>⇲ Relationship Properties</span>
     </div>
-    <div class="section-body" style="color:#94a3b8; font-size:0.85rem; padding:0.5rem 0;">
+    <div class="section-body" style="color:#94a3b8; font-size:0.85rem; padding:0.5rem 0.5rem;">
       Select a source column (click), then a target column in another dataset.
     </div>
   </div>
@@ -117,21 +128,51 @@
       Click a dataset from the left sidebar to add it.
     </div>
   
-    <div *ngFor="let box of attachedDatasets" class="dataset-box" [attr.data-id]="box.dataset.id">
-      <div class="box-header">
-        <h5>{{ box.dataset.filename }}</h5>
-        <span class="remove" (click)="removeDataset(box.dataset.id)">✕</span>
-      </div>
-      <ul>
-        <li
-          *ngFor="let col of box.columns"
-          [class.selected]="isColumnSelected(box.dataset.id, col.name)"
-          (click)="selectColumn(box.dataset.id, col.name)"
-        >
-          {{ col.name }} <span class="col-type">({{ col.type }})</span>
-        </li>
-      </ul>
-    </div>
+<div 
+  *ngFor="let box of attachedDatasets" 
+  class="dataset-box" 
+  [attr.data-id]="box.dataset.id"
+  cdkDrag
+  [cdkDragFreeDragPosition]="{x: box.x, y: box.y}"
+  (cdkDragEnded)="onDragEnded($event, box.dataset.id)"
+>
+<!-- ... inside .dataset-box ... -->
+<div class="box-header">
+  <h5>{{ box.dataset.filename }}</h5>
+  <span class="remove" (click)="removeDataset(box.dataset.id)">✕</span>
+</div>
+
+<!-- Expanded state: Show all columns -->
+<ul *ngIf="!box.isCollapsed">
+  <li
+    *ngFor="let col of box.columns"
+    [class.selected]="isColumnSelected(box.dataset.id, col.name)"
+    (click)="selectColumn(box.dataset.id, col.name)"
+  >
+    {{ col.name }} <span class="col-type">({{ col.type }})</span>
+  </li>
+</ul>
+
+<!-- Collapsed state: Show ONLY connected columns -->
+<ul *ngIf="box.isCollapsed" class="collapsed-list">
+  <li
+    *ngFor="let colName of getConnectedColumns(box.dataset.id)"
+    [class.selected]="isColumnSelected(box.dataset.id, colName)"
+    (click)="selectColumn(box.dataset.id, colName)"
+  >
+    {{ colName }}
+  </li>
+  <!-- Fallback if no relationships exist yet -->
+  <li *ngIf="getConnectedColumns(box.dataset.id).length === 0" style="color:#94a3b8; font-size:0.8rem; padding:0.5rem 1rem; cursor:default;">
+    No connections
+  </li>
+</ul>
+
+<!-- Footer with Chevron -->
+<div class="box-footer" (click)="toggleDatasetCollapse(box.dataset.id)">
+  <span class="chevron" [class.collapsed]="box.isCollapsed">▼</span>
+</div>
+</div>
   </div>
 
 </div>

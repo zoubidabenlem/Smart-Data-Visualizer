@@ -9,7 +9,7 @@ import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatDialogModule } from '@angular/material/dialog';
 import { ModelStudioComponent } from './model-studio/model-studio.component';
 import { ModelDetailComponent } from './model-detail/model-detail.component';
-
+import { DragDropModule } from '@angular/cdk/drag-drop';
 
 @NgModule({
   declarations: [
@@ -24,7 +24,8 @@ import { ModelDetailComponent } from './model-detail/model-detail.component';
     FormsModule,
     ReactiveFormsModule,
     MatPaginatorModule,
-    MatDialogModule
+    MatDialogModule,
+    DragDropModule
     
   ]
 })

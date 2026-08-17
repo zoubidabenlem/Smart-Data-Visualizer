@@ -5,6 +5,8 @@ import { DatasetOut } from './dataset.model';
 
 export type JoinType = 'INNER' | 'LEFT' | 'RIGHT' | 'FULL';
 
+export type Cardinality = 'one_to_one' | 'one_to_many' | 'many_to_one' | 'many_to_many';
+
 export interface DataModelOut {
   id: number;
   name: string;
@@ -38,6 +40,7 @@ export interface TableRelationshipOut {
   left_column: string;
   right_column: string;
   join_type: JoinType;
+  cardinality: Cardinality;
   description?: string;
   left_dataset?: DatasetOut;   // optional nested
   right_dataset?: DatasetOut;
@@ -67,6 +70,7 @@ export interface TableRelationshipCreateRequest {
   left_column: string;
   right_column: string;
   join_type: JoinType;
+  cardinality: Cardinality;
   description?: string;
 }
 
@@ -76,5 +80,6 @@ export interface TableRelationshipUpdateRequest {
   left_column?: string;
   right_column?: string;
   join_type?: JoinType;
+  cardinality?: Cardinality;
   description?: string;
 }

@@ -53,6 +53,7 @@ def create_relationship(
         left_column=payload.left_column,
         right_column=payload.right_column,
         join_type=payload.join_type,
+        cardinality=payload.cardinality,
         description=payload.description,
     )
     db.add(rel)
