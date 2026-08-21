@@ -1,6 +1,6 @@
 from typing import Any, Dict, Optional, List, Literal
 from pydantic import BaseModel, Field, field_validator, model_validator
-from app.schemas.pipeline import FilterCondition, MissingConfig
+from app.schemas.pipeline import ModelFilterCondition, MissingConfig
 from app.models.dashboard import WidgetPosition
 
 ALLOWED_CHART_TYPES = {"bar", "line", "pie", "scatter", "area", "heatmap", "kpi"}
@@ -19,14 +19,15 @@ class MeasureSpec(BaseModel):
     alias: Optional[str] = None   # required when >1 measure
 
 class OrderByClause(BaseModel):
-    field: str                     # alias of a measure or dimension
+    field: str        
+    alias: str
     direction: Literal["asc", "desc"] = "asc"
 
 # FilterCondition is imported from app.schemas.pipeline – make sure it has dataset_id
     
 class WidgetPositionUpdate(BaseModel):
     widget_id: int
-    position: Dict[str, Any]   # e.g., {"x": 0, "y": 0, "w": 4, "h": 3}
+    position: WidgetPosition   # e.g., {"x": 0, "y": 0, "w": 4, "h": 3}
 
 # ------------------------------------------------------------
 # Main WidgetConfig
@@ -41,7 +42,7 @@ class WidgetConfig(BaseModel):
     measures: List[MeasureSpec] = Field(default_factory=list)
 
     # Filters, sorting, row limit
-    filters: List[FilterCondition] = Field(default_factory=list)
+    filters: List[ModelFilterCondition] = Field(default_factory=list)
     order_by: List[OrderByClause] = Field(default_factory=list)
     limit: Optional[int] = None
 

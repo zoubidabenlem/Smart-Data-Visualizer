@@ -1,7 +1,21 @@
 from pydantic import BaseModel, Field, field_validator,model_validator
 from typing import List, Optional,Literal,Any, Dict, Union
 
+class ModelFilterCondition(BaseModel):
+    dataset_id: int
+    column: str
+    operator: Literal["==", "!=", ">", "<", "in", "like"]
+    value: Any
 
+    @field_validator('value', mode='before')
+    def parse_value(cls, v, info ):
+        if isinstance(v, str) and info.data.get('operator') == 'in':
+            try:
+                import json
+                return json.loads(v)
+            except:
+                return[item.strip() for item in v.split(',')]
+        return v
 
 class FilterCondition(BaseModel):
     column: str
