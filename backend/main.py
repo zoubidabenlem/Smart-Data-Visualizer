@@ -7,11 +7,10 @@ from app.db.init_db import init_db
 from app.routers import auth_router as auth_router
 from app.routers.datasets import router as datasets_router
 from app.routers import task_router as task_router
-from app.routers import dashboard_router as dashboard_router
 from app.routers import mysql_connection_router as mysql_connection_router
 from app.routers import user_router
 from app.routers.models import router as models_router
-
+from app.routers.dashboards import router as dashboard_router
 
 #_________________________________________________________________________________________________
 #Exception handlers
@@ -67,7 +66,7 @@ app.include_router(user_router.router)  # Admin-only user management endpoints
 #app.include_router(mysql_router.router)
 app.include_router(task_router.router)
  # PHASE 4 dashboard router
-app.include_router(dashboard_router.router) 
+app.include_router(dashboard_router) 
 
 
 

@@ -12,6 +12,7 @@ from app.schemas.model_schemas import (
     PaginatedModelsOut,
 )
 from app.routers.models.utils import get_model_or_404
+from app.services.model_metadata import get_model_column_metadata
 
 router = APIRouter(prefix="/models", tags=["models"])
 
@@ -121,3 +122,29 @@ def delete_model(
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
     return None
+
+
+@router.get("/{model_id}/columns")
+def get_model_columns(
+    model_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    model = db.query(DataModel).filter(
+        DataModel.id == model_id,
+        DataModel.user_id == current_user.id  # or use access control logic
+    ).first()
+    if not model:
+        raise HTTPException(status_code=404, detail="Model not found or access denied")
+
+    metadata = get_model_column_metadata(model, db)
+    return {
+        "model_id": model.id,
+        "datasets": [
+            {
+                "dataset_id": ds_id,
+                "columns": columns
+            }
+            for ds_id, columns in metadata.items()
+        ]
+    }

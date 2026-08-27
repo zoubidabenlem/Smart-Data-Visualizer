@@ -1,0 +1,489 @@
+{
+  "info": {
+    "name": "E-Commerce Multi-Table Analytics & Verification",
+    "description": "End-to-end Postman collection adapted for 3 datasets (orders, items, customers), star schema modeling, multi-table relationships, dashboard creation, 7 rich widgets, and verification tests.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:8000" },
+    { "key": "token", "value": "" },
+    { "key": "order_dataset_id", "value": "" },
+    { "key": "item_dataset_id", "value": "" },
+    { "key": "customer_dataset_id", "value": "" },
+    { "key": "model_id", "value": "" },
+    { "key": "dashboard_id", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "if (response.access_token) {",
+                  "    pm.collectionVariables.set('token', response.access_token);",
+                  "    console.log('Token stored:', response.access_token);",
+                  "} else {",
+                  "    console.error('No access_token in response');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\":\"admin@example.com\",\"password\":\"admin123\"}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "login"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Dataset Upload",
+      "item": [
+        {
+          "name": "Upload Orders",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "if (response.id) {",
+                  "    pm.collectionVariables.set('order_dataset_id', response.id);",
+                  "    console.log('Order dataset ID:', response.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": "orders.csv"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/datasets/upload",
+              "host": ["{{base_url}}"],
+              "path": ["datasets", "upload"]
+            },
+            "description": "Upload orders.csv containing transaction details."
+          }
+        },
+        {
+          "name": "Upload Items",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "if (response.id) {",
+                  "    pm.collectionVariables.set('item_dataset_id', response.id);",
+                  "    console.log('Item dataset ID:', response.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": "items.csv"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/datasets/upload",
+              "host": ["{{base_url}}"],
+              "path": ["datasets", "upload"]
+            },
+            "description": "Upload items.csv containing line items."
+          }
+        },
+        {
+          "name": "Upload Customers",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "if (response.id) {",
+                  "    pm.collectionVariables.set('customer_dataset_id', response.id);",
+                  "    console.log('Customer dataset ID:', response.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": "customers.csv"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/datasets/upload",
+              "host": ["{{base_url}}"],
+              "path": ["datasets", "upload"]
+            },
+            "description": "Upload customers.csv dimension table."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Model & Relationships Setup",
+      "item": [
+        {
+          "name": "Create Data Model",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "if (response.id) {",
+                  "    pm.collectionVariables.set('model_id', response.id);",
+                  "    console.log('Model ID:', response.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"E-Commerce Multi-Table Model\",\n  \"description\": \"Star schema linking Items, Orders, and Customers\",\n  \"base_dataset_id\": {{order_dataset_id}}\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/models/",
+              "host": ["{{base_url}}"],
+              "path": ["models", ""]
+            }
+          }
+        },
+        {
+          "name": "Link All 3 Datasets to Model",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"datasets\": [\n    {\"dataset_id\": {{order_dataset_id}}, \"alias\": \"orders\"},\n    {\"dataset_id\": {{item_dataset_id}}, \"alias\": \"items\"},\n    {\"dataset_id\": {{customer_dataset_id}}, \"alias\": \"customers\"}\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/models/{{model_id}}/datasets",
+              "host": ["{{base_url}}"],
+              "path": ["models", "{{model_id}}", "datasets"]
+            }
+          }
+        },
+        {
+          "name": "Relationship 1 (Orders to Customers)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"left_dataset_id\": {{order_dataset_id}},\n  \"left_column\": \"customer_id\",\n  \"right_dataset_id\": {{customer_dataset_id}},\n  \"right_column\": \"customer_id\",\n  \"cardinality\": \"many_to_one\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/models/{{model_id}}/relationships",
+              "host": ["{{base_url}}"],
+              "path": ["models", "{{model_id}}", "relationships"]
+            }
+          }
+        },
+        {
+          "name": "Relationship 2 (Items to Orders)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"left_dataset_id\": {{item_dataset_id}},\n  \"left_column\": \"order_id\",\n  \"right_dataset_id\": {{order_dataset_id}},\n  \"right_column\": \"order_id\",\n  \"cardinality\": \"many_to_one\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/models/{{model_id}}/relationships",
+              "host": ["{{base_url}}"],
+              "path": ["models", "{{model_id}}", "relationships"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Dashboard & Widgets Creation",
+      "item": [
+        {
+          "name": "Create Dashboard Container",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "if (response.id) {",
+                  "    pm.collectionVariables.set('dashboard_id', response.id);",
+                  "    console.log('Dashboard ID:', response.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Comprehensive E-Commerce Analytics\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/dashboards/",
+              "host": ["{{base_url}}"],
+              "path": ["dashboards", ""]
+            }
+          }
+        },
+        {
+          "name": "1. KPI Widget (Total Revenue)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"config\": {\n    \"model_id\": {{model_id}},\n    \"chart_type\": \"kpi\",\n    \"title\": \"Total Revenue\",\n    \"dimensions\": [],\n    \"measures\": [\n      {\"dataset_id\": {{order_dataset_id}}, \"column\": \"total_amount\", \"aggregation\": \"SUM\", \"alias\": \"total_revenue\"}\n    ]\n  },\n  \"position\": {\"x\": 0, \"y\": 0, \"cols\": 3, \"rows\": 2}\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/dashboards/{{dashboard_id}}/widgets",
+              "host": ["{{base_url}}"],
+              "path": ["dashboards", "{{dashboard_id}}", "widgets"]
+            }
+          }
+        },
+        {
+          "name": "2. Pie Chart (Revenue by Payment Method)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"config\": {\n    \"model_id\": {{model_id}},\n    \"chart_type\": \"pie\",\n    \"title\": \"Revenue by Payment Method\",\n    \"dimensions\": [{\"dataset_id\": {{order_dataset_id}}, \"column\": \"payment_method\"}],\n    \"measures\": [\n      {\"dataset_id\": {{order_dataset_id}}, \"column\": \"total_amount\", \"aggregation\": \"SUM\", \"alias\": \"revenue\"}\n    ]\n  },\n  \"position\": {\"x\": 3, \"y\": 0, \"cols\": 4, \"rows\": 4}\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/dashboards/{{dashboard_id}}/widgets",
+              "host": ["{{base_url}}"],
+              "path": ["dashboards", "{{dashboard_id}}", "widgets"]
+            }
+          }
+        },
+        {
+          "name": "3. Bar Chart (Quantity Sold by Category)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"config\": {\n    \"model_id\": {{model_id}},\n    \"chart_type\": \"bar\",\n    \"title\": \"Quantity Sold by Category\",\n    \"dimensions\": [{\"dataset_id\": {{item_dataset_id}}, \"column\": \"product_category\"}],\n    \"measures\": [\n      {\"dataset_id\": {{item_dataset_id}}, \"column\": \"quantity\", \"aggregation\": \"SUM\", \"alias\": \"total_qty\"}\n    ]\n  },\n  \"position\": {\"x\": 7, \"y\": 0, \"cols\": 5, \"rows\": 4}\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/dashboards/{{dashboard_id}}/widgets",
+              "host": ["{{base_url}}"],
+              "path": ["dashboards", "{{dashboard_id}}", "widgets"]
+            }
+          }
+        },
+        {
+          "name": "4. Line Chart (Daily Order Amounts Over Time)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"config\": {\n    \"model_id\": {{model_id}},\n    \"chart_type\": \"line\",\n    \"title\": \"Daily Order Amounts Over Time\",\n    \"dimensions\": [{\"dataset_id\": {{order_dataset_id}}, \"column\": \"order_date\"}],\n    \"measures\": [\n      {\"dataset_id\": {{order_dataset_id}}, \"column\": \"total_amount\", \"aggregation\": \"SUM\", \"alias\": \"daily_revenue\"}\n    ]\n  },\n  \"position\": {\"x\": 0, \"y\": 4, \"cols\": 6, \"rows\": 4}\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/dashboards/{{dashboard_id}}/widgets",
+              "host": ["{{base_url}}"],
+              "path": ["dashboards", "{{dashboard_id}}", "widgets"]
+            }
+          }
+        },
+        {
+          "name": "5. Area Chart (Item Pricing Across Orders)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"config\": {\n    \"model_id\": {{model_id}},\n    \"chart_type\": \"area\",\n    \"title\": \"Item Pricing Across Orders\",\n    \"dimensions\": [{\"dataset_id\": {{order_dataset_id}}, \"column\": \"order_date\"}],\n    \"measures\": [\n      {\"dataset_id\": {{item_dataset_id}}, \"column\": \"item_price\", \"aggregation\": \"AVG\", \"alias\": \"avg_price\"}\n    ]\n  },\n  \"position\": {\"x\": 6, \"y\": 4, \"cols\": 6, \"rows\": 4}\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/dashboards/{{dashboard_id}}/widgets",
+              "host": ["{{base_url}}"],
+              "path": ["dashboards", "{{dashboard_id}}", "widgets"]
+            }
+          }
+        },
+        {
+          "name": "6. Heatmap (Category vs Payment Method Matrix)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"config\": {\n    \"model_id\": {{model_id}},\n    \"chart_type\": \"heatmap\",\n    \"title\": \"Category vs Payment Method Volume\",\n    \"dimensions\": [\n      {\"dataset_id\": {{item_dataset_id}}, \"column\": \"product_category\"},\n      {\"dataset_id\": {{order_dataset_id}}, \"column\": \"payment_method\"}\n    ],\n    \"measures\": [\n      {\"dataset_id\": {{item_dataset_id}}, \"column\": \"quantity\", \"aggregation\": \"SUM\", \"alias\": \"volume\"}\n    ]\n  },\n  \"position\": {\"x\": 0, \"y\": 8, \"cols\": 6, \"rows\": 4}\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/dashboards/{{dashboard_id}}/widgets",
+              "host": ["{{base_url}}"],
+              "path": ["dashboards", "{{dashboard_id}}", "widgets"]
+            }
+          }
+        },
+        {
+          "name": "7. Scatter Chart (Price vs Quantity Correlation)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"config\": {\n    \"model_id\": {{model_id}},\n    \"chart_type\": \"scatter\",\n    \"title\": \"Price vs Quantity Distribution\",\n    \"dimensions\": [],\n    \"measures\": [\n      {\"dataset_id\": {{item_dataset_id}}, \"column\": \"quantity\", \"aggregation\": \"AVG\", \"alias\": \"avg_qty\"},\n      {\"dataset_id\": {{item_dataset_id}}, \"column\": \"item_price\", \"aggregation\": \"MAX\", \"alias\": \"max_price\"}\n    ]\n  },\n  \"position\": {\"x\": 6, \"y\": 8, \"cols\": 6, \"rows\": 4}\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/dashboards/{{dashboard_id}}/widgets",
+              "host": ["{{base_url}}"],
+              "path": ["dashboards", "{{dashboard_id}}", "widgets"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Verification & Testing",
+      "item": [
+        {
+          "name": "Get Dashboard (Rendered with Chart Data Verification)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "pm.test('Dashboard retrieved successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "if (response.widgets && response.widgets.length > 0) {",
+                  "    console.log('Total widgets rendered:', response.widgets.length);",
+                  "    console.log('First widget chart data:', JSON.stringify(response.widgets[0].chart_data));",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/dashboards/{{dashboard_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["dashboards", "{{dashboard_id}}"]
+            },
+            "description": "Verifies that the dashboard and its widgets resolve data and render properly through the join engine[cite: 1]."
+          }
+        }
+      ]
+    }
+  ]
+}

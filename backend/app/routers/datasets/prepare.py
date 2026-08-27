@@ -49,7 +49,7 @@ async def prepare_dataset(
     # 2. Branch on size: synchronous for small datasets, async for large ones
     if dataset.row_count < settings.prepare_async_threshold: #type: ignore
         # ========== SYNCHRONOUS PATH (unchanged) ==========
-        cache_key = get_prepared_cache_key(dataset_id, payload.dict())
+        cache_key = get_prepared_cache_key(dataset_id, payload.model_dump())
 
         if cache_key in prepared_cache:
             cached_data = sanitize_records(prepared_cache[cache_key])
@@ -107,7 +107,7 @@ async def prepare_dataset(
         )
 
     # ========== ASYNC PATH  ==========
-    cache_key = get_prepared_cache_key(dataset_id, payload.dict())
+    cache_key = get_prepared_cache_key(dataset_id, payload.model_dump())
 
     # If the result is already cached, return immediately (still synchronous)
     if cache_key in prepared_cache:
@@ -181,7 +181,7 @@ async def prepare_dataset(
         run_in_background(
             process,
             ds_id=dataset_id,
-            payload_dict=payload.dict(),
+            payload_dict=payload.model_dump(),
             key=cache_key,
             task_id=task_id,
         )

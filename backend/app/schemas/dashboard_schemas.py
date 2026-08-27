@@ -15,19 +15,13 @@ class ColumnRef(BaseModel):
 class MeasureSpec(BaseModel):
     dataset_id: int
     column: str
-    aggregation: Literal["SUM", "AVG", "COUNT", "MIN", "MAX"]
+    aggregation: Literal["SUM", "MEAN", "COUNT", "MIN", "MAX"]
     alias: Optional[str] = None   # required when >1 measure
 
 class OrderByClause(BaseModel):
     field: str        
     alias: str
     direction: Literal["asc", "desc"] = "asc"
-
-# FilterCondition is imported from app.schemas.pipeline – make sure it has dataset_id
-    
-class WidgetPositionUpdate(BaseModel):
-    widget_id: int
-    position: WidgetPosition   # e.g., {"x": 0, "y": 0, "w": 4, "h": 3}
 
 # ------------------------------------------------------------
 # Main WidgetConfig
@@ -74,9 +68,18 @@ class WidgetConfig(BaseModel):
         "str_strip_whitespace": True,
     }
 
-# ------------------------------------------------------------------
+# ------------------------------------------------------------
+# Widget position update (used for PATCH /position)
+# ------------------------------------------------------------
+class WidgetPositionUpdate(BaseModel):
+    x: int
+    y: int
+    cols: int
+    rows: int
+
+# ------------------------------------------------------------
 # API request / response models for dashboard CRUD
-# ------------------------------------------------------------------
+# ------------------------------------------------------------
 
 # Dashboard creation – can include initial widgets
 class DashboardCreateRequest(BaseModel):
@@ -116,16 +119,6 @@ class DashboardListItem(BaseModel):
     title: str
     created_at: str
     widget_count: int
-
-
-
-
-class WidgetPositionUpdate(BaseModel):
-    x: int
-    y: int
-    cols: int
-    rows: int
-
 
 class DashboardPaginatedResponse(BaseModel):
     items: List[DashboardListItem]

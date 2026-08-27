@@ -1,0 +1,417 @@
+{
+  "info": {
+    "name": "Phase 4 – Join Engine & Query Execution Tests",
+    "description": "Test multi‑table model creation, widget configuration, join execution, and edge cases.\n\nBase URL: http://localhost:8000\nCredentials: admin@example.com / admin123\n\nInstructions:\n1. Run the 'Login' request to get a token (stored automatically).\n2. Upload the two CSV files (orders.csv and items.csv) using the provided requests. Capture the returned dataset IDs.\n3. Update the `orders_dataset_id` and `items_dataset_id` collection variables with the actual IDs.\n4. Create the model and relationship.\n5. Test valid widget creation and rendering.\n6. Test invalid configurations (missing relationship, invalid column, cardinality mismatch).\n\nCSV file contents are provided in the collection description of each upload request.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:8000" },
+    { "key": "token", "value": "" },
+    { "key": "orders_dataset_id", "value": "" },
+    { "key": "items_dataset_id", "value": "" },
+    { "key": "model_id", "value": "" },
+    { "key": "dashboard_id", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "if (response.access_token) {",
+                  "    pm.collectionVariables.set('token', response.access_token);",
+                  "    console.log('Token stored:', response.access_token);",
+                  "} else {",
+                  "    console.error('No access_token in response');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\":\"admin@example.com\",\"password\":\"admin123\"}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "login"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Dataset Upload",
+      "item": [
+        {
+          "name": "Upload orders.csv",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "if (response.id) {",
+                  "    pm.collectionVariables.set('orders_dataset_id', response.id);",
+                  "    console.log('Orders dataset ID:', response.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": "orders.csv"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/datasets/upload",
+              "host": ["{{base_url}}"],
+              "path": ["datasets", "upload"]
+            },
+            "description": "Upload orders.csv with the following content:\norder_id,customer_id,order_date,total_amount,payment_method\nO1001,C101,2024-04-10,120.50,Credit Card\nO1002,C102,2024-04-12,45.00,PayPal\nO1003,C101,2024-04-15,210.00,Credit Card\nO1004,C104,2024-04-16,89.99,Debit Card\nO1005,C103,2024-04-18,15.50,PayPal\nO1006,C106,2024-04-20,340.00,Credit Card\nO1007,C105,2024-04-22,65.25,Apple Pay\nO1008,C108,2024-04-25,110.00,Credit Card\nO1009,C107,2024-04-26,230.40,PayPal\nO1010,C110,2024-04-28,50.00,Debit Card"
+          }
+        },
+        {
+          "name": "Upload items.csv",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "if (response.id) {",
+                  "    pm.collectionVariables.set('items_dataset_id', response.id);",
+                  "    console.log('Items dataset ID:', response.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": "items.csv"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/datasets/upload",
+              "host": ["{{base_url}}"],
+              "path": ["datasets", "upload"]
+            },
+            "description": "Upload items.csv with the following content:\nitem_id,order_id,product_category,quantity,item_price\nI1,O1001,Electronics,1,120.50\nI2,O1002,Clothing,2,22.50\nI3,O1003,Home & Kitchen,3,70.00\nI4,O1004,Books,1,89.99\nI5,O1005,Groceries,5,3.10\nI6,O1006,Electronics,1,340.00\nI7,O1007,Clothing,1,65.25\nI8,O1008,Home & Kitchen,2,55.00\nI9,O1009,Electronics,2,115.20\nI10,O1010,Books,2,25.00"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Model Creation",
+      "item": [
+        {
+          "name": "Create Data Model",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "if (response.id) {",
+                  "    pm.collectionVariables.set('model_id', response.id);",
+                  "    console.log('Model ID:', response.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Orders-Items Star Schema\",\n  \"base_dataset_id\": {{items_dataset_id}},\n  \"datasets\": [\n    {{orders_dataset_id}},\n    {{items_dataset_id}}\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/models",
+              "host": ["{{base_url}}"],
+              "path": ["models"]
+            },
+            "description": "Create a model with items as fact (base) and orders as dimension."
+          }
+        },
+        {
+          "name": "Add Relationship (orders one-to-many items)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "console.log('Relationship created:', response);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"model_id\": {{model_id}},\n  \"left_dataset_id\": {{orders_dataset_id}},\n  \"right_dataset_id\": {{items_dataset_id}},\n  \"left_column\": \"order_id\",\n  \"right_column\": \"order_id\",\n  \"left_cardinality\": \"one\",\n  \"right_cardinality\": \"many\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/models/{{model_id}}/relationships",
+              "host": ["{{base_url}}"],
+              "path": ["models", "{{model_id}}", "relationships"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Valid Widget Tests",
+      "item": [
+        {
+          "name": "Create Dashboard",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "if (response.id) {",
+                  "    pm.collectionVariables.set('dashboard_id', response.id);",
+                  "    console.log('Dashboard ID:', response.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"title\":\"Orders Dashboard\"}"
+            },
+            "url": {
+              "raw": "{{base_url}}/dashboards",
+              "host": ["{{base_url}}"],
+              "path": ["dashboards"]
+            }
+          }
+        },
+        {
+          "name": "Add Bar Chart Widget (Valid)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "if (response.id) {",
+                  "    console.log('Widget created with ID:', response.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"config\": {\n    \"model_id\": {{model_id}},\n    \"chart_type\": \"bar\",\n    \"title\": \"Revenue by Payment Method\",\n    \"dimensions\": [\n      {\"dataset_id\": {{orders_dataset_id}}, \"column\": \"payment_method\"}\n    ],\n    \"measures\": [\n      {\"dataset_id\": {{items_dataset_id}}, \"column\": \"item_price\", \"aggregation\": \"SUM\", \"alias\": \"total_revenue\"}\n    ],\n    \"filters\": [],\n    \"order_by\": [],\n    \"limit\": null\n  },\n  \"position\": {\"x\": 0, \"y\": 0, \"cols\": 6, \"rows\": 4}\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/dashboards/{{dashboard_id}}/widgets",
+              "host": ["{{base_url}}"],
+              "path": ["dashboards", "{{dashboard_id}}", "widgets"]
+            }
+          }
+        },
+        {
+          "name": "Get Dashboard (Rendered with Chart Data)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "if (response.widgets && response.widgets.length > 0) {",
+                  "    console.log('Chart data:', JSON.stringify(response.widgets[0].chart_data));",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/dashboards/{{dashboard_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["dashboards", "{{dashboard_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Invalid Config Edge Cases",
+      "item": [
+        {
+          "name": "Widget with Missing Relationship",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"config\": {\n    \"model_id\": {{model_id}},\n    \"chart_type\": \"bar\",\n    \"title\": \"Invalid Config\",\n    \"dimensions\": [\n      {\"dataset_id\": {{orders_dataset_id}}, \"column\": \"customer_id\"}\n    ],\n    \"measures\": [\n      {\"dataset_id\": {{items_dataset_id}}, \"column\": \"item_price\", \"aggregation\": \"SUM\", \"alias\": \"total\"}\n    ]\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/dashboards/{{dashboard_id}}/widgets",
+              "host": ["{{base_url}}"],
+              "path": ["dashboards", "{{dashboard_id}}", "widgets"]
+            },
+            "description": "This uses customer_id from orders, which is not a join key. The join engine will fail because no relationship exists between customer_id and the fact table. Expected 400 with no valid relationship message."
+          }
+        },
+        {
+          "name": "Widget with Invalid Column",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 422', function () {",
+                  "    pm.response.to.have.status(422);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"config\": {\n    \"model_id\": {{model_id}},\n    \"chart_type\": \"bar\",\n    \"title\": \"Invalid Column\",\n    \"dimensions\": [\n      {\"dataset_id\": {{orders_dataset_id}}, \"column\": \"non_existent_column\"}\n    ],\n    \"measures\": [\n      {\"dataset_id\": {{items_dataset_id}}, \"column\": \"item_price\", \"aggregation\": \"SUM\", \"alias\": \"total\"}\n    ]\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/dashboards/{{dashboard_id}}/widgets",
+              "host": ["{{base_url}}"],
+              "path": ["dashboards", "{{dashboard_id}}", "widgets"]
+            },
+            "description": "Dimension column does not exist in the dataset. Expected 422 validation error."
+          }
+        },
+        {
+          "name": "Widget with Cardinality Mismatch (many-to-many)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"config\": {\n    \"model_id\": {{model_id}},\n    \"chart_type\": \"bar\",\n    \"title\": \"Cardinality Mismatch\",\n    \"dimensions\": [\n      {\"dataset_id\": {{orders_dataset_id}}, \"column\": \"order_id\"}\n    ],\n    \"measures\": [\n      {\"dataset_id\": {{items_dataset_id}}, \"column\": \"item_price\", \"aggregation\": \"SUM\", \"alias\": \"total\"}\n    ]\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/dashboards/{{dashboard_id}}/widgets",
+              "host": ["{{base_url}}"],
+              "path": ["dashboards", "{{dashboard_id}}", "widgets"]
+            },
+            "description": "This uses order_id as dimension, but because the relationship is defined as one-to-many (orders to items), joining on order_id would result in duplicate rows (one order maps to multiple items). The join engine should detect this and raise a cardinality mismatch error (or potentially allow it if aggregation handles duplicates, but in our strict implementation we reject). Expected 400."
+          }
+        }
+      ]
+    }
+  ]
+}
