@@ -1,0 +1,163 @@
+<form [formGroup]="configForm" class="config-form">
+
+  <!-- ─── Validation banner ─── -->
+  <div *ngIf="hasValidationErrors" class="validation-errors" role="alert" aria-live="polite">
+    <mat-icon color="warn">error_outline</mat-icon>
+    <div class="messages">
+      <strong>Cannot render this widget:</strong>
+      <ul>
+        <li *ngFor="let err of validationErrors">{{ err }}</li>
+      </ul>
+    </div>
+  </div>
+
+  <div *ngIf="isPreviewLoading" class="preview-loading">
+    <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+  </div>
+
+  <!-- ─── Title ─── -->
+  <mat-form-field appearance="outline" class="full-width">
+    <mat-label>Title</mat-label>
+    <input matInput formControlName="title" placeholder="Widget title" />
+    <mat-error *ngIf="configForm.get('title')?.hasError('required')">
+      Title is required
+    </mat-error>
+  </mat-form-field>
+
+  <!-- ─── Chart type (bound via formControlName) ─── -->
+  <mat-form-field appearance="outline" class="full-width">
+    <mat-label>Chart type</mat-label>
+    <mat-select formControlName="chart_type">
+      <mat-option *ngFor="let t of chartTypes" [value]="t">
+        <mat-icon class="option-icon">{{ getChartIcon(t) }}</mat-icon>
+        <span class="option-label">{{ t | titlecase }}</span>
+      </mat-option>
+    </mat-select>
+  </mat-form-field>
+
+  <!-- ─── Color scheme ─── -->
+  <mat-form-field appearance="outline" class="full-width">
+    <mat-label>Color scheme</mat-label>
+    <mat-select formControlName="color_scheme">
+      <mat-option *ngFor="let s of colorSchemes" [value]="s">
+        {{ s | titlecase }}
+      </mat-option>
+    </mat-select>
+  </mat-form-field>
+
+  <!-- ─── Dimensions (hidden for KPI) ─── -->
+  <section
+    *ngIf="configForm.get('chart_type')?.value !== 'kpi'"
+    class="form-section"
+    formArrayName="dimensions"
+  >
+    <header class="section-header">
+      <span>Dimensions</span>
+      <button mat-icon-button color="primary" type="button" (click)="addDimension()">
+        <mat-icon>add</mat-icon>
+      </button>
+    </header>
+
+    <div
+      *ngFor="let d of dimensions.controls; let i = index"
+      class="row-group"
+      [formGroupName]="i"
+    >
+      <mat-form-field appearance="outline">
+        <mat-label>Dataset</mat-label>
+        <mat-select
+          formControlName="dataset_id"
+          (selectionChange)="onDatasetChange(i, 'dimension')"
+        >
+          <mat-option *ngFor="let ds of datasets" [value]="ds.id">
+            {{ ds.name }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Column</mat-label>
+        <mat-select formControlName="column">
+          <mat-option *ngFor="let c of getColumnsForDimension(i)" [value]="c.name">
+            {{ c.name }}
+            <small class="col-type">({{ c.type }})</small>
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <button
+        mat-icon-button
+        color="warn"
+        type="button"
+        (click)="removeDimension(i)"
+        [attr.aria-label]="'Remove dimension ' + (i + 1)"
+      >
+        <mat-icon>delete</mat-icon>
+      </button>
+    </div>
+  </section>
+
+  <!-- ─── Measures (always shown) ─── -->
+  <section class="form-section" formArrayName="measures">
+    <header class="section-header">
+      <span>Measures</span>
+      <button mat-icon-button color="primary" type="button" (click)="addMeasure()">
+        <mat-icon>add</mat-icon>
+      </button>
+    </header>
+
+    <div
+      *ngFor="let m of measures.controls; let i = index"
+      class="row-group"
+      [formGroupName]="i"
+    >
+      <mat-form-field appearance="outline">
+        <mat-label>Dataset</mat-label>
+        <mat-select
+          formControlName="dataset_id"
+          (selectionChange)="onDatasetChange(i, 'measure')"
+        >
+          <mat-option *ngFor="let ds of datasets" [value]="ds.id">
+            {{ ds.name }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Column</mat-label>
+        <mat-select formControlName="column">
+          <mat-option *ngFor="let c of getColumnsForMeasure(i)" [value]="c.name">
+            {{ c.name }}
+            <small class="col-type">({{ c.type }})</small>
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="narrow">
+        <mat-label>Aggregation</mat-label>
+        <mat-select formControlName="aggregation">
+          <mat-option value="SUM">Sum</mat-option>
+          <mat-option value="AVG">Average</mat-option>
+          <mat-option value="MIN">Min</mat-option>
+          <mat-option value="MAX">Max</mat-option>
+          <mat-option value="COUNT">Count</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Alias</mat-label>
+        <input matInput formControlName="alias" placeholder="optional" />
+      </mat-form-field>
+
+      <button
+        mat-icon-button
+        color="warn"
+        type="button"
+        (click)="removeMeasure(i)"
+        [attr.aria-label]="'Remove measure ' + (i + 1)"
+      >
+        <mat-icon>delete</mat-icon>
+      </button>
+    </div>
+  </section>
+</form>

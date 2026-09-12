@@ -1,0 +1,80 @@
+/* src/app/features/dashboards/components/center-canvas/center-canvas.component.css */
+:host {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+}
+
+.canvas-container {
+  position: relative;
+  height: 100%;
+  width: 100%;
+  box-sizing: border-box;
+  background: #fafbfc;
+  border: 1px solid var(--color-border, #e0e0e0);
+  border-radius: 8px;
+  padding: 12px;
+  overflow: auto;
+}
+
+.gridster-canvas {
+  min-height: 100%;
+}
+
+.widget-tile {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.widget-tile:hover {
+  border-color: #cbd5e0;
+}
+
+.widget-tile-selected {
+  border-color: #2ca58d;
+  box-shadow: 0 0 0 2px rgba(44, 165, 141, 0.25);
+}
+
+.widget-tile-body {
+  flex: 1;
+  min-height: 0;
+  padding: 4px;
+  cursor: pointer;
+}
+
+.widget-tile-title {
+  padding: 4px 8px;
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: #334155;
+  border-top: 1px solid #f1f5f9;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.canvas-empty-hint {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #94a3b8;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.canvas-empty-hint mat-icon {
+  font-size: 42px;
+  width: 42px;
+  height: 42px;
+}

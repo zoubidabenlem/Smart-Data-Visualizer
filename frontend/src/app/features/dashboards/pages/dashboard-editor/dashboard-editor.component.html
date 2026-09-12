@@ -1,143 +1,83 @@
-<ng-template #loading>
-  <div class="sleek-loader-overlay">
-    <div class="loader-content">
-      <mat-spinner diameter="60" strokeWidth="3" color="accent" ></mat-spinner>
-      <p class="loading-text">Loading your dashboard…</p>
-    </div>
-  </div>
-</ng-template>
-<!-- src/app/features/dashboards/pages/dashboard-editor/dashboard-editor.component.html -->
-<div class="editor-container" *ngIf="!isLoading; else loading">
-  <!-- LEFT PANE -->
-  <div class="left-pane" [class.collapsed]="isLeftPaneCollapsed">
-    <div class="left-pane-content"> <!-- added missing wrapper -->
-      <!-- Dataset section -->
-      <div class="section dataset-section">
-        <h3><mat-icon>storage</mat-icon> Dataset</h3>
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Select dataset</mat-label>
-          <mat-select
-            [value]="selectedDatasetId$ | async"
-            (selectionChange)="onDatasetChange($event.value)">
-            <mat-option [value]="null">-- None --</mat-option>
-            <mat-option *ngFor="let ds of datasets" [value]="ds.id">
-              {{ ds.filename }}
-            </mat-option>
-          </mat-select>
-        </mat-form-field>
-
-        <div *ngIf="(selectedDatasetId$ | async) as datasetId">
-          <div class="columns-header">
-            <span>Columns</span>
-          </div>
-          <mat-list dense class="columns-list">
-            <mat-list-item *ngFor="let col of columns$ | async">
-              <mat-icon mat-list-icon class="colIco">view_column</mat-icon>
-              <span class="col-name">{{ col.name }}</span>
-              <span class="col-type">{{ col.type }}</span>
-            </mat-list-item>
-          </mat-list>
-          <div *ngIf="(columns$ | async)?.length === 0" class="empty-message">
-            No columns found.
-          </div>
-        </div>
-      </div>
-
-      <!-- Add buttons -->
-      <div class="section add-buttons-section">
-        <div class="add-buttons">
-          <button mat-raised-button class="add-chart-btn" (click)="addChart()">
-            <mat-icon>bar_chart</mat-icon> Add chart
-          </button>
-          <button mat-raised-button class="add-kpi-btn" (click)="addKpi()">
-            <mat-icon>numbers</mat-icon> Add KPI
-          </button>
-        </div>
-      </div>
-
-      <!-- Widget list (compact cards) -->
-      <div class="section widgets-list-section">
-        <h3><mat-icon>widgets</mat-icon> Widgets ({{ (widgets$ | async)?.length }})</h3>
-        <div class="widget-list" *ngIf="(widgets$ | async)?.length; else noWidgets">
-          <div *ngFor="let widget of widgets$ | async" class="widget-card">
-            <mat-icon>{{ getWidgetIcon(widget.config.chart_type) }}</mat-icon>
-            <div class="widget-info">
-              <strong>{{ widget.config.title }}</strong>
-              <span>{{ widget.config.chart_type | uppercase }}</span>
-            </div>
-            <div class="widget-actions">
-              <button mat-icon-button (click)="editWidget(widget)">
-                <mat-icon>edit</mat-icon>
-              </button>
-              <button mat-icon-button (click)="deleteWidget(widget.id, $event)">
-                <mat-icon>delete</mat-icon>
-              </button>
-            </div>
-          </div>
-        </div>
-        <ng-template #noWidgets>
-          <div class="empty-message">No widgets yet. Add a chart or KPI.</div>
-        </ng-template>
-      </div>
-    </div>
-  </div>
-
-  <div class="toggle-pane-btn" (click)="isLeftPaneCollapsed = !isLeftPaneCollapsed">
-    <mat-icon>{{ isLeftPaneCollapsed ? 'chevron_right' : 'chevron_left' }}</mat-icon>
-  </div>
-
-  <!-- RIGHT PANE -->
-  <div class="right-pane">
-    <!-- Editable dashboard title with icon on far right -->
-    <div class="dashboard-header">
-      <div *ngIf="!editingTitle; else titleEditor" class="title-display">
-        <h2 (click)="startEditTitle()">{{ (dashboard$ | async)?.title }}</h2>
-        <button mat-icon-button (click)="startEditTitle()" class="edit-title-btn">
-          <mat-icon>edit</mat-icon>
-        </button>
-        <button mat-raised-button color="primary" class="save-view-btn" (click)="saveDashboard()">
-        <mat-icon>visibility</mat-icon> Save & View
-      </button>
-      </div>
-      <ng-template #titleEditor>
-        <div class="title-editor">
-          <mat-form-field appearance="outline">
-            <mat-label>Dashboard title</mat-label>
-            <input matInput [(ngModel)]="newTitle" (blur)="saveTitle()" (keyup.enter)="saveTitle()" autofocus />
-          </mat-form-field>
-        </div>
-      </ng-template>
-    </div>
-
-    <!-- Static widget preview grid (no drag & drop, no edit/delete buttons here) -->
-    <!-- Right pane: widget preview grid -->
-<!-- Static widget preview grid (click to enlarge) -->
- <gridster
-    [options]="gridService.gridOptions"
-    class="widget-gridster"
-  >
-<gridster-item
-      *ngFor="let widget of widgets$ | async"
-      [item]="gridService.itemMap[widget.id]"
-      (itemChange)="gridService.onItemChange($event, widget.id)"
-      (itemResize)="gridService.onItemResize($event, widget.id)"
-    >
-      <div class="widget-wrapper" (click)="openPopup(widget)">
-        <div class="preview-header">
-          <span>{{ widget.config.title }}</span>
-          <button mat-icon-button (click)="editWidget(widget); $event.stopPropagation()">
-            <mat-icon>edit</mat-icon>
-          </button>
-          <button mat-icon-button (click)="deleteWidget(widget.id, $event); $event.stopPropagation()">
-            <mat-icon>delete</mat-icon>
-          </button>
-        </div>
-        <div class="preview-content">
-          <app-widget-chart [widget]="widget"></app-widget-chart>
-        </div>
-      </div>
-    </gridster-item>
-  </gridster>
-
+<div class="editor-container">
+  <!-- Top banner (optional, already exists) -->
+  <div class="top-banner">
+    <div class="dashboard-title">
+  <ng-container *ngIf="!isRenaming; else renameInput">
+    <h2 (click)="enableRename()" title="Click to rename">
+      {{ dashboard?.title || 'Untitled Dashboard' }}
+      <mat-icon class="edit-icon">edit</mat-icon>
+    </h2>
+  </ng-container>
+  <ng-template #renameInput>
+    <input
+      matInput
+      [(ngModel)]="renameTitle"
+      (keyup.enter)="saveRename()"
+      (blur)="saveRename()"
+      (keyup.escape)="cancelRename()"
+      autofocus
+    />
+    <button mat-icon-button (click)="saveRename()">
+      <mat-icon>check</mat-icon>
+    </button>
+    <button mat-icon-button (click)="cancelRename()">
+      <mat-icon>close</mat-icon>
+    </button>
+  </ng-template>
 </div>
+    <div class="actions">
+      <!-- Save, preview, etc. -->
+    </div>
+  </div>
 
+  <!-- Main three-pane area -->
+  <div class="main-area">
+    <!-- Left pane toggle button (outside the pane) -->
+    <button class="toggle-left" (click)="toggleLeft()" [class.collapsed]="leftCollapsed"
+            aria-label="Toggle left panel">
+      <mat-icon>{{ leftCollapsed ? 'chevron_right' : 'chevron_left' }}</mat-icon>
+    </button>
+
+    <!-- Left pane -->
+    <div class="left-pane" [class.collapsed]="leftCollapsed">
+      <app-data-model-explorer
+        [collapsed]="leftCollapsed"
+        (modelSelected)="onModelSelected($event)">
+      </app-data-model-explorer>
+    </div>
+
+    <!-- Center pane (canvas) -->
+    <div class="center-pane">
+      <div class="canvas-wrapper">
+        <app-center-canvas></app-center-canvas>
+      </div>
+    </div>
+
+    <!-- Right pane -->
+    <div class="right-pane" [class.collapsed]="rightCollapsed">
+      <!-- When collapsed, show vertical strip with title and expand button -->
+      <div class="right-collapsed-strip" *ngIf="rightCollapsed">
+        <span class="vertical-title">Widget Configuration</span>
+        <button class="toggle-right" (click)="toggleRight()" aria-label="Expand right panel">
+          <mat-icon>chevron_left</mat-icon>
+        </button>
+      </div>
+
+      <!-- When expanded, show full panel -->
+      <div class="right-expanded" *ngIf="!rightCollapsed">
+        <div class="right-panel-header">
+          <span class="panel-title">Widget Configuration</span>
+          <div class="header-actions">
+            <button mat-stroked-button color="primary" (click)="addNewWidget()">
+              <mat-icon>add</mat-icon> New Widget
+            </button>
+            <button class="toggle-right" (click)="toggleRight()" aria-label="Collapse right panel">
+              <mat-icon>chevron_right</mat-icon>
+            </button>
+          </div>
+        </div>
+        <app-widget-config-panel></app-widget-config-panel>
+      </div>
+    </div>
+  </div>
+</div>

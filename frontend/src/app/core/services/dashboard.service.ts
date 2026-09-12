@@ -1,71 +1,119 @@
+// src/app/core/services/dashboard.service.ts
+
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-
-// Import all generated types from your JSON schema conversion
+import { environment } from 'src/environments/environment';
 import {
   DashboardCreateRequest,
-  DashboardListItem,
+  DashboardUpdateRequest,
   DashboardResponse,
+  DashboardListItem,
+  DashboardPaginatedResponse,
   WidgetCreateRequest,
   WidgetUpdateRequest,
   WidgetResponse,
-  DashboardUpdateRequest,
-  DashboardPaginatedResponse,
+  WidgetPosition,
+  WidgetConfig,
+  DashboardCreateResponse
 } from '../models/dashboard.model';
-import { environment } from 'src/environments/environment';
+
+// ─── FIX D: typed envelope for /models/{id}/prepare ───
+export interface PrepareResponse {
+  model_id: number;
+  chart_data: any[];
+  row_count: number;
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class DashboardService {
-  private readonly baseUrl = `${environment.apiUrl}/dashboards`; 
-  constructor(private http: HttpClient) { }
+  private baseUrl = `${environment.apiUrl}/dashboards`;
 
-  //----- Dashboard API methods -----
+  constructor(private http: HttpClient) {}
 
-  // ---------- Dashboard CRUD ----------
-  createDashboard(payload: DashboardCreateRequest): Observable<{ id: number }> {
-    return this.http.post<{ id: number }>(this.baseUrl, payload);
-  }
+  // ------------------------------------------------------------------
+  // Dashboard CRUD
+  // ------------------------------------------------------------------
 
-
-  listDashboards(search = '', page = 1, size = 10): Observable<DashboardPaginatedResponse> {
-    const params = new HttpParams()
-      .set('search', search)
+  listDashboards(page: number = 1, size: number = 10, search: string = ''): Observable<DashboardPaginatedResponse> {
+    let params = new HttpParams()
       .set('page', page.toString())
       .set('size', size.toString());
+    if (search) {
+      params = params.set('search', search);
+    }
     return this.http.get<DashboardPaginatedResponse>(this.baseUrl, { params });
   }
 
-  getDashboard(id: number): Observable<DashboardResponse> {
-    return this.http.get<DashboardResponse>(`${this.baseUrl}/${id}`);
+  createDashboard(request: DashboardCreateRequest): Observable<DashboardCreateResponse> {
+    return this.http.post<DashboardCreateResponse>(this.baseUrl, request);
   }
 
-  updateDashboard(id: number, payload: DashboardUpdateRequest): Observable<void> {
-    return this.http.put<void>(`${this.baseUrl}/${id}`, payload);
+  getDashboard(dashboardId: number): Observable<DashboardResponse> {
+    return this.http.get<DashboardResponse>(`${this.baseUrl}/${dashboardId}`);
   }
 
-  deleteDashboard(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.baseUrl}/${id}`);
+  updateDashboard(dashboardId: number, request: DashboardUpdateRequest): Observable<DashboardResponse> {
+    return this.http.put<DashboardResponse>(`${this.baseUrl}/${dashboardId}`, request);
   }
 
-  
-  // ---------- Widget CRUD ----------
-  addWidget(dashboardId: number, payload: WidgetCreateRequest): Observable<{ id: number }> {
-    return this.http.post<{ id: number }>(`${this.baseUrl}/${dashboardId}/widgets`, payload);
+  deleteDashboard(dashboardId: number): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/${dashboardId}`);
+  }
+
+  // ------------------------------------------------------------------
+  // Dashboard assignment
+  // ------------------------------------------------------------------
+
+  assignDashboardToUser(dashboardId: number, userId: number): Observable<any> {
+    return this.http.post(`${this.baseUrl}/${dashboardId}/assign/${userId}`, {});
+  }
+
+  unassignDashboardFromUser(dashboardId: number, userId: number): Observable<any> {
+    return this.http.delete(`${this.baseUrl}/${dashboardId}/unassign/${userId}`);
+  }
+
+  // ------------------------------------------------------------------
+  // Widget operations
+  // ------------------------------------------------------------------
+
+  addWidget(dashboardId: number, request: WidgetCreateRequest): Observable<WidgetResponse> {
+    return this.http.post<WidgetResponse>(`${this.baseUrl}/${dashboardId}/widgets`, request);
+  }
+
+  // ─── FIX D: return the typed envelope, not any[] ───
+  getWidgetData(modelId: number, config: WidgetConfig): Observable<PrepareResponse> {
+    return this.http.post<PrepareResponse>(
+      `${environment.apiUrl}/models/${modelId}/prepare`,
+      config
+    );
   }
 
   updateWidget(
     dashboardId: number,
     widgetId: number,
-    payload: WidgetUpdateRequest
-  ): Observable<void> {
-    return this.http.put<void>(`${this.baseUrl}/${dashboardId}/widgets/${widgetId}`, payload);
+    request: WidgetUpdateRequest
+  ): Observable<WidgetResponse> {
+    return this.http.put<WidgetResponse>(
+      `${this.baseUrl}/${dashboardId}/widgets/${widgetId}`,
+      request
+    );
   }
 
   deleteWidget(dashboardId: number, widgetId: number): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/${dashboardId}/widgets/${widgetId}`);
   }
- 
 
+  updateWidgetPosition(
+    dashboardId: number,
+    widgetId: number,
+    position: WidgetPosition
+  ): Observable<WidgetResponse> {
+    return this.http.patch<WidgetResponse>(
+      `${this.baseUrl}/${dashboardId}/widgets/${widgetId}/position`,
+      position
+    );
+  }
 }

@@ -1,0 +1,93 @@
+<!-- Collapsed strip -->
+<div *ngIf="collapsed" class="left-collapsed-strip">
+  <span class="vertical-title">Data Model Explorer</span>
+  <button class="toggle-left-inner" (click)="toggleOverallCollapse()" aria-label="Expand left panel">
+    <mat-icon>chevron_right</mat-icon>
+  </button>
+</div>
+
+<!-- Expanded content -->
+<div *ngIf="!collapsed" class="left-pane-content">
+  <!-- Header with collapse button and title -->
+  <div class="left-pane-header">
+    <span class="panel-title">Data Model Explorer</span>
+    <button mat-icon-button (click)="toggleOverallCollapse()" aria-label="Collapse left panel">
+      <mat-icon>chevron_left</mat-icon>
+    </button>
+  </div>
+
+  <!-- Model list section -->
+  <div class="section-block">
+    <div class="section-header" (click)="toggleModelList()">
+      <span>Models</span>
+      <mat-icon>{{ isModelListCollapsed ? 'expand_more' : 'expand_less' }}</mat-icon>
+    </div>
+    <div *ngIf="!isModelListCollapsed" class="section-content">
+      <mat-form-field appearance="outline" class="search-field">
+        <mat-label>Search models</mat-label>
+        <input matInput (input)="onSearchInput($event)">
+        <mat-icon matSuffix>search</mat-icon>
+      </mat-form-field>
+
+      <div *ngIf="loading" class="loading-indicator">
+        <mat-spinner diameter="20"></mat-spinner>
+      </div>
+      <div *ngIf="errorMessage" class="error-message">{{ errorMessage }}</div>
+      <div *ngIf="!loading && !errorMessage" class="model-list">
+        <mat-card
+          *ngFor="let model of filteredModels"
+          class="model-card"
+          [class.selected]="selectedModel?.id === model.id"
+          (click)="selectModel(model)"
+        >
+          <mat-card-content>
+            <div class="model-name">{{ model.name }}</div>
+            <div class="model-description">{{ model.description || 'No description' }}</div>
+          </mat-card-content>
+        </mat-card>
+        <div *ngIf="filteredModels.length === 0" class="no-models">
+          No models found
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Model details section (if a model is selected) -->
+  <div *ngIf="selectedModel" class="section-block">
+    <div class="section-header" (click)="toggleDetails()">
+      <span>{{ selectedModel.name }}</span>
+      <mat-icon>{{ isDetailsCollapsed ? 'expand_more' : 'expand_less' }}</mat-icon>
+    </div>
+    <div *ngIf="!isDetailsCollapsed" class="section-content">
+      <!-- Datasets -->
+      <div class="subsection">
+        <div class="subsection-header">Datasets</div>
+        <div *ngFor="let md of selectedModel.datasets" class="dataset-item">
+          <div class="dataset-header" (click)="toggleDataset(md.dataset_id)">
+            <span>{{ md.alias || getDatasetName(md.dataset) }}</span>
+            <mat-icon>{{ expandedDatasets[md.dataset_id] ? 'expand_less' : 'expand_more' }}</mat-icon>
+          </div>
+          <div *ngIf="expandedDatasets[md.dataset_id]" class="dataset-columns">
+            <div *ngFor="let col of getDatasetColumns(md.dataset)" class="column-row">
+              <span class="column-name">{{ col.name }}</span>
+              <span class="column-type">{{ getColumnType(col) }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Relationships -->
+      <div class="subsection">
+        <div class="subsection-header" (click)="toggleRelationships()">
+          <span>Relationships</span>
+          <mat-icon>{{ expandedRelationships ? 'expand_less' : 'expand_more' }}</mat-icon>
+        </div>
+        <div *ngIf="expandedRelationships" class="relationship-list">
+          <div *ngFor="let rel of selectedModel.relationships" class="relationship-row">
+            {{ rel.left_dataset_id }} → {{ rel.right_dataset_id }} ({{ rel.cardinality }})
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

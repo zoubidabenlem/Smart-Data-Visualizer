@@ -49,13 +49,13 @@ const routes: Routes = [
   loadChildren: () => import('./features/user-management/user-management.module')
                            .then(m => m.UserManagementModule)
 },
-  // Viewer route — protected by AuthGuard
-  {
-    path: 'viewer',
-    canActivate: [authGuard],
-    loadChildren: () =>
-      import('./features/viewer/viewer.module').then(m => m.ViewerModule)
-  },
+// Viewer route — protected by AuthGuard
+ // {
+   // path: 'viewer',
+    //canActivate: [authGuard],
+    //loadChildren: () =>
+      //  import('./features/viewer/viewer.module').then(m => m.ViewerModule)
+  //},
 
 { path: 'unauthorized', component: UnauthorizedComponent },
   // Wildcard route — catches any URL that didn't match above.

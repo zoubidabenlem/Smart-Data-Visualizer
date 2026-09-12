@@ -65,7 +65,7 @@ export class UserManagementComponent implements OnInit {
 
    loadDashboards(): void {
     // size=10000 gets all dashboards in one page
-    this.dashboardService.listDashboards('', 1, 1000).subscribe({
+    this.dashboardService.listDashboards(1, 10000, '').subscribe({
       next: (res) => {
         this.dashboards = res.items;   
         console.log('Loaded dashboards:', this.dashboards);

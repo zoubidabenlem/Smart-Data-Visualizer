@@ -7,7 +7,7 @@ import { DashboardViewerComponent } from './pages/dashboard-viewer/dashboard-vie
 const routes: Routes = [
   {path:'', component: DashboardListComponent,       data: { title: 'Dashboard List' }    },
   {path: ':id/edit', component: DashboardEditorComponent,       data: { title: 'Dashboard Editor' }    },
-  {path: 'view/:id', component: DashboardViewerComponent,       data: { title: 'Dashboard Viewer' }    },
+ // {path: 'view/:id', component: DashboardViewerComponent,       data: { title: 'Dashboard Viewer' }    },
 ];
 
 @NgModule({

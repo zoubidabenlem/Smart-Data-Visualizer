@@ -1,146 +1,200 @@
-// src/app/features/dashboards/services/dashboard-editor.service.ts
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, of } from 'rxjs';
-import { switchMap, tap, catchError, map } from 'rxjs/operators';
+import { BehaviorSubject, Observable, Subject, tap, throwError } from 'rxjs';
 import { DashboardService } from 'src/app/core/services/dashboard.service';
-import { DatasetService } from 'src/app/core/services/dataset.service';
 import {
   DashboardResponse,
   WidgetResponse,
+  WidgetConfig,
   WidgetCreateRequest,
   WidgetUpdateRequest,
   WidgetPosition,
 } from 'src/app/core/models/dashboard.model';
-import { HttpClient } from '@angular/common/http';
-import { environment } from 'src/environments/environment';
-import { GridsterService } from './gridster.service';
+import { ModelDatasetOut } from 'src/app/core/models/data-model.model';
 
-export interface ColumnInfo {
-  name: string;
-  type: string;
-}
-
-@Injectable()
+@Injectable({ providedIn: 'root' })
 export class DashboardEditorService {
-  private dashboardId: number | null = null;
-
-  // State subjects
   private dashboardSubject = new BehaviorSubject<DashboardResponse | null>(null);
-  private selectedDatasetIdSubject = new BehaviorSubject<number | null>(null);
-  private columnsSubject = new BehaviorSubject<ColumnInfo[]>([]);
-  private widgetsSubject = new BehaviorSubject<WidgetResponse[]>([]);
+  public dashboard$ = this.dashboardSubject.asObservable();
 
-  // Public observables
-  dashboard$ = this.dashboardSubject.asObservable();
-  selectedDatasetId$ = this.selectedDatasetIdSubject.asObservable();
-  columns$ = this.columnsSubject.asObservable();
-  widgets$ = this.widgetsSubject.asObservable();
+  private selectedWidgetSubject = new BehaviorSubject<WidgetResponse | null>(null);
+  public selectedWidget$ = this.selectedWidgetSubject.asObservable();
 
-  // Convenience getter for current dashboard
-  get currentDashboard(): DashboardResponse | null {
+  private datasetsSubject = new BehaviorSubject<ModelDatasetOut[]>([]);
+  public datasets$ = this.datasetsSubject.asObservable();
+
+  private draftConfigSubject = new BehaviorSubject<WidgetConfig | null>(null);
+  public draftConfig$ = this.draftConfigSubject.asObservable();
+
+  // ─── NEW: event channel so the canvas can delegate widget creation ───
+  private createWidgetRequestSubject = new Subject<void>();
+  public createWidgetRequest$ = this.createWidgetRequestSubject.asObservable();
+
+  constructor(private dashboardService: DashboardService) {}
+
+  // ------------------------------------------------------------------
+  // Dashboard state
+  // ------------------------------------------------------------------
+
+  setDashboard(dashboard: DashboardResponse): void {
+    this.dashboardSubject.next(dashboard);
+    if (!this.selectedWidgetSubject.value && dashboard.widgets.length > 0) {
+      this.selectedWidgetSubject.next(dashboard.widgets[0]);
+    }
+  }
+
+  private updateDashboardState(updatedDashboard: DashboardResponse): void {
+    this.dashboardSubject.next(updatedDashboard);
+  }
+
+  setDatasets(datasets: ModelDatasetOut[]): void {
+    this.datasetsSubject.next(datasets);
+  }
+
+  selectWidget(widgetId: number | null): void {
+    const dashboard = this.dashboardSubject.value;
+    if (!dashboard) return;
+    const widget = widgetId
+      ? dashboard.widgets.find(w => w.id === widgetId) || null
+      : null;
+    this.selectedWidgetSubject.next(widget);
+  }
+
+  setSelectedWidget(widget: WidgetResponse | null): void {
+    this.selectedWidgetSubject.next(widget);
+  }
+
+  clearSelection(): void {
+    this.selectedWidgetSubject.next(null);
+  }
+
+  // ------------------------------------------------------------------
+  // Widget CRUD
+  // ------------------------------------------------------------------
+
+  addWidget(config: WidgetConfig, position?: WidgetPosition): Observable<WidgetResponse> {
+    const dashboard = this.dashboardSubject.value;
+    if (!dashboard) return throwError(() => new Error('Dashboard not loaded'));
+
+    const request: WidgetCreateRequest = { config, position: position || null };
+
+    return this.dashboardService.addWidget(dashboard.id, request).pipe(
+      tap((res: any) => {
+        // Backend returns a full WidgetResponse (see widget_crud.py fix).
+        // Fall back to a composed object if it doesn't.
+        const newWidget: WidgetResponse = {
+          id: res.id,
+          config: res.config ?? config,
+          chart_data: res.chart_data ?? [],
+          position: res.position ?? position ?? null,
+        };
+        this.updateDashboardState({
+          ...dashboard,
+          widgets: [...dashboard.widgets, newWidget],
+        });
+        this.selectedWidgetSubject.next(newWidget);
+      })
+    );
+  }
+
+  addWidgetLocally(widget: WidgetResponse): void {
+    const dashboard = this.dashboardSubject.value;
+    if (!dashboard) return;
+    this.updateDashboardState({
+      ...dashboard,
+      widgets: [...dashboard.widgets, widget],
+    });
+    this.selectedWidgetSubject.next(widget);
+  }
+
+  updateWidget(widgetId: number, updates: Partial<WidgetUpdateRequest>): void {
+    const dashboard = this.dashboardSubject.value;
+    if (!dashboard) return;
+    const widget = dashboard.widgets.find(w => w.id === widgetId);
+    if (!widget) return;
+
+    this.dashboardService.updateWidget(dashboard.id, widgetId, updates).subscribe({
+      next: (updatedWidget: WidgetResponse) => {
+        const updatedWidgets = dashboard.widgets.map(w =>
+          w.id === widgetId ? updatedWidget : w
+        );
+        this.updateDashboardState({ ...dashboard, widgets: updatedWidgets });
+        if (this.selectedWidgetSubject.value?.id === widgetId) {
+          this.selectedWidgetSubject.next(updatedWidget);
+        }
+      },
+      error: (err) => console.error('Failed to update widget', err),
+    });
+  }
+
+  deleteWidget(widgetId: number): void {
+    const dashboard = this.dashboardSubject.value;
+    if (!dashboard) return;
+    this.dashboardService.deleteWidget(dashboard.id, widgetId).subscribe({
+      next: () => {
+        const updatedWidgets = dashboard.widgets.filter(w => w.id !== widgetId);
+        this.updateDashboardState({ ...dashboard, widgets: updatedWidgets });
+        if (this.selectedWidgetSubject.value?.id === widgetId) {
+          this.selectedWidgetSubject.next(null);
+        }
+      },
+      error: (err) => console.error('Failed to delete widget', err),
+    });
+  }
+
+  updateWidgetPosition(widgetId: number, position: WidgetPosition): void {
+    const dashboard = this.dashboardSubject.value;
+    if (!dashboard) return;
+    this.dashboardService.updateWidgetPosition(dashboard.id, widgetId, position).subscribe({
+      next: (updatedWidget: WidgetResponse) => {
+        const updatedWidgets = dashboard.widgets.map(w =>
+          w.id === widgetId ? updatedWidget : w
+        );
+        this.updateDashboardState({ ...dashboard, widgets: updatedWidgets });
+      },
+      error: (err) => console.error('Failed to update widget position', err),
+    });
+  }
+
+  // ------------------------------------------------------------------
+  // Draft + local updates
+  // ------------------------------------------------------------------
+
+  setDraftConfig(config: WidgetConfig): void {
+    this.draftConfigSubject.next(config);
+  }
+
+  /**
+   * ─── FIX: accept a Partial<WidgetResponse> so chart_data survives ───
+   */
+  updateWidgetLocally(widgetId: number, changes: Partial<WidgetResponse>): void {
+    const dashboard = this.dashboardSubject.value;
+    if (!dashboard) return;
+
+    const updatedWidgets = dashboard.widgets.map(w =>
+      w.id === widgetId ? { ...w, ...changes } : w
+    );
+    this.updateDashboardState({ ...dashboard, widgets: updatedWidgets });
+
+    const current = this.selectedWidgetSubject.value;
+    if (current && current.id === widgetId) {
+      this.selectedWidgetSubject.next({ ...current, ...changes });
+    }
+  }
+
+  // ------------------------------------------------------------------
+  // Misc
+  // ------------------------------------------------------------------
+
+  getDashboardId(): number | null {
+    return this.dashboardSubject.value?.id ?? null;
+  }
+
+  getDashboard(): DashboardResponse | null {
     return this.dashboardSubject.value;
   }
 
-  constructor(
-    private dashboardService: DashboardService,
-    private datasetService: DatasetService,
-    private http: HttpClient,
-  ) {
-    
+  // ─── NEW: canvas asks the editor to run the real create flow ───
+  requestCreateWidget(): void {
+    this.createWidgetRequestSubject.next();
   }
-
-  /** Load dashboard by ID and optionally auto-select a dataset from query param */
-  loadDashboard(id: number, initialDatasetId?: number | null): Observable<DashboardResponse> {
-    this.dashboardId = id;
-    return this.dashboardService.getDashboard(id).pipe(
-      tap((dashboard) => {
-        this.dashboardSubject.next(dashboard);
-        this.widgetsSubject.next([...dashboard.widgets]);
-        if (initialDatasetId) {
-          this.selectDataset(initialDatasetId);
-        }
-
-      })
-    );
-  }
-
-  /** Select a dataset and load its columns */
-  selectDataset(datasetId: number | null): void {
-    this.selectedDatasetIdSubject.next(datasetId);
-    if (datasetId === null) {
-      this.columnsSubject.next([]);
-      return;
-    }
-    this.datasetService.getDatasetColumns(datasetId).subscribe({
-      next: (response: any) => {
-      // Extract columns array from the response object
-      const cols = response?.columns || [];
-      const mapped = cols.map((col: any) => ({
-        name: col.name,
-        type: col.dtype   // using "dtype" as shown in your example
-      }));
-      this.columnsSubject.next(mapped);
-    },
-    error: (err) => {
-      console.error('Failed to load columns', err);
-      this.columnsSubject.next([]);
-    }
-  });
-}
-
-  /** Update dashboard title */
-  updateTitle(newTitle: string): Observable<void> {
-    if (!this.dashboardId) throw new Error('Dashboard not loaded');
-    return this.dashboardService.updateDashboard(this.dashboardId, { title: newTitle }).pipe(
-      tap(() => {
-        const current = this.dashboardSubject.value;
-        if (current) {
-          this.dashboardSubject.next({ ...current, title: newTitle });
-        }
-      })
-    );
-  }
-
-  /** Delete a widget and refresh the list */
-  deleteWidget(widgetId: number): Observable<void> {
-    if (!this.dashboardId) throw new Error('Dashboard not loaded');
-    return this.dashboardService.deleteWidget(this.dashboardId, widgetId).pipe(
-      switchMap(() => this.refreshDashboard())
-    );
-  }
-
-  /** Refresh the dashboard data (e.g., after add/edit) */
- refreshDashboard(): Observable<void> {
-    if (!this.dashboardId) throw new Error('Dashboard not loaded');
-    return this.dashboardService.getDashboard(this.dashboardId).pipe(
-      tap((dashboard) => {
-        this.dashboardSubject.next(dashboard);
-        this.widgetsSubject.next([...dashboard.widgets]);
-      }),
-      map(() => void 0)
-    );
-  }
-
-  /** Helper to get icon name for chart type */
-  getWidgetIcon(chartType: string): string {
-    const icons: Record<string, string> = {
-      bar: 'bar_chart',
-      line: 'show_chart',
-      pie: 'pie_chart',
-      scatter: 'scatter_plot',
-      area: 'area_chart',
-      heatmap: 'grid_on',
-      kpi: 'numbers',
-    };
-    return icons[chartType] || 'insight';
-  }
-  private readonly baseUrl = `${environment.apiUrl}/dashboards`; 
-
-  updateWidgetPosition(widgetId: number, position: WidgetPosition): Observable<any> {
-  return this.http.patch(
-    `${this.baseUrl}/${this.dashboardId}/widgets/${widgetId}/position`,
-    position   // send directly: { x, y, cols, rows }
-  );
-}
-
 }

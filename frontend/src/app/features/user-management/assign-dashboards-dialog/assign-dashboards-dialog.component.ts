@@ -27,7 +27,7 @@ export class AssignDashboardsDialogComponent implements OnInit {
 
   ngOnInit() {
   /// 1. Get all dashboards (admin sees all)
-    this.dashboardService.listDashboards('', 1, 1000).subscribe({
+    this.dashboardService.listDashboards(1, 10000, '').subscribe({
       next: (res) => {
         this.allDashboards = res.items;      // ✅ always a plain array
         this.filteredDashboards = [...this.allDashboards];

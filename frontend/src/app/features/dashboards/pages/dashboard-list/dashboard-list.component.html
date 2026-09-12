@@ -1,67 +1,71 @@
 <div class="dashboard-list-container">
-
-  <!-- Header (unchanged) -->
-  <div class="header">
-     <!--  Search bar (NEW) -->
-  <h2 class="dashboard-list-title">My Dashboards</h2>
-  <div class="search-bar">
-  <mat-form-field appearance="outline" class="search-field" subscriptSizing="dynamic">
-    <mat-icon matPrefix>search</mat-icon> <input matInput
-           [value]="searchTerm"
-           (input)="onSearchInput($event)"
-           placeholder="Search dashboards...">
-  </mat-form-field>
-</div>
-    <button mat-raised-button class="create-dashboard-btn" (click)="openCreateDialog()">
-      <mat-icon>add</mat-icon> New Dashboard
-    </button>
-  </div>
-
- 
-
-  <!-- Loading / empty states (unchanged) -->
-  <ng-template #loading>
-  <div class="sleek-loader-overlay">
-    <div class="loader-content">
-      <mat-spinner diameter="60" strokeWidth="3" color="accent"></mat-spinner>
-      <p class="loading-text">Loading your dashboard…</p>
+  <!-- Header with title and create button -->
+  <div class="top-banner">
+    <h2 class="page-title">Dashboards</h2>
+    <div class="actions">
+      <button mat-raised-button color="primary" (click)="createDashboard()">
+        <mat-icon>add</mat-icon> Create Dashboard
+      </button>
     </div>
   </div>
-</ng-template>
 
-  <div *ngIf="!isLoading && dashboards.length === 0" class="empty-state">
-    <mat-icon>dashboard</mat-icon>
-    <p>No dashboards match your search.</p>
+  <!-- Search bar -->
+  <div class="search-bar">
+    <mat-form-field appearance="outline" class="search-field">
+      <mat-label>Search dashboards</mat-label>
+      <input matInput (input)="onSearchInput($event)" placeholder="Type to filter...">
+      <mat-icon matSuffix>search</mat-icon>
+    </mat-form-field>
   </div>
 
-  <!-- Dashboard grid (unchanged) -->
-  <div class="dashboard-grid" *ngIf="!isLoading && dashboards.length > 0">
-    <mat-card *ngFor="let dash of dashboards" class="dashboard-card" (click)="editDashboard(dash.id)">
+  <!-- Loading spinner -->
+  <div *ngIf="isLoading" class="spinner-container">
+    <mat-spinner diameter="40"></mat-spinner>
+  </div>
+
+  <!-- Empty state -->
+  <div *ngIf="!isLoading && dashboards.length === 0" class="empty-state">
+    <mat-icon>dashboard</mat-icon>
+    <p>No dashboards found. Click "Create Dashboard" to get started.</p>
+  </div>
+
+  <!-- Dashboard cards grid -->
+  <div *ngIf="!isLoading && dashboards.length > 0" class="dashboard-grid">
+    <mat-card *ngFor="let dashboard of dashboards" class="dashboard-card" (click)="editDashboard(dashboard.id)">
       <mat-card-header>
-        <mat-icon mat-card-avatar>dashboard</mat-icon>
-        <mat-card-title>{{ dash.title }}</mat-card-title>
-        <mat-card-subtitle>Created {{ dash.created_at | date:'mediumDate' }}</mat-card-subtitle>
+        <mat-card-title>{{ dashboard.title }}</mat-card-title>
+        <mat-card-subtitle>
+          Created {{ dashboard.created_at | date:'mediumDate' }}
+        </mat-card-subtitle>
       </mat-card-header>
       <mat-card-content>
-        <p>{{ dash.widget_count }} widget{{ dash.widget_count !== 1 ? 's' : '' }}</p>
+        <span class="widget-count">
+          {{ dashboard.widget_count }} {{ dashboard.widget_count === 1 ? 'widget' : 'widgets' }}
+        </span>
       </mat-card-content>
       <mat-card-actions align="end">
-        <button mat-icon-button color="warn" (click)="deleteDashboard(dash.id, dash.title, $event)">
+        <button mat-icon-button color="primary"
+                (click)="$event.stopPropagation(); editDashboard(dashboard.id)"
+                aria-label="Edit dashboard">
+          <mat-icon>edit</mat-icon>
+        </button>
+        <button mat-icon-button color="warn"
+                (click)="deleteDashboard(dashboard.id, dashboard.title, $event)"
+                aria-label="Delete dashboard">
           <mat-icon>delete</mat-icon>
         </button>
       </mat-card-actions>
     </mat-card>
   </div>
 
-  <!--  Pagination (NEW) -->
-  <div class="pagination" *ngIf="totalPages > 1">
+  <!-- Pagination controls -->
+  <div *ngIf="!isLoading && totalPages > 1" class="pagination-controls">
     <button mat-button [disabled]="currentPage <= 1" (click)="prevPage()">
       <mat-icon>chevron_left</mat-icon> Previous
     </button>
-    <span class="page-info">Page {{ currentPage }} of {{ totalPages }} ({{ totalItems }} dashboards)</span>
+    <span>Page {{ currentPage }} of {{ totalPages }}</span>
     <button mat-button [disabled]="currentPage >= totalPages" (click)="nextPage()">
       Next <mat-icon>chevron_right</mat-icon>
     </button>
   </div>
-
 </div>

@@ -1,68 +1,63 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { DashboardListItem, DashboardPaginatedResponse } from 'src/app/core/models/dashboard.model';
+import { Subject, Subscription } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
+
+import {
+  DashboardListItem,
+  DashboardPaginatedResponse,
+} from 'src/app/core/models/dashboard.model';
 import { DashboardService } from 'src/app/core/services/dashboard.service';
-import { MatDialog } from '@angular/material/dialog';
-import { CreateDashboardDialogComponent } from '../../components/create-dashboard-dialog/create-dashboard-dialog.component';
 import { HeaderTitleService } from 'src/app/core/services/header-title.service';
-import { distinctUntilChanged } from 'rxjs/internal/operators/distinctUntilChanged';
-import { debounceTime, Subject, Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-dashboard-list',
   templateUrl: './dashboard-list.component.html',
-  styleUrls: ['./dashboard-list.component.css']
+  styleUrls: ['./dashboard-list.component.css'],
 })
 export class DashboardListComponent implements OnInit, OnDestroy {
   dashboards: DashboardListItem[] = [];
   isLoading = false;
-
-  // Pagination state
+  searchTerm = '';
   currentPage = 1;
   pageSize = 15;
   totalItems = 0;
   totalPages = 0;
 
-  // Search
-  searchTerm = '';
   private searchSubject = new Subject<string>();
-  private searchSub: Subscription = new Subscription;
+  private searchSub?: Subscription;
 
   constructor(
     private dashboardService: DashboardService,
-    private dialog: MatDialog,
     private snackBar: MatSnackBar,
     private router: Router,
     private headerTitleService: HeaderTitleService
   ) {
     this.headerTitleService.setTitle('Dashboards');
   }
-  
 
   ngOnInit(): void {
-    // Debounced search – reset to page 1
-    this.searchSub = this.searchSubject.pipe(
-      debounceTime(300),
-      distinctUntilChanged()
-    ).subscribe(term => {
-      this.searchTerm = term;
-      this.currentPage = 1;
-      this.loadDashboards();
-    });
-
+    this.searchSub = this.searchSubject
+      .pipe(debounceTime(300), distinctUntilChanged())
+      .subscribe((term) => {
+        this.searchTerm = term;
+        this.currentPage = 1;
+        this.loadDashboards();
+      });
     this.loadDashboards();
   }
 
   loadDashboards(): void {
     this.isLoading = true;
-    this.dashboardService.listDashboards(this.searchTerm, this.currentPage, this.pageSize)
+    this.dashboardService
+      .listDashboards(this.currentPage, this.pageSize, this.searchTerm)
       .subscribe({
         next: (res: DashboardPaginatedResponse) => {
           this.dashboards = res.items;
           this.totalItems = res.total;
           this.totalPages = res.pages;
-          this.currentPage = res.page;   // sync with server
+          this.currentPage = res.page;
           this.isLoading = false;
         },
         error: (err) => {
@@ -73,10 +68,10 @@ export class DashboardListComponent implements OnInit, OnDestroy {
       });
   }
 
-   onSearchInput(event: Event): void {
-  const input = event.target as HTMLInputElement;
-  this.searchSubject.next(input.value);
-}
+  onSearchInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.searchSubject.next(input.value);
+  }
 
   prevPage(): void {
     if (this.currentPage > 1) {
@@ -92,34 +87,29 @@ export class DashboardListComponent implements OnInit, OnDestroy {
     }
   }
 
-  openCreateDialog(): void {
-    const dialogRef = this.dialog.open(CreateDashboardDialogComponent);
-    dialogRef.afterClosed().subscribe((title: string | null) => {
-      if (title) {
-        this.createDashboard(title);
-      }
-    });
-  }
-
-  createDashboard(title: string): void {
-    this.dashboardService.createDashboard({ title }).subscribe({
-      next: (res) => {
-        this.snackBar.open(`Dashboard "${title}" created`, 'Close', { duration: 2000 });
-        // Navigate to editor (route to be created later)
-        this.router.navigate(['/dashboards', res.id, 'edit']);
-      },
-      error: (err) => {
-        console.error('Create failed', err);
-        this.snackBar.open('Failed to create dashboard', 'Close', { duration: 3000 });
-      },
-    });
-  }
+ createDashboard(): void {
+  const defaultTitle = 'Untitled Dashboard';
+  this.dashboardService.createDashboard({ title: defaultTitle }).subscribe({
+    next: (res: { id: number }) => {
+      this.snackBar.open('Dashboard created', 'Close', { duration: 2000 });
+      this.router.navigate(['/dashboards', res.id, 'edit']);
+    },
+    error: (err) => {
+      console.error('Create failed', err);
+      this.snackBar.open('Failed to create dashboard', 'Close', { duration: 3000 });
+    }
+  });
+}
 
   deleteDashboard(id: number, title: string, event: Event): void {
     event.stopPropagation();
     if (confirm(`Delete dashboard "${title}"? This will also delete all its widgets.`)) {
       this.dashboardService.deleteDashboard(id).subscribe({
         next: () => {
+          // If we are on last page and all items deleted, go back one page
+          if (this.dashboards.length === 1 && this.currentPage > 1) {
+            this.currentPage--;
+          }
           this.loadDashboards();
           this.snackBar.open('Dashboard deleted', 'Close', { duration: 2000 });
         },

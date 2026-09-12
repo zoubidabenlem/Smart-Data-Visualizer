@@ -1,0 +1,33 @@
+<!-- src/app/features/dashboards/components/center-canvas/center-canvas.component.html -->
+<div class="canvas-container">
+
+  <div class="canvas-empty-hint" *ngIf="items.length === 0">
+    <mat-icon>dashboard_customize</mat-icon>
+    <p>
+      No widgets yet.<br />
+      Click <strong>New Widget</strong> on the right panel to add one.
+    </p>
+  </div>
+
+  <gridster [options]="options" class="gridster-canvas">
+    <gridster-item
+      *ngFor="let item of items; trackBy: trackByItemId"
+      [item]="item"
+      class="widget-tile"
+      [class.widget-tile-selected]="isSelected(item)">
+
+      <div
+        class="widget-tile-body"
+        (click)="onSelectWidget(widgetOf(item), $event)">
+        <app-widget-chart
+          *ngIf="widgetOf(item) as widget"
+          [widget]="widget">
+        </app-widget-chart>
+      </div>
+
+      <div class="widget-tile-title">
+        {{ widgetOf(item)?.config?.title || 'Untitled' }}
+      </div>
+    </gridster-item>
+  </gridster>
+</div>

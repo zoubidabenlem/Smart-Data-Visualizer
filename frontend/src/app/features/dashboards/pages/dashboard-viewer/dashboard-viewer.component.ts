@@ -1,10 +1,8 @@
-// dashboard-viewer.component.ts
-import { ChangeDetectorRef, Component, OnInit, ViewChild } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
-import { DashboardEditorService } from '../../services/dashboard-editor.service';
-import { GridsterComponent, GridsterConfig } from 'angular-gridster2';
-import { GridsterService } from '../../services/gridster.service';
-import { WidgetResponse } from 'src/app/core/models/dashboard.model';
+import { Component, OnInit } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
+import { BehaviorSubject, Observable } from 'rxjs';
+import { DashboardResponse, WidgetResponse, ChartType } from 'src/app/core/models/dashboard.model';
+import { DashboardService } from 'src/app/core/services/dashboard.service';
 
 @Component({
   selector: 'app-dashboard-viewer',
@@ -12,85 +10,37 @@ import { WidgetResponse } from 'src/app/core/models/dashboard.model';
   styleUrls: ['./dashboard-viewer.component.css']
 })
 export class DashboardViewerComponent implements OnInit {
-  dashboardId!: number;
-  dashboard$ = this.editorService.dashboard$;
-  widgets$ = this.editorService.widgets$;
-  isLoading = true;
-  user = JSON.parse(localStorage.getItem('currentUser') || '{}') as { role: string } | null;
-
-  @ViewChild(GridsterComponent) gridster!: GridsterComponent;
-
-  // Read-only grid options (same grid dimensions as editor)
-  viewerOptions: GridsterConfig = {
-    gridType: 'scrollVertical',  // vertical scrolling
-    displayGrid: 'none',           // no grid lines visible
-    pushItems: false,
-
-    draggable: { enabled: false },
-    resizable: { enabled: false },
-    minCols: 12,
-    maxCols: 12,
-    minRows: 6,
-    maxRows: 100,
-    fixedRowHeight: 120,           // adjust to your liking
-    fixedColWidth: 105, 
-    // no callbacks needed
-  };
+  private dashboardSubject = new BehaviorSubject<DashboardResponse | null>(null);
+  dashboard$ = this.dashboardSubject.asObservable();
+  widgets$: Observable<WidgetResponse[]> = new Observable();
 
   constructor(
     private route: ActivatedRoute,
-    private router: Router,
-    public gridService: GridsterService,
-    private cdr: ChangeDetectorRef,
-
-    private editorService: DashboardEditorService
+    private dashboardService: DashboardService
   ) {}
 
   ngOnInit(): void {
-    this.dashboardId = +this.route.snapshot.paramMap.get('id')!;
-    this.editorService.loadDashboard(this.dashboardId).subscribe({
-      next: () => {
-        this.isLoading = false;
-        this.syncGrid();
-    },
-      error: () => (this.isLoading = false)
+    const id = Number(this.route.snapshot.paramMap.get('id'));
+    this.dashboardService.getDashboard(id).subscribe({
+      next: (dashboard) => {
+        this.dashboardSubject.next(dashboard);
+        this.widgets$ = new BehaviorSubject(dashboard.widgets).asObservable();
+      },
+      error: (err) => console.error('Failed to load dashboard', err)
     });
   }
 
-  private syncGrid(): void {
-    // Get current widgets from the service (same observable)
-    this.widgets$.subscribe((widgets: WidgetResponse[] | null) => {
-      if (widgets && widgets.length) {
-        console.log('Widget Rows:', widgets.map(w => w.id + ': ' + (w.position?.['rows'] || 3)));
-        console.log('Widget Positions:', widgets.map(w => w.position));
-        console.log('Syncing widgets to Gridster:', widgets);
-        // 🚨 VIEWER ONLY FIX: Clamp row height so they don't take up the whole screen
-      const clampedWidgets = widgets.map(w => {
-        if (w.position) {
-          // Example: Force max rows to 4 for the viewer
-          // Example: Force max rows to 4 for the viewer
-          w.position['rows'] = Math.min(w.position['rows'] || 3, 4);
-        }
-        return w;});
-        this.gridService.syncWidgets(clampedWidgets);
-        this.cdr.detectChanges();  // ensure change detection runs
-        // Force Gridster to recalc layout
-        setTimeout(() => {
-          if (this.gridster) {
-            this.gridster.optionsChanged();
-          }
-        });
-      }
-    }).unsubscribe(); // immediate unsubscribe – we only need the first value
+  getWidgetIcon(chartType: ChartType): string {
+    // Return an appropriate icon name (Material icon) based on chart type
+    const icons: Record<ChartType, string> = {
+      bar: 'bar_chart',
+      line: 'show_chart',
+      pie: 'pie_chart',
+      scatter: 'scatter_plot',
+      area: 'area_chart',
+      heatmap: 'grid_on',
+      kpi: 'speed'
+    };
+    return icons[chartType] || 'insert_chart';
   }
-
-  getWidgetIcon(chartType: string): string {
-    return this.editorService.getWidgetIcon(chartType);
-  }
-
-  // Add this method to navigate back to the editor
-  goBack(): void {
-    this.router.navigate(['/dashboards', this.dashboardId, 'edit']);
-  }
-
 }

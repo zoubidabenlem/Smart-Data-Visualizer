@@ -15,41 +15,54 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatListModule } from '@angular/material/list';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
-import { ReactiveFormsModule, FormsModule } from '@angular/forms';
+import { ReactiveFormsModule, FormsModule, FormGroup } from '@angular/forms';
 import { DashboardsRoutingModule } from './dashboards-routing.module';
-import { CreateDashboardDialogComponent } from './components/create-dashboard-dialog/create-dashboard-dialog.component';
 import { DashboardListComponent } from './pages/dashboard-list/dashboard-list.component';
 import { DashboardEditorService } from './services/dashboard-editor.service';
 import { MatSelectModule } from '@angular/material/select';
 import { DashboardEditorComponent } from './pages/dashboard-editor/dashboard-editor.component';
-import { WidgetConfigDialogComponent } from './components/widget-config-dialog/widget-config-dialog.component';
 import { GridsterModule } from 'angular-gridster2';
-import { WidgetPopupComponent } from './components/widget-popup/widget-popup.component';
-import { DashboardViewerComponent } from './pages/dashboard-viewer/dashboard-viewer.component';
 import { SharedModule } from 'src/app/shared/shared.module';
 import { GridsterService } from './services/gridster.service';
-
+import { DataModelExplorerComponent } from './components/data-model-explorer/data-model-explorer.component';
+import { WidgetConfigPanelComponent } from './components/widget-config-panel/widget-config-panel.component';
+import { CenterCanvasComponent } from './components/center-canvas/center-canvas.component';
+import { MatExpansionModule } from '@angular/material/expansion';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 
 @NgModule({
   declarations: [
     DashboardListComponent,
-    CreateDashboardDialogComponent,
     DashboardEditorComponent,
-    WidgetConfigDialogComponent,
-    WidgetPopupComponent,
-    DashboardViewerComponent,
+    DataModelExplorerComponent,
+    WidgetConfigPanelComponent,
+    CenterCanvasComponent,
   ],
   imports: [
     CommonModule,
     ReactiveFormsModule,
     GridsterModule,
     FormsModule,
+    MatExpansionModule,
+    MatButtonModule,
+    MatCardModule,
+    MatDialogModule,
+    MatFormFieldModule,
+    MatIconModule,
+    MatInputModule,
+    MatProgressBarModule,
+    MatProgressSpinnerModule,
+    MatSnackBarModule,
+    MatListModule,
+    MatTooltipModule,
+    MatFormFieldModule,
+    MatInputModule,
     DashboardsRoutingModule,
    RouterModule,
     SharedModule,
   ],
   providers: [DashboardEditorService, GridsterService],
-  exports: [DashboardViewerComponent]
+  exports: []
   
 })
 export class DashboardsModule { }

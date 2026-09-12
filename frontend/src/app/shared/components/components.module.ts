@@ -12,13 +12,15 @@ import { RouterModule } from '@angular/router';
   declarations: [
     HeaderComponent,
     FooterComponent,
-    WidgetChartComponent,
+    
+    
   ],
   imports: [
     CommonModule,
     FormsModule,
     RouterModule,
     ReactiveFormsModule,
+    WidgetChartComponent,
   ],
   exports: [
     WidgetChartComponent,

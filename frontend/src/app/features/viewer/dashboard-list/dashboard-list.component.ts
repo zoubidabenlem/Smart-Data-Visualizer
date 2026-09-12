@@ -17,7 +17,7 @@ export class DashboardListComponent {
 
   ngOnInit(): void {
    // size=10000 – viewer will only see their own dashboards because of backend logic
-    this.dashboardService.listDashboards('', 1, 10000).subscribe({
+    this.dashboardService.listDashboards(1, 10000, '').subscribe({
       next: (res) => {
         this.dashboards = res.items;   // ✅ plain array
         this.isLoading = false;

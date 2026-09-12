@@ -1,19 +1,17 @@
-// src/app/features/dashboards/pages/dashboard-editor/dashboard-editor.component.ts
-import { Component, OnInit, OnDestroy } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { Subscription } from 'rxjs';
-import { tap } from 'rxjs/operators';
-import { MatSnackBar } from '@angular/material/snack-bar';
+import { DashboardService } from 'src/app/core/services/dashboard.service';
+import { DataModelService } from 'src/app/core/services/data-model.service';
 import { DashboardEditorService } from '../../services/dashboard-editor.service';
-import { DatasetService } from 'src/app/core/services/dataset.service';
-
-import { HeaderTitleService } from 'src/app/core/services/header-title.service';
-import { WidgetResponse } from 'src/app/core/models/dashboard.model';
-import { DatasetOut } from 'src/app/core/models/dataset.model';
-import { WidgetConfigDialogComponent } from '../../components/widget-config-dialog/widget-config-dialog.component';
-import { MatDialog } from '@angular/material/dialog';
-import { GridsterService } from '../../services/gridster.service';
-import { WidgetPopupComponent } from '../../components/widget-popup/widget-popup.component';
+import {
+  DashboardResponse,
+  WidgetConfig,
+  WidgetResponse,
+} from 'src/app/core/models/dashboard.model';
+import { HttpErrorResponse } from '@angular/common/http';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { DataModelOut } from 'src/app/core/models/data-model.model';
 
 @Component({
   selector: 'app-dashboard-editor',
@@ -22,224 +20,335 @@ import { WidgetPopupComponent } from '../../components/widget-popup/widget-popup
 })
 export class DashboardEditorComponent implements OnInit, OnDestroy {
   dashboardId!: number;
-  isLoading = true;
-  // Inside your dashboard-editor.component.ts class
-public isLeftPaneCollapsed = false;
-  // Title editing
-  editingTitle = false;
-  newTitle = '';
+  dashboard: DashboardResponse | null = null;
+  modelId: number | null = null;
+  selectedModel: DataModelOut | null = null;
 
-  // Datasets (from your existing DatasetService)
-  datasets: DatasetOut[] = [];
+  isRenaming = false;
+  renameTitle = '';
 
-  // State from editor service
-  dashboard$ = this.editorService.dashboard$.pipe(
-    tap(val => console.log('[DEBUG] dashboard$:', val))
-  );
-  widgets$ = this.editorService.widgets$.pipe(
-    tap(val => console.log('[DEBUG] widgets$:', val))
-  );
-  selectedDatasetId$ = this.editorService.selectedDatasetId$.pipe(
-    tap(val => console.log('[DEBUG] selectedDatasetId$:', val))
-  );
-  
-  columns$ = this.editorService.columns$.pipe(
-    tap(val => console.log('[DEBUG] columns$:', val))
-  );
+  leftCollapsed = false;
+  rightCollapsed = false;
 
-  // For local drag-drop (we'll keep it simple – static list for now)
-  draggedWidgets: WidgetResponse[] = [];
+  private subscriptions = new Subscription();
 
-  private subs: Subscription[] = [];
+  // ─── DEBUG: toggle at runtime with `window.__dashDebug = true` ───
+  private get DEBUG(): boolean {
+    return (window as any).__dashDebug === true;
+  }
+  private log(...args: any[]): void {
+    if (this.DEBUG) console.log('[DashboardEditor]', ...args);
+  }
 
   constructor(
-    private route: ActivatedRoute,
-    private router: Router,
-    private editorService: DashboardEditorService,
-    private datasetService: DatasetService,
     private snackBar: MatSnackBar,
-    private dialog: MatDialog,
-    private headerTitle: HeaderTitleService,
-    public gridService : GridsterService
+    private route: ActivatedRoute,
+    private dashboardService: DashboardService,
+    private dataModelService: DataModelService,
+    private editorService: DashboardEditorService
   ) {}
 
   ngOnInit(): void {
-    this.dashboardId = +this.route.snapshot.paramMap.get('id')!;
-    const queryDatasetId = this.route.snapshot.queryParamMap.get('dataset_id');
-    const initialDatasetId = queryDatasetId ? +queryDatasetId : null;
+    this.dashboardId = Number(this.route.snapshot.paramMap.get('id'));
+    this.log('ngOnInit – dashboardId =', this.dashboardId);
+    this.loadDashboard();
 
-    console.log('[DEBUG] Dashboard ID:', this.dashboardId);
-    console.log('[DEBUG] Initial Dataset ID from query params:', initialDatasetId);
-
-    // Load dashboard data with optional dataset pre-selection
-    this.editorService.loadDashboard(this.dashboardId, initialDatasetId).subscribe({
-      next: () => {
-        console.log('[DEBUG] Dashboard loaded successfully');
-        this.headerTitle.setTitle(`Dashboard: ${this.editorService.currentDashboard?.id || ''}`);
-
-        this.isLoading = false;
-      },
-      error: (err) => {
-        console.error('[DEBUG] Dashboard load error:', err);
-        this.snackBar.open('Dashboard not found', 'Close', { duration: 3000 });
-        this.router.navigate(['/dashboards']);
-      },
-    });
-
-     this.editorService.widgets$.subscribe(widgets => {
-        console.log('[DEBUG] widgets$ emitted', widgets);
-
-  if (widgets) {
-    this.gridService.syncWidgets(widgets);
-    // Optional: force gridster to re‑render if it doesn't detect changes
-    // You can use a ChangeDetectorRef.detectChanges() after a tick.
-  }
-});
-    
-
-    // Load datasets list for the dropdown
-    console.log('[DEBUG] Fetching datasets list...');
-    this.datasetService.getDatasets('', 1, 10000).subscribe(data => this.datasets = data.items);
-    
-
-    // Sync local draggedWidgets with service widgets (for drag-drop later)
-    this.subs.push(
-      this.widgets$.subscribe((widgets) => {
-        console.log('[DEBUG] Widgets updated:', widgets);
-        if (widgets) this.draggedWidgets = [...widgets];
+    this.subscriptions.add(
+      this.editorService.createWidgetRequest$.subscribe(() => {
+        this.log('createWidgetRequest received');
+        this.addNewWidget();
       })
     );
-   
+
+    // ─── DEBUG: also log every change to the dashboard state ───
+    this.subscriptions.add(
+      this.editorService.dashboard$.subscribe(dash => {
+        this.log('dashboard$ emitted – widgets =', dash?.widgets?.length ?? 0);
+        if (this.DEBUG && dash) {
+          dash.widgets.forEach(w =>
+            this.log(`  widget #${w.id} "${w.config?.title}"`,
+              'chart_data.length =', w.chart_data?.length ?? 0,
+              'chart_type =', w.config?.chart_type,
+              'dims =', w.config?.dimensions?.length,
+              'measures =', w.config?.measures?.length)
+          );
+        }
+      })
+    );
   }
-  
 
   ngOnDestroy(): void {
-    this.subs.forEach(s => s.unsubscribe());
+    this.subscriptions.unsubscribe();
   }
 
-  // ----- Title editing -----
-  startEditTitle(): void {
-    this.newTitle = this.editorService.currentDashboard?.title || '';
-    this.editingTitle = true;
+  // ------------------------------------------------------------------
+  // Rename
+  // ------------------------------------------------------------------
+
+  enableRename(): void {
+    this.renameTitle = this.dashboard?.title || '';
+    this.isRenaming = true;
   }
 
-  saveTitle(): void {
-    if (!this.newTitle.trim()) return;
-    this.editorService.updateTitle(this.newTitle.trim()).subscribe({
-      next: () => {
-        this.snackBar.open('Title updated', 'Close', { duration: 1500 });
-        this.editingTitle = false;
+  saveRename(): void {
+    const newTitle = this.renameTitle.trim();
+    if (newTitle && newTitle !== this.dashboard?.title) {
+      this.dashboardService.updateDashboard(this.dashboardId, { title: newTitle })
+        .subscribe({
+          next: () => {
+            if (this.dashboard) this.dashboard.title = newTitle;
+            this.isRenaming = false;
+            this.snackBar.open('Title updated', 'Close', { duration: 2000 });
+          },
+          error: () => {
+            this.snackBar.open('Failed to update title', 'Close', { duration: 3000 });
+          },
+        });
+    } else {
+      this.isRenaming = false;
+    }
+  }
+
+  cancelRename(): void {
+    this.isRenaming = false;
+    this.renameTitle = '';
+  }
+
+  // ------------------------------------------------------------------
+  // Model selection (from left panel)
+  // ------------------------------------------------------------------
+
+  onModelSelected(model: DataModelOut): void {
+    this.log('onModelSelected – model.id =', model.id, 'datasets =', model.datasets?.length);
+    this.selectedModel = model;
+    this.modelId = model.id;
+    this.editorService.setDatasets(model.datasets);
+  }
+
+  // ------------------------------------------------------------------
+  // Loading
+  // ------------------------------------------------------------------
+
+  loadDashboard(): void {
+    this.dashboardService.getDashboard(this.dashboardId).subscribe({
+      next: (res) => {
+        this.log('loadDashboard – received', res.widgets?.length ?? 0, 'widgets');
+        this.dashboard = res;
+        this.modelId = res.widgets?.[0]?.config?.model_id ?? null;
+        this.log('inferred modelId =', this.modelId);
+
+        this.editorService.setDashboard(res);
+        this.loadModelMetadata(res);
+        this.hydrateWidgets(res.widgets || []);
       },
-      error: () => {
-        this.snackBar.open('Failed to update title', 'Close', { duration: 3000 });
+      error: (err) => console.error('Failed to load dashboard', err),
+    });
+  }
+
+  // ─── FIX 1: assign selectedModel so the editor knows which model is active ───
+  loadModelMetadata(dashboard: DashboardResponse): void {
+    const modelId = dashboard.widgets?.[0]?.config?.model_id ?? null;
+    if (!modelId) {
+      this.log('loadModelMetadata – no modelId, aborting');
+      return;
+    }
+
+    this.log('loadModelMetadata – fetching model', modelId);
+    this.dataModelService.getModel(modelId).subscribe({
+      next: (model) => {
+        this.log('loadModelMetadata – got model', model.id,
+          'datasets =', model.datasets?.length);
+        // ─── FIX 1 ───
+        this.selectedModel = model;
+        this.modelId = model.id;
+        this.editorService.setDatasets(model.datasets);
+      },
+      error: (err: HttpErrorResponse) => {
+        console.error('[DashboardEditor] Failed to load model metadata', err);
       },
     });
   }
 
-  // ----- Dataset selection -----
-  onDatasetChange(datasetId: number): void {
-    console.log('[DEBUG] Dataset change triggered with ID:', datasetId);
-    this.editorService.selectDataset(datasetId);
+  // ─── FIX 2: verbose hydrate + skip invalid widgets ───
+ private hydrateWidgets(widgets: WidgetResponse[]): void {
+  widgets.forEach(w => {
+    const modelId = w.config?.model_id;
+    const hasAxes =
+      (w.config?.dimensions?.length ?? 0) > 0 ||
+      (w.config?.measures?.length ?? 0) > 0;
+
+    if (!modelId) {
+      console.warn(`[hydrate] Widget ${w.id}: no model_id, skipping`);
+      return;
+    }
+    if (!hasAxes) {
+      console.warn(`[hydrate] Widget ${w.id}: no dims/measures, skipping`);
+      return;
+    }
+    // ─── FIX 2a: server already hydrated this widget – leave it alone ───
+    if (Array.isArray(w.chart_data) && w.chart_data.length > 0) {
+      console.debug(
+        `[hydrate] Widget ${w.id}: already has ${w.chart_data.length} rows`
+      );
+      return;
+    }
+
+    this.dashboardService.getWidgetData(modelId, w.config).subscribe({
+      next: (res) => {
+        const rows = res?.chart_data ?? [];
+        if (rows.length === 0) {
+          // ─── FIX 2b: make "empty but successful" visible ───
+          console.warn(
+            `[hydrate] Widget ${w.id}: backend returned 0 rows`,
+            { modelId, config: w.config }
+          );
+        }
+        this.editorService.updateWidgetLocally(w.id, { chart_data: rows });
+      },
+      error: (err) => {
+        // ─── FIX 2c: log the real reason, not just "failed" ───
+        console.error(
+          `[hydrate] Widget ${w.id} failed:`,
+          err?.error?.detail ?? err?.message ?? err
+        );
+      },
+    });
+  });
+}
+
+  // ------------------------------------------------------------------
+  // Panel toggles
+  // ------------------------------------------------------------------
+
+  toggleLeft(): void { this.leftCollapsed = !this.leftCollapsed; }
+  toggleRight(): void { this.rightCollapsed = !this.rightCollapsed; }
+
+  // ------------------------------------------------------------------
+  // Widget creation
+  // ------------------------------------------------------------------
+
+  private createDefaultWidgetConfig(model: DataModelOut): WidgetConfig | null {
+    if (!model.datasets?.length) return null;
+
+    const firstDataset = model.datasets[0];
+    const datasetId = firstDataset.dataset_id;
+    const columns = this.extractColumns(firstDataset.dataset);
+    if (!columns.length) return null;
+
+    const dimensionCol = columns[0];
+    const measureCol = columns.find(c =>
+      ['number', 'integer', 'float', 'int64', 'float64', 'int32', 'float32', 'decimal', 'numeric', 'double']
+        .includes(c.type)
+    ) || columns[0];
+
+    return {
+      model_id: this.modelId!,
+      chart_type: 'bar',
+      title: 'New Widget',
+      dimensions: [{ dataset_id: datasetId, column: dimensionCol.name }],
+      measures: [{
+        dataset_id: datasetId,
+        column: measureCol.name,
+        aggregation: 'SUM',
+        alias: null,
+      }],
+      filters: [],
+      order_by: [],
+      limit: null,
+      color_scheme: 'default',
+      missing_config: null,
+    };
   }
 
-  // ----- Widget actions Task 4 will implement) -----
- addChart(): void {
-  this.openWidgetDialog(undefined, 'chart');
-}
+  private extractColumns(dataset: any): { name: string; type: string }[] {
+    if (!dataset) return [];
+    const raw = dataset.column_schema;
+    const refined = dataset.refined_column_schema;
 
-addKpi(): void {
-  this.openWidgetDialog(undefined, 'kpi');
-}
-
-editWidget(widget: WidgetResponse): void {
-  this.openWidgetDialog(widget);
-}
-
-private openWidgetDialog(widget?: WidgetResponse, defaultType?: 'chart' | 'kpi'): void {
-  // Use a snapshot tracker if available, or fetch it dynamically
-  let datasetIdSnapshot: number | null = null;
-  
-  // Take the snapshot value synchronously from the public observable stream
-  this.selectedDatasetId$.subscribe(id => datasetIdSnapshot = id).unsubscribe();
-console.log('[DEBUG] Opening widget dialog with dataset ID snapshot:', datasetIdSnapshot);
-  const dialogRef = this.dialog.open(WidgetConfigDialogComponent, {
-    width: '800px',
-    data: {
-      dashboardId: this.dashboardId,
-      widget: widget,
-      preSelectedDatasetId: datasetIdSnapshot, //  Fixed using public state stream
-      defaultChartType: defaultType
-    }
-  });
-  dialogRef.afterClosed().subscribe((result: boolean) => {
-    if (result === true) {
-      // Refresh dashboard data
-      this.editorService.refreshDashboard().subscribe(() => {
-      // Force all child chart components to re‑render
-      // (requires ViewChildren or similar – or simply refresh the whole list)
-    });
-    }
-  });
-}
-
-  deleteWidget(widgetId: number, event: Event): void {
-    event.stopPropagation();
-    if (confirm('Delete this widget?')) {
-      this.editorService.deleteWidget(widgetId).subscribe({
-        next: () => this.snackBar.open('Widget deleted', 'Close', { duration: 1500 }),
-        error: () => this.snackBar.open('Failed to delete widget', 'Close', { duration: 3000 }),
+    const typeLookup: Record<string, string> = {};
+    if (refined && !Array.isArray(refined) && typeof refined === 'object') {
+      Object.entries(refined).forEach(([n, info]: [string, any]) => {
+        typeLookup[n] = this.getColumnType(typeof info === 'object' ? info : { type: info });
+      });
+    } else if (Array.isArray(refined)) {
+      refined.forEach((c: any) => {
+        if (c?.name) typeLookup[c.name] = this.getColumnType(c);
       });
     }
+
+    const schema = raw || refined;
+    if (!schema) return [];
+
+    if (Array.isArray(schema)) {
+      return schema
+        .filter((c: any) => c?.name)
+        .map((c: any) => ({
+          name: c.name,
+          type: typeLookup[c.name] ?? this.getColumnType(c),
+        }));
+    }
+
+    if (typeof schema === 'object') {
+      return Object.entries(schema)
+        .filter(([name]) => !!name)
+        .map(([name, info]: [string, any]) => ({
+          name,
+          type: typeLookup[name] ??
+            this.getColumnType(typeof info === 'object' ? info : { type: info }),
+        }));
+    }
+    return [];
   }
 
-  // Helper to get icon from service
-  getWidgetIcon(chartType: string): string {
-    return this.editorService.getWidgetIcon(chartType);
+  private getColumnType(col: any): string {
+    return String(col?.type || col?.dtype || col?.data_type || 'string').toLowerCase();
   }
-  
-  openPopup(widget: WidgetResponse): void {
-  const dialogRef = this.dialog.open(WidgetPopupComponent, {
-    data: { widget },
-    width: 'auto',
-    height: 'auto',
-    maxWidth: '90vw',
-    maxHeight: '90vh',
-    panelClass: 'enlarged-chart-dialog',
-  });
 
-  // Wait for the dialog to finish opening, then tell the chart to resize
-  dialogRef.afterOpened().subscribe(() => {
-    // Give the layout one more frame to settle
-    requestAnimationFrame(() => {
-      // Get a reference to the chart component inside the dialog
-      const chartComponent = dialogRef.componentInstance.chartComponent;
-      if (chartComponent) {
-        chartComponent.resizeChart();
-      }
+  addNewWidget(): void {
+    if (!this.selectedModel || !this.modelId) {
+      this.log('addNewWidget – no selectedModel / modelId');
+      this.snackBar.open('Please select a data model first', 'Close', { duration: 3000 });
+      return;
+    }
+
+    const defaultConfig = this.createDefaultWidgetConfig(this.selectedModel);
+    if (!defaultConfig) {
+      this.snackBar.open(
+        'Unable to create default widget: no columns found',
+        'Close',
+        { duration: 3000 }
+      );
+      return;
+    }
+
+    this.log('addNewWidget – creating with config', defaultConfig);
+
+    this.editorService.addWidget(defaultConfig).subscribe({
+      next: (created) => {
+        this.log('addNewWidget – created widget', created.id,
+          'chart_data =', created.chart_data?.length ?? 0);
+        this.snackBar.open('Widget created', 'Close', { duration: 2000 });
+      },
+      error: (err) => {
+        console.error('Failed to add widget', err);
+        const errors = this.extractErrors(err);
+        this.snackBar.open(
+          'Cannot create widget: ' + errors.join(' • '),
+          'Close',
+          { duration: 6000 }
+        );
+      },
     });
-  });
-}
-  saveDashboard(): void {
-    // Optional: show confirmation or auto-save any pending changes
-    
-    this.snackBar.open('Saving dashboard & opening viewer...', 'Close', { duration: 2000 });
-    this.editorService.refreshDashboard().subscribe(() => {
-    this.router.navigate(['/dashboards', 'view', this.dashboardId]);
-  });
-
   }
-  onItemChange(event: any, widgetId: number): void {
-  // event is the GridsterItem with new x, y
-    console.log('[Grid] itemChange', widgetId, event);
 
-  this.gridService.savePosition(widgetId, event);
-}
-
-onItemResize(event: any, widgetId: number): void {
-    console.log('[Grid] itemResize', widgetId, event);
-
-  this.gridService.savePosition(widgetId, event);
-}
-  
-
+  private extractErrors(err: any): string[] {
+    const detail = err?.error?.detail ?? err?.error ?? err?.message;
+    if (Array.isArray(detail)) {
+      return detail.map((d: any) => (typeof d === 'string' ? d : d?.msg ?? JSON.stringify(d)));
+    }
+    if (detail && Array.isArray(detail.errors)) return detail.errors.map(String);
+    if (typeof detail === 'string') return [detail];
+    if (detail && typeof detail === 'object') return Object.values(detail).map(String);
+    return ['Unknown error.'];
+  }
 }
