@@ -15,7 +15,10 @@ import {
   WidgetResponse,
   WidgetPosition,
   WidgetConfig,
-  DashboardCreateResponse
+  DashboardCreateResponse,
+  DashboardPageCreateRequest,
+  DashboardPage,
+  DashboardPageUpdateRequest
 } from '../models/dashboard.model';
 
 // ─── FIX D: typed envelope for /models/{id}/prepare ───
@@ -73,6 +76,28 @@ export class DashboardService {
 
   unassignDashboardFromUser(dashboardId: number, userId: number): Observable<any> {
     return this.http.delete(`${this.baseUrl}/${dashboardId}/unassign/${userId}`);
+  }
+
+  // ------------------------------------------------------------------
+  // dashboard page operations
+  // ------------------------------------------------------------------
+  createPage(dashboardId: number, request: DashboardPageCreateRequest): Observable<DashboardPage> {
+    return this.http.post<DashboardPage>(`${this.baseUrl}/${dashboardId}/pages`, request);
+  }
+
+  updatePage(
+    dashboardId: number,
+    pageId: number,
+    request: DashboardPageUpdateRequest
+  ): Observable<DashboardPage> {
+    return this.http.patch<DashboardPage>(
+      `${this.baseUrl}/${dashboardId}/pages/${pageId}`,
+      request
+    );
+  }
+
+  deletePage(dashboardId: number, pageId: number): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/${dashboardId}/pages/${pageId}`);
   }
 
   // ------------------------------------------------------------------

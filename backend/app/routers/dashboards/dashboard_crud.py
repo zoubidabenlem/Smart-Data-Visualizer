@@ -8,7 +8,7 @@ from typing import Dict, Any
 from app.dependencies.auth_dependencies import get_current_user, require_admin
 from app.db.base import get_db
 from app.models.user import User
-from app.models.dashboard import Dashboard, Widget
+from app.models.dashboard import Dashboard, Widget, DashboardPage
 from app.models.data_model import DataModel
 from app.schemas.dashboard_schemas import (
     DashboardCreateRequest,
@@ -35,21 +35,17 @@ def create_dashboard(
         db.add(new_dash)
         db.flush()
 
+        # Auto-create the first page so every dashboard always has one.
+        first_page = DashboardPage(dashboard_id=new_dash.id, title="Page 1", order=0)
+        db.add(first_page)
+        db.flush()
+
         if payload.widgets:
             for wcfg in payload.widgets:
-                # Validate DataModel ownership
-                model = db.query(DataModel).filter(
-                    DataModel.id == wcfg.model_id,
-                    DataModel.user_id == current_user.id,
-                ).first()
-                if not model:
-                    raise HTTPException(
-                        status_code=400,
-                        detail=f"Data model {wcfg.model_id} not found or access denied",
-                    )
-
+                ...
                 widget = Widget(
                     dashboard_id=new_dash.id,
+                    page_id=first_page.id,      # ← NEW
                     model_id=wcfg.model_id,
                     config_json=wcfg.model_dump(),
                     position=None,
@@ -156,6 +152,10 @@ def get_dashboard(
         response = {
             "id": dash.id,
             "title": dash.title,
+             "pages": [
+                {"id": p.id, "title": p.title, "order": p.order}
+                for p in sorted(dash.pages, key=lambda x: x.order)
+            ],   
             "widgets": widgets_responses,
             "created_at": dash.created_at.isoformat(),
             "updated_at": dash.updated_at.isoformat(),

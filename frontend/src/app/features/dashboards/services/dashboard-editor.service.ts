@@ -8,6 +8,7 @@ import {
   WidgetCreateRequest,
   WidgetUpdateRequest,
   WidgetPosition,
+  DashboardPage,
 } from 'src/app/core/models/dashboard.model';
 import { ModelDatasetOut } from 'src/app/core/models/data-model.model';
 
@@ -29,14 +30,23 @@ export class DashboardEditorService {
   private createWidgetRequestSubject = new Subject<void>();
   public createWidgetRequest$ = this.createWidgetRequestSubject.asObservable();
 
+  // PAGE STATE
+    // ─── Page state ───
+  private activePageIdSubject = new BehaviorSubject<number | null>(null);
+  public activePageId$ = this.activePageIdSubject.asObservable();
+
   constructor(private dashboardService: DashboardService) {}
 
   // ------------------------------------------------------------------
   // Dashboard state
   // ------------------------------------------------------------------
 
-  setDashboard(dashboard: DashboardResponse): void {
+    setDashboard(dashboard: DashboardResponse): void {
     this.dashboardSubject.next(dashboard);
+    if (!this.activePageIdSubject.value && dashboard.pages.length > 0) {
+      const sorted = [...dashboard.pages].sort((a, b) => a.order - b.order);
+      this.activePageIdSubject.next(sorted[0].id);
+    }
     if (!this.selectedWidgetSubject.value && dashboard.widgets.length > 0) {
       this.selectedWidgetSubject.next(dashboard.widgets[0]);
     }
@@ -71,18 +81,23 @@ export class DashboardEditorService {
   // Widget CRUD
   // ------------------------------------------------------------------
 
-  addWidget(config: WidgetConfig, position?: WidgetPosition): Observable<WidgetResponse> {
+    addWidget(config: WidgetConfig, position?: WidgetPosition, pageId?: number): Observable<WidgetResponse> {
     const dashboard = this.dashboardSubject.value;
     if (!dashboard) return throwError(() => new Error('Dashboard not loaded'));
 
-    const request: WidgetCreateRequest = { config, position: position || null };
+    const targetPageId = pageId ?? this.activePageIdSubject.value ?? undefined;
+
+    const request: WidgetCreateRequest = {
+      config,
+      position: position || null,
+      page_id: targetPageId ?? null,
+    };
 
     return this.dashboardService.addWidget(dashboard.id, request).pipe(
       tap((res: any) => {
-        // Backend returns a full WidgetResponse (see widget_crud.py fix).
-        // Fall back to a composed object if it doesn't.
         const newWidget: WidgetResponse = {
           id: res.id,
+          page_id: res.page_id ?? targetPageId ?? null,
           config: res.config ?? config,
           chart_data: res.chart_data ?? [],
           position: res.position ?? position ?? null,
@@ -196,5 +211,69 @@ export class DashboardEditorService {
   // ─── NEW: canvas asks the editor to run the real create flow ───
   requestCreateWidget(): void {
     this.createWidgetRequestSubject.next();
+  }
+
+  // ─── NEW: page state management ───
+    setActivePage(pageId: number): void {
+    this.activePageIdSubject.next(pageId);
+    // Drop widget selection if it belongs to another page
+    const dash = this.dashboardSubject.value;
+    const current = this.selectedWidgetSubject.value;
+    if (dash && current) {
+      const w = dash.widgets.find(x => x.id === current.id);
+      if (!w || w.page_id !== pageId) {
+        this.selectedWidgetSubject.next(null);
+      }
+    }
+  }
+
+  getActivePageId(): number | null {
+    return this.activePageIdSubject.value;
+  }
+
+  createPage(title?: string): Observable<DashboardPage> {
+    const dash = this.dashboardSubject.value;
+    if (!dash) return throwError(() => new Error('Dashboard not loaded'));
+
+    return this.dashboardService.createPage(dash.id, { title }).pipe(
+      tap((page: DashboardPage) => {
+        const pages = [...dash.pages, page].sort((a, b) => a.order - b.order);
+        this.updateDashboardState({ ...dash, pages });
+        this.activePageIdSubject.next(page.id);
+      })
+    );
+  }
+
+  renamePage(pageId: number, title: string): void {
+    const dash = this.dashboardSubject.value;
+    if (!dash) return;
+    this.dashboardService.updatePage(dash.id, pageId, { title }).subscribe({
+      next: (updated) => {
+        const pages = dash.pages.map(p => (p.id === updated.id ? updated : p));
+        this.updateDashboardState({ ...dash, pages });
+      },
+      error: (err) => console.error('Failed to rename page', err),
+    });
+  }
+
+  deletePage(pageId: number): void {
+    const dash = this.dashboardSubject.value;
+    if (!dash) return;
+    if (dash.pages.length <= 1) return;   // UI already prevents this
+
+    this.dashboardService.deletePage(dash.id, pageId).subscribe({
+      next: () => {
+        const pages = dash.pages
+          .filter(p => p.id !== pageId)
+          .sort((a, b) => a.order - b.order);
+        const widgets = dash.widgets.filter(w => w.page_id !== pageId);
+        this.updateDashboardState({ ...dash, pages, widgets });
+
+        if (this.activePageIdSubject.value === pageId) {
+          this.activePageIdSubject.next(pages[0].id);
+        }
+      },
+      error: (err) => console.error('Failed to delete page', err),
+    });
   }
 }

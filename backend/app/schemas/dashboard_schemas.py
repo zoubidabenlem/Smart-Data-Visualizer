@@ -1,5 +1,8 @@
 from typing import Any, Dict, Optional, List, Literal
+from numpy import number
+from numpy import number
 from pydantic import BaseModel, Field, field_validator, model_validator
+from sqlalchemy import null
 from app.schemas.pipeline import ModelFilterCondition, MissingConfig
 from app.models.dashboard import WidgetPosition
 
@@ -77,6 +80,24 @@ class WidgetPositionUpdate(BaseModel):
     cols: int
     rows: int
 
+
+#------------------------------------------------------------
+# Page schemas for dashboard pages 
+#------------------------------------------------------------
+class DashboardPageMeta(BaseModel):
+    id: int
+    title: str
+    order: int
+
+
+class DashboardPageCreateRequest(BaseModel):
+    title: str = "New Page"
+
+
+class DashboardPageUpdateRequest(BaseModel):
+    title: Optional[str] = None
+    order: Optional[int] = None
+
 # ------------------------------------------------------------
 # API request / response models for dashboard CRUD
 # ------------------------------------------------------------
@@ -89,10 +110,11 @@ class DashboardCreateRequest(BaseModel):
 class DashboardUpdateRequest(BaseModel):
     title: Optional[str] = None
 
-# Widget creation/update
+# ─── Modify WidgetCreateRequest ───
 class WidgetCreateRequest(BaseModel):
     config: WidgetConfig
     position: Optional[WidgetPosition] = None
+    page_id: Optional[int] = None   # NEW — defaults to first page if omitted
 
 class WidgetUpdateRequest(BaseModel):
     config: Optional[WidgetConfig] = None
@@ -101,15 +123,17 @@ class WidgetUpdateRequest(BaseModel):
 # Response models
 class WidgetResponse(BaseModel):
     id: int
+    page_id: Optional[int] = None   # NEW
     config: WidgetConfig
-    chart_data: List[Dict[str, Any]]   # result of pipeline for this widget
+    chart_data: List[Dict[str, Any]]
     position: Optional[WidgetPosition] = None
     created_at: str
     updated_at: str
-
+    
 class DashboardResponse(BaseModel):
     id: int
     title: str
+    pages: List[DashboardPageMeta] = Field(default_factory=list)   # NEW
     widgets: List[WidgetResponse]
     created_at: str
     updated_at: str

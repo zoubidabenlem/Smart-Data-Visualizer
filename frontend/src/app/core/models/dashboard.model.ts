@@ -1,6 +1,23 @@
 // src/app/core/models/dashboard.model.ts
 
 // ----------------------------------------------------------------------
+// Dashboard page models
+// ----------------------------------------------------------------------
+export interface DashboardPage {
+  id: number;
+  title: string;
+  order: number;
+}
+
+export interface DashboardPageCreateRequest {
+  title?: string;
+}
+
+export interface DashboardPageUpdateRequest {
+  title?: string;
+  order?: number;
+}
+// ----------------------------------------------------------------------
 // Widget Configuration (mirrors backend WidgetConfig)
 // ----------------------------------------------------------------------
 
@@ -99,7 +116,9 @@ export interface DashboardUpdateRequest {
 export interface WidgetCreateRequest {
   config: WidgetConfig;
   position?: WidgetPosition | null;
+  page_id?: number | null;    // ← NEW
 }
+
 
 export interface WidgetUpdateRequest {
   config?: WidgetConfig | null;
@@ -108,15 +127,18 @@ export interface WidgetUpdateRequest {
 
 export interface WidgetResponse {
   id: number;
+  page_id: number | null;     // ← NEW
   config: WidgetConfig;
-  chart_data: any[]; // array of result rows from pipeline
+  chart_data: any[];
   position?: WidgetPosition | null;
- 
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface DashboardResponse {
   id: number;
   title: string;
+  pages: DashboardPage[];     // ← NEW
   widgets: WidgetResponse[];
   created_at: string;
   updated_at: string;

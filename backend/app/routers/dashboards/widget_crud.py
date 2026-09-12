@@ -6,7 +6,7 @@ from typing import Dict, Any
 from app.dependencies.auth_dependencies import get_current_user, require_admin
 from app.db.base import get_db
 from app.models.user import User
-from app.models.dashboard import Dashboard, Widget
+from app.models.dashboard import Dashboard, DashboardPage, Widget
 from app.models.data_model import DataModel
 from app.schemas.dashboard_schemas import (
     WidgetConfig,
@@ -63,9 +63,12 @@ def _build_widget_response(widget: Widget, db: Session) -> WidgetResponse:
 
     return WidgetResponse(
         id=widget.id,
+        page_id=widget.page_id,        # ← NEW
         config=WidgetConfig(**widget.config_json),
         chart_data=chart_data,
         position=widget.position,
+        created_at=widget.created_at.isoformat(),   # ← also add if not present
+        updated_at=widget.updated_at.isoformat(),
     )
 
 @router.post("/{dashboard_id}/widgets", response_model=WidgetResponse, status_code=201)
@@ -77,8 +80,32 @@ def add_widget(
 ):
     try:
         dash = db.query(Dashboard).filter(Dashboard.id == dashboard_id).first()
-        if not dash or dash.user_id != current_user.id:
+        if not dash:
             raise HTTPException(status_code=404, detail="Dashboard not found")
+
+        # Resolve page
+        target_page_id = payload.page_id
+        if target_page_id is None:
+            first_page = (
+                db.query(DashboardPage)
+                .filter(DashboardPage.dashboard_id == dashboard_id)
+                .order_by(DashboardPage.order)
+                .first()
+            )
+            if not first_page:
+                raise HTTPException(status_code=400, detail="Dashboard has no pages")
+            target_page_id = first_page.id
+        else:
+            page = (
+                db.query(DashboardPage)
+                .filter(
+                    DashboardPage.id == target_page_id,
+                    DashboardPage.dashboard_id == dashboard_id,
+                )
+                .first()
+            )
+            if not page:
+                raise HTTPException(status_code=400, detail="Page not found on this dashboard")
 
         model = (
             db.query(DataModel)
@@ -98,6 +125,7 @@ def add_widget(
 
         widget = Widget(
             dashboard_id=dashboard_id,
+            page_id=target_page_id,        # ← NEW
             model_id=payload.config.model_id,
             config_json=payload.config.model_dump(),
             position=payload.position.model_dump() if payload.position else None,

@@ -1,33 +1,74 @@
-<!-- src/app/features/dashboards/components/center-canvas/center-canvas.component.html -->
 <div class="canvas-container">
 
-  <div class="canvas-empty-hint" *ngIf="items.length === 0">
-    <mat-icon>dashboard_customize</mat-icon>
-    <p>
-      No widgets yet.<br />
-      Click <strong>New Widget</strong> on the right panel to add one.
-    </p>
+  <!-- Page tabs -->
+  <div class="page-tabs">
+    <div
+      *ngFor="let page of pages; trackBy: trackByPageId"
+      class="page-tab"
+      [class.active]="page.id === activePageId"
+      (click)="selectPage(page.id)">
+
+      <input
+        *ngIf="editingPageId === page.id; else pageTitle"
+        class="page-tab-input"
+        [(ngModel)]="editingPageTitle"
+        (blur)="commitRenamePage()"
+        (keyup.enter)="commitRenamePage()"
+        (keyup.escape)="cancelRenamePage()"
+        autofocus />
+
+      <ng-template #pageTitle>
+        <span
+          class="page-tab-title"
+          (dblclick)="startRenamePage(page, $event)"
+          title="Double-click to rename">
+          {{ page.title }}
+        </span>
+      </ng-template>
+
+      <button
+        *ngIf="pages.length > 1"
+        class="page-tab-close"
+        (click)="deletePage(page.id, $event)"
+        aria-label="Delete page">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <button class="page-tab-add" (click)="addPage()" aria-label="Add page">
+      <mat-icon>add</mat-icon>
+    </button>
   </div>
 
-  <gridster [options]="options" class="gridster-canvas">
-    <gridster-item
-      *ngFor="let item of items; trackBy: trackByItemId"
-      [item]="item"
-      class="widget-tile"
-      [class.widget-tile-selected]="isSelected(item)">
+  <!-- Empty state -->
+  <div class="canvas-empty-hint" *ngIf="items.length === 0">
+    <mat-icon>dashboard_customize</mat-icon>
+    <p>No widgets on this page.<br />Click <strong>New Widget</strong> on the right panel to add one.</p>
+  </div>
 
-      <div
-        class="widget-tile-body"
-        (click)="onSelectWidget(widgetOf(item), $event)">
-        <app-widget-chart
-          *ngIf="widgetOf(item) as widget"
-          [widget]="widget">
-        </app-widget-chart>
-      </div>
+  <!-- One Gridster per page; only the active one mounts -->
+  <ng-container *ngFor="let page of pages; trackBy: trackByPageId">
+    <gridster
+      *ngIf="page.id === activePageId"
+      [options]="options"
+      class="gridster-canvas">
+      <gridster-item
+        *ngFor="let item of items; trackBy: trackByItemId"
+        [item]="item"
+        class="widget-tile"
+        [class.widget-tile-selected]="isSelected(item)">
 
-      <div class="widget-tile-title">
-        {{ widgetOf(item)?.config?.title || 'Untitled' }}
-      </div>
-    </gridster-item>
-  </gridster>
+        <div class="widget-tile-body" (click)="onSelectWidget(widgetOf(item), $event)">
+          <app-widget-chart
+            *ngIf="widgetOf(item) as widget"
+            [widget]="widget">
+          </app-widget-chart>
+        </div>
+
+        <div class="widget-tile-title">
+          {{ widgetOf(item)?.config?.title || 'Untitled' }}
+        </div>
+      </gridster-item>
+    </gridster>
+  </ng-container>
 </div>

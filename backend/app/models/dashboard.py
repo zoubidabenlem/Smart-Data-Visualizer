@@ -12,12 +12,18 @@ dashboard_assignment = Table(
     Column("user_id", Integer, ForeignKey("users.id"), primary_key=True),
     Column("dashboard_id", Integer, ForeignKey("dashboards.id"), primary_key=True),
 )
-
+# widget
 class Widget(Base):
     __tablename__ = "dashboard_widgets"
 
     id           = Column(Integer, primary_key=True, index=True)
     dashboard_id = Column(Integer, ForeignKey("dashboards.id"), nullable=False)
+    page_id      = Column(
+        Integer,
+        ForeignKey("dashboard_pages.id", ondelete="CASCADE"),
+        nullable=True,        # NOT NULL after migration backfill
+        index=True,
+    )
     model_id = Column(Integer, ForeignKey("data_models.id", ondelete="CASCADE"), nullable=False)    
     config_json  = Column(JSON, nullable=False)   # full widget config (chart_type, filters, etc.)
     position     = Column(JSON, nullable=True)    # e.g. {"x":0, "y":0, "w":6, "h":4}
@@ -26,9 +32,33 @@ class Widget(Base):
 
     # Relationships
     dashboard = relationship("Dashboard", back_populates="widgets")
+    page      = relationship("DashboardPage", back_populates="widgets")
     model = relationship("DataModel", back_populates="widgets")
-    
-#container for dahsboard widgets
+
+#pages container for widgets 
+class DashboardPage(Base):
+    __tablename__ = "dashboard_pages"
+
+    id           = Column(Integer, primary_key=True, index=True)
+    dashboard_id = Column(
+        Integer,
+        ForeignKey("dashboards.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    title        = Column(String(255), nullable=False, default="Page 1")
+    order        = Column(Integer, nullable=False, default=0)
+    created_at   = Column(DateTime, server_default=func.now())
+    updated_at   = Column(DateTime, server_default=func.now(), onupdate=func.now())
+
+    dashboard = relationship("Dashboard", back_populates="pages")
+    widgets   = relationship(
+        "Widget",
+        back_populates="page",
+        cascade="all, delete-orphan",
+    )
+
+#container for dahsboard pages
 class Dashboard(Base):
     __tablename__ = "dashboards"
 
@@ -40,6 +70,12 @@ class Dashboard(Base):
 
     # Relationships
     owner   = relationship("User", back_populates="dashboards")
+    pages   = relationship(
+        "DashboardPage",
+        back_populates="dashboard",
+        cascade="all, delete-orphan",
+        order_by="DashboardPage.order",
+    )
     widgets = relationship("Widget",back_populates="dashboard", cascade="all, delete-orphan")
     assigned_users = relationship(
         "User",

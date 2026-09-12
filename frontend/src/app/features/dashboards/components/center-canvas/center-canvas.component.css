@@ -68,7 +68,7 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  color: #94a3b8;
+  color: #042c63;
   pointer-events: none;
   z-index: 1;
 }
@@ -77,4 +77,91 @@
   font-size: 42px;
   width: 42px;
   height: 42px;
+}
+.page-tabs {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 4px 8px 4px;
+  border-bottom: 1px solid #e2e8f0;
+  margin-bottom: 10px;
+  flex-shrink: 0;
+}
+
+.page-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 10px;
+  border-radius: 6px 6px 0 0;
+  background: #f1f5f9;
+  color: #475569;
+  font-size: 0.85rem;
+  cursor: pointer;
+  user-select: none;
+  border: 1px solid transparent;
+  border-bottom: none;
+  transition: background 0.15s, color 0.15s;
+}
+
+.page-tab:hover {
+  background: #e2e8f0;
+}
+
+.page-tab.active {
+  background: #fff;
+  color: #0f172a;
+  font-weight: 600;
+  border-color: #cbd5e0;
+}
+
+.page-tab-title {
+  white-space: nowrap;
+}
+
+.page-tab-input {
+  border: none;
+  outline: none;
+  background: transparent;
+  font: inherit;
+  width: 100px;
+  padding: 0;
+}
+
+.page-tab-close {
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  color: #94a3b8;
+}
+.page-tab-close:hover { color: #ef4444; }
+.page-tab-close mat-icon { font-size: 14px; width: 14px; height: 14px; }
+
+.page-tab-add {
+  background: transparent;
+  border: 1px dashed #cbd5e0;
+  border-radius: 6px;
+  padding: 2px 6px;
+  cursor: pointer;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+}
+.page-tab-add:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+.page-tab-add mat-icon { font-size: 16px; width: 16px; height: 16px; }
+
+.canvas-container {
+  display: flex;
+  flex-direction: column;
+}
+.gridster-canvas {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
 }

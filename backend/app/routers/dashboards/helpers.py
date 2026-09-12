@@ -41,6 +41,7 @@ def get_widget_data_for_dashboard(widget: Widget, db: Session) -> Dict[str, Any]
 
     response = {
         "id": widget.id,
+        "page_id": widget.page_id,
         "config": widget_config.model_dump(),
         "chart_data": chart_data,
         "position": widget.position,
