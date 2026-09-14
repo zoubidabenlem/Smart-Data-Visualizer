@@ -276,4 +276,14 @@ export class DashboardEditorService {
       error: (err) => console.error('Failed to delete page', err),
     });
   }
+
+    /** True once the dashboard is bound to a model and can't be rebound. */
+  isModelLocked(): boolean {
+    return !!this.dashboardSubject.value?.model_id;
+  }
+
+  /** The dashboard's bound model id, or null if unbound. */
+  getModelId(): number | null {
+    return this.dashboardSubject.value?.model_id ?? null;
+  }
 }

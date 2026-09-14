@@ -12,6 +12,7 @@ import { ColumnSchema, DatasetOut } from 'src/app/core/models/dataset.model';
 })
 export class DataModelExplorerComponent implements OnInit, OnDestroy {
   @Input() collapsed = false;
+  @Input() locked = false;            // NEW
   @Output() modelSelected = new EventEmitter<DataModelOut>();
   @Output() collapsedChange = new EventEmitter<boolean>();
 
@@ -59,6 +60,9 @@ export class DataModelExplorerComponent implements OnInit, OnDestroy {
         },
       });
   }
+    get isReadOnly(): boolean {
+    return this.locked;
+  }
 
   onSearchChange(term: string): void {
     this.searchTerm = term;
@@ -90,15 +94,18 @@ getDatasetColumns(dataset: DatasetOut): ColumnSchema[] {
   return dataset.refined_column_schema || dataset.column_schema || [];
 }
 
-  selectModel(model: DataModelOut): void {
-    this.selectedModel = model;
-    this.expandedDatasets = {};
-    if (model.datasets.length) {
-      this.expandedDatasets[model.datasets[0].dataset_id] = true;
-    }
-    this.expandedRelationships = false;
-    this.isModelListCollapsed = true;
-    this.modelSelected.emit(model);
+selectModel(model: DataModelOut): void {
+  if (this.locked) {
+    return;   // silently ignore; the UI shows the lock banner
+  }
+  this.selectedModel = model;
+  this.expandedDatasets = {};
+  if (model.datasets.length) {
+    this.expandedDatasets[model.datasets[0].dataset_id] = true;
+  }
+  this.expandedRelationships = false;
+  this.isModelListCollapsed = true;
+  this.modelSelected.emit(model);
   }
 
   toggleDataset(datasetId: number): void {

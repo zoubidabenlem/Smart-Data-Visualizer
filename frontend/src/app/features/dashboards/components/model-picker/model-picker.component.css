@@ -1,0 +1,195 @@
+/* src/app/features/dashboards/components/model-picker/model-picker.component.css */
+:host {
+  display: block;
+}
+
+.chip {
+  background: var(--color-surface, #fff);
+  border: 1px solid var(--color-border, #e2e8f0);
+  border-radius: 8px;
+  margin: 0 8px 10px 8px;
+  overflow: hidden;
+  transition: border-color 0.15s ease;
+}
+
+.chip.chip-locked {
+  border-color: #cbd5e0;
+  background: #f8fafc;
+}
+
+/* ─── Header ─── */
+.chip-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  cursor: pointer;
+  user-select: none;
+  background: var(--color-surface, #fff);
+  transition: background 0.15s ease;
+}
+.chip-header:hover {
+  background: var(--color-background, #f7fafc);
+}
+
+.chip-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  color: var(--prussian-blue, #1e3a5f);
+}
+
+.chip-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--prussian-blue, #1e3a5f);
+  letter-spacing: 0.02em;
+}
+
+.chip-spacer {
+  flex: 1;
+}
+
+.chip-lock {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  color: #92400e;
+}
+
+.chip-chevron {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  color: #94a3b8;
+}
+
+/* ─── Body ─── */
+.chip-body {
+  padding: 0 12px 12px 12px;
+  border-top: 1px solid var(--color-border, #e2e8f0);
+}
+
+/* ─── Locked/bound presentation ─── */
+.bound-model {
+  padding-top: 10px;
+}
+.bound-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #0f172a;
+  margin-bottom: 2px;
+}
+.bound-desc {
+  font-size: 0.78rem;
+  color: #64748b;
+  margin-bottom: 8px;
+  line-height: 1.35;
+}
+.bound-hint {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 8px;
+  background: #fef3c7;
+  color: #78350f;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  line-height: 1.35;
+}
+.bound-hint mat-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+/* ─── Unbound: collapsed entry ─── */
+.picker-collapsed {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 4px 4px 4px;
+  cursor: pointer;
+  font-size: 0.82rem;
+  color: #64748b;
+  line-height: 1.4;
+}
+.picker-collapsed:hover {
+  color: var(--prussian-blue, #1e3a5f);
+}
+.picker-plus {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  color: #2ca58d;
+}
+.picker-empty-text {
+  font-style: italic;
+}
+.picker-current-text strong {
+  color: #0f172a;
+}
+
+/* ─── Unbound: expanded list ─── */
+.picker-list-wrapper {
+  padding-top: 10px;
+}
+.search-field {
+  width: 100%;
+  font-size: 0.8rem;
+}
+.search-field ::ng-deep .mat-mdc-form-field-subscript-wrapper {
+  display: none;
+}
+
+.loading-indicator {
+  display: flex;
+  justify-content: center;
+  padding: 12px;
+}
+.error-message {
+  color: #dc2626;
+  font-size: 0.78rem;
+  padding: 8px 0;
+}
+
+.model-list {
+  max-height: 280px;
+  overflow-y: auto;
+  margin: 0 -4px;
+  padding: 0 4px;
+}
+.model-item {
+  padding: 8px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.12s ease;
+  border: 1px solid transparent;
+}
+.model-item:hover {
+  background: #f1f5f9;
+}
+.model-item-active {
+  background: #ecfdf5;
+  border-color: #2ca58d;
+}
+.model-item-name {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+.model-item-desc {
+  font-size: 0.72rem;
+  color: #64748b;
+  margin-top: 2px;
+  line-height: 1.3;
+}
+.no-models {
+  text-align: center;
+  color: #94a3b8;
+  font-size: 0.78rem;
+  padding: 16px 0;
+  font-style: italic;
+}

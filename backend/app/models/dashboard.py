@@ -65,11 +65,18 @@ class Dashboard(Base):
     id           = Column(Integer, primary_key=True, index=True)
     user_id      = Column(Integer, ForeignKey("users.id"), nullable=False)
     title        = Column(String(255), nullable=False)
+    model_id     = Column(
+        Integer,
+        ForeignKey("data_models.id", ondelete="RESTRICT"),
+        nullable=True,
+        index=True,
+    )
     created_at   = Column(DateTime, server_default=func.now())
     updated_at   = Column(DateTime, server_default=func.now(), onupdate=func.now())
 
     # Relationships
     owner   = relationship("User", back_populates="dashboards")
+    model   = relationship("DataModel", foreign_keys=[model_id])
     pages   = relationship(
         "DashboardPage",
         back_populates="dashboard",

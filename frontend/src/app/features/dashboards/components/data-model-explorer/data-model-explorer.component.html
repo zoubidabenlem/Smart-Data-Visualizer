@@ -8,6 +8,10 @@
 
 <!-- Expanded content -->
 <div *ngIf="!collapsed" class="left-pane-content">
+  <div *ngIf="isReadOnly" class="model-lock-banner">
+    <mat-icon>lock</mat-icon>
+    <span>This dashboard is locked to its model and cannot be changed.</span>
+  </div>
   <!-- Header with collapse button and title -->
   <div class="left-pane-header">
     <span class="panel-title">Data Model Explorer</span>
@@ -35,11 +39,11 @@
       <div *ngIf="errorMessage" class="error-message">{{ errorMessage }}</div>
       <div *ngIf="!loading && !errorMessage" class="model-list">
         <mat-card
-          *ngFor="let model of filteredModels"
-          class="model-card"
-          [class.selected]="selectedModel?.id === model.id"
-          (click)="selectModel(model)"
-        >
+            *ngFor="let model of filteredModels"
+            class="model-card"
+            [class.selected]="selectedModel?.id === model.id"
+            [class.model-card-disabled]="isReadOnly"
+            (click)="selectModel(model)">
           <mat-card-content>
             <div class="model-name">{{ model.name }}</div>
             <div class="model-description">{{ model.description || 'No description' }}</div>

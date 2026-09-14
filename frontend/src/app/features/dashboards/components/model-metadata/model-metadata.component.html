@@ -1,0 +1,82 @@
+<!-- src/app/features/dashboards/components/model-metadata/model-metadata.component.html -->
+<div class="chip" [class.chip-empty]="!model">
+
+  <div class="chip-header" (click)="toggleCollapsed()">
+    <mat-icon class="chip-icon">account_tree</mat-icon>
+    <span class="chip-title">Model Metadata</span>
+    <span class="chip-spacer"></span>
+    <span class="chip-badge" *ngIf="model">{{ model.datasets.length }}</span>
+    <mat-icon class="chip-chevron">
+      {{ collapsed ? 'expand_more' : 'expand_less' }}
+    </mat-icon>
+  </div>
+
+  <div class="chip-body" *ngIf="!collapsed">
+
+    <div *ngIf="!model" class="empty-state">
+      <mat-icon>info_outline</mat-icon>
+      <span>No model selected.</span>
+    </div>
+
+    <ng-container *ngIf="model">
+
+      <!-- ─── Datasets ─── -->
+      <div class="meta-section">
+        <div class="meta-section-header">
+          <span>Datasets</span>
+          <span class="meta-count">{{ model.datasets.length }}</span>
+        </div>
+
+        <div class="dataset-item" *ngFor="let md of model.datasets; trackBy: trackByDatasetId">
+          <div class="dataset-header" (click)="toggleDataset(md.dataset_id)">
+            <mat-icon class="dataset-caret">
+              {{ isExpanded(md.dataset_id) ? 'expand_more' : 'chevron_right' }}
+            </mat-icon>
+            <span class="dataset-name">{{ datasetLabel(md) }}</span>
+            <span class="dataset-count">{{ columnCount(md.dataset_id) }} cols</span>
+          </div>
+
+          <div *ngIf="isExpanded(md.dataset_id)" class="dataset-columns">
+            <div class="column-row" *ngFor="let col of columns(md.dataset_id); trackBy: trackByColumnName">
+              <span class="column-name">{{ col.name }}</span>
+              <span class="column-type">{{ col.type }}</span>
+            </div>
+            <div *ngIf="columnCount(md.dataset_id) === 0" class="no-columns">
+              No columns
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─── Relationships ─── -->
+      <div class="meta-section">
+        <div class="meta-section-header clickable" (click)="toggleRelationships()">
+          <mat-icon class="dataset-caret">
+            {{ relationshipsExpanded ? 'expand_more' : 'chevron_right' }}
+          </mat-icon>
+          <span>Relationships</span>
+          <span class="meta-count">{{ model.relationships.length }}</span>
+        </div>
+
+        <div *ngIf="relationshipsExpanded" class="relationship-list">
+          <div class="relationship-row" *ngFor="let rel of model.relationships; trackBy: trackByRelId">
+            <div class="rel-line">
+              <span class="rel-side">
+                {{ nameForDataset(rel.left_dataset_id) }}.{{ rel.left_column }}
+              </span>
+              <mat-icon class="rel-arrow">arrow_downward</mat-icon>
+              <span class="rel-side">
+                {{ nameForDataset(rel.right_dataset_id) }}.{{ rel.right_column }}
+              </span>
+            </div>
+            <span class="rel-badge">{{ rel.join_type }}</span>
+          </div>
+          <div *ngIf="model.relationships.length === 0" class="no-relationships">
+            No relationships defined
+          </div>
+        </div>
+      </div>
+
+    </ng-container>
+  </div>
+</div>

@@ -107,6 +107,16 @@ def add_widget(
             if not page:
                 raise HTTPException(status_code=400, detail="Page not found on this dashboard")
 
+        # ─── Model lock / bind ───
+        if dash.model_id is None:
+            dash.model_id = payload.config.model_id       # first widget binds
+        elif dash.model_id != payload.config.model_id:
+            raise HTTPException(
+                400,
+                f"Widget model {payload.config.model_id} does not match "
+                f"dashboard model {dash.model_id}.",
+            )
+
         model = (
             db.query(DataModel)
             .filter(
@@ -116,7 +126,7 @@ def add_widget(
             .first()
         )
         if not model:
-            raise HTTPException(status_code=400, detail="Data model not found or access denied")
+            raise HTTPException(400, "Data model not found or access denied")
 
         model_metadata = get_model_column_metadata(model, db)
         errors = validate_widget_config(payload.config, model_metadata)
@@ -165,6 +175,16 @@ def update_widget(
             raise HTTPException(status_code=403, detail="Access denied")
 
         if payload.config is not None:
+            # ─── Model lock on widget update ───
+            if (
+                widget.dashboard.model_id is not None
+                and payload.config.model_id != widget.dashboard.model_id
+            ):
+                raise HTTPException(
+                    400,
+                    f"Cannot change widget model. Dashboard is locked to "
+                    f"model {widget.dashboard.model_id}.",
+                )
             model = (
                 db.query(DataModel)
                 .filter(

@@ -118,8 +118,13 @@ export class DashboardEditorComponent implements OnInit, OnDestroy {
   // Model selection (from left panel)
   // ------------------------------------------------------------------
 
-  onModelSelected(model: DataModelOut): void {
-    this.log('onModelSelected – model.id =', model.id, 'datasets =', model.datasets?.length);
+   onModelSelected(model: DataModelOut): void {
+    // Guard: dashboard is already bound to a model.
+    if (this.dashboard?.model_id) {
+      this.log('onModelSelected ignored — dashboard is model-locked');
+      return;
+    }
+    this.log('onModelSelected – model.id =', model.id);
     this.selectedModel = model;
     this.modelId = model.id;
     this.editorService.setDatasets(model.datasets);
@@ -130,35 +135,28 @@ export class DashboardEditorComponent implements OnInit, OnDestroy {
   // ------------------------------------------------------------------
 
   loadDashboard(): void {
-    this.dashboardService.getDashboard(this.dashboardId).subscribe({
-      next: (res) => {
-        this.log('loadDashboard – received', res.widgets?.length ?? 0, 'widgets');
-        this.dashboard = res;
-        this.modelId = res.widgets?.[0]?.config?.model_id ?? null;
-        this.log('inferred modelId =', this.modelId);
+  this.dashboardService.getDashboard(this.dashboardId).subscribe({
+    next: (res) => {
+      this.log('loadDashboard – received', res.widgets?.length ?? 0, 'widgets',
+        'model_id =', res.model_id);
 
-        this.editorService.setDashboard(res);
-        this.loadModelMetadata(res);
-        this.hydrateWidgets(res.widgets || []);
-      },
-      error: (err) => console.error('Failed to load dashboard', err),
-    });
-  }
+      this.dashboard = res;
+      this.modelId = res.model_id ?? null;
 
-  // ─── FIX 1: assign selectedModel so the editor knows which model is active ───
-  loadModelMetadata(dashboard: DashboardResponse): void {
-    const modelId = dashboard.widgets?.[0]?.config?.model_id ?? null;
-    if (!modelId) {
-      this.log('loadModelMetadata – no modelId, aborting');
-      return;
-    }
+      this.editorService.setDashboard(res);
+      if (res.model_id) {
+        this.loadModelMetadata(res.model_id);
+      }
+      this.hydrateWidgets(res.widgets || []);
+    },
+    error: (err) => console.error('Failed to load dashboard', err),
+  });
+}
 
+  loadModelMetadata(modelId: number): void {
     this.log('loadModelMetadata – fetching model', modelId);
     this.dataModelService.getModel(modelId).subscribe({
       next: (model) => {
-        this.log('loadModelMetadata – got model', model.id,
-          'datasets =', model.datasets?.length);
-        // ─── FIX 1 ───
         this.selectedModel = model;
         this.modelId = model.id;
         this.editorService.setDatasets(model.datasets);
@@ -305,9 +303,13 @@ export class DashboardEditorComponent implements OnInit, OnDestroy {
   }
 
   addNewWidget(): void {
-    if (!this.selectedModel || !this.modelId) {
-      this.log('addNewWidget – no selectedModel / modelId');
-      this.snackBar.open('Please select a data model first', 'Close', { duration: 3000 });
+    const effectiveModelId = this.dashboard?.model_id ?? this.modelId;
+    if (!effectiveModelId || !this.selectedModel) {
+      this.snackBar.open(
+        'Please select a data model first',
+        'Close',
+        { duration: 3000 }
+      );
       return;
     }
 

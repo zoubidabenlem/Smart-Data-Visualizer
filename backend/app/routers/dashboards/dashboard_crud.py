@@ -23,7 +23,6 @@ from app.routers.dashboards.helpers import get_widget_data_for_dashboard
 
 router = APIRouter()
 
-
 @router.post("/", response_model=dict, status_code=201)
 def create_dashboard(
     payload: DashboardCreateRequest,
@@ -31,21 +30,52 @@ def create_dashboard(
     current_user: User = Depends(require_admin),
 ):
     try:
-        new_dash = Dashboard(user_id=current_user.id, title=payload.title)
+        # Validate model ownership up front if provided
+        if payload.model_id is not None:
+            model = db.query(DataModel).filter(
+                DataModel.id == payload.model_id,
+                DataModel.user_id == current_user.id,
+            ).first()
+            if not model:
+                raise HTTPException(400, "Data model not found or access denied")
+
+        new_dash = Dashboard(
+            user_id=current_user.id,
+            title=payload.title,
+            model_id=payload.model_id,
+        )
         db.add(new_dash)
         db.flush()
 
-        # Auto-create the first page so every dashboard always has one.
         first_page = DashboardPage(dashboard_id=new_dash.id, title="Page 1", order=0)
         db.add(first_page)
         db.flush()
 
         if payload.widgets:
             for wcfg in payload.widgets:
-                ...
+                # All widgets must match the dashboard's model (which may
+                # have just been set to the first widget's model).
+                if new_dash.model_id is None:
+                    new_dash.model_id = wcfg.model_id
+                elif wcfg.model_id != new_dash.model_id:
+                    raise HTTPException(
+                        400,
+                        f"Widget model {wcfg.model_id} does not match "
+                        f"dashboard model {new_dash.model_id}",
+                    )
+
+                model = db.query(DataModel).filter(
+                    DataModel.id == wcfg.model_id,
+                    DataModel.user_id == current_user.id,
+                ).first()
+                if not model:
+                    raise HTTPException(
+                        400, f"Data model {wcfg.model_id} not found or access denied",
+                    )
+
                 widget = Widget(
                     dashboard_id=new_dash.id,
-                    page_id=first_page.id,      # ← NEW
+                    page_id=first_page.id,
                     model_id=wcfg.model_id,
                     config_json=wcfg.model_dump(),
                     position=None,
@@ -56,10 +86,9 @@ def create_dashboard(
         return {"id": new_dash.id}
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception:
         logger.exception("Unexpected error creating dashboard")
-        raise HTTPException(status_code=500, detail="Internal server error")
-
+        raise HTTPException(500, "Internal server error")
 
 @router.get("/", response_model=DashboardPaginatedResponse)
 def list_dashboards(
@@ -152,6 +181,7 @@ def get_dashboard(
         response = {
             "id": dash.id,
             "title": dash.title,
+            "model_id": dash.model_id,
              "pages": [
                 {"id": p.id, "title": p.title, "order": p.order}
                 for p in sorted(dash.pages, key=lambda x: x.order)
@@ -179,9 +209,37 @@ def update_dashboard(
     try:
         dash = db.query(Dashboard).filter(Dashboard.id == dashboard_id).first()
         if not dash or dash.user_id != current_user.id:
-            raise HTTPException(status_code=404, detail="Dashboard not found")
+            raise HTTPException(404, "Dashboard not found")
+
+        # ─── Model lock ───
+        if payload.model_id is not None and payload.model_id != dash.model_id:
+            if dash.model_id is not None:
+                raise HTTPException(
+                    400,
+                    "Dashboard model is locked and cannot be changed once set.",
+                )
+            # First-time bind: verify ownership
+            model = db.query(DataModel).filter(
+                DataModel.id == payload.model_id,
+                DataModel.user_id == current_user.id,
+            ).first()
+            if not model:
+                raise HTTPException(400, "Data model not found or access denied")
+            # Also: no widgets may currently exist that reference a different model
+            existing_models = {
+                w.model_id for w in dash.widgets if w.model_id is not None
+            }
+            if existing_models and existing_models != {payload.model_id}:
+                raise HTTPException(
+                    400,
+                    "Cannot bind model: dashboard already contains widgets "
+                    "from a different model.",
+                )
+            dash.model_id = payload.model_id
+
         if payload.title is not None:
             dash.title = payload.title
+
         db.commit()
         invalidate_cache(f"dashboard_response:{dashboard_id}")
         return {"message": "Dashboard updated"}
@@ -189,8 +247,7 @@ def update_dashboard(
         raise
     except Exception:
         logger.exception("Unexpected error updating dashboard")
-        raise HTTPException(status_code=500, detail="Internal server error")
-
+        raise HTTPException(500, "Internal server error")
 
 @router.delete("/{dashboard_id}")
 def delete_dashboard(

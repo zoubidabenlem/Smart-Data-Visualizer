@@ -38,12 +38,19 @@
       <mat-icon>{{ leftCollapsed ? 'chevron_right' : 'chevron_left' }}</mat-icon>
     </button>
 
-    <!-- Left pane -->
+        <!-- Left pane: two independent chips -->
     <div class="left-pane" [class.collapsed]="leftCollapsed">
-      <app-data-model-explorer
-        [collapsed]="leftCollapsed"
-        (modelSelected)="onModelSelected($event)">
-      </app-data-model-explorer>
+      <div class="left-pane-content">
+        <app-model-picker
+          [boundModelId]="dashboard?.model_id ?? null"
+          [currentModel]="selectedModel"
+          (modelSelected)="onModelSelected($event)">
+        </app-model-picker>
+
+        <app-model-metadata
+          [model]="selectedModel">
+        </app-model-metadata>
+      </div>
     </div>
 
     <!-- Center pane (canvas) -->

@@ -102,6 +102,7 @@ export interface WidgetPosition {
 
 export interface DashboardCreateRequest {
   title: string;
+  model_id?: number | null;        //  NEW
   widgets?: WidgetConfig[] | null; // optional initial widgets
 }
 
@@ -111,12 +112,14 @@ export interface DashboardCreateResponse {
 
 export interface DashboardUpdateRequest {
   title?: string | null;
+  model_id?: number | null;        // settable only when currently null
+
 }
 
 export interface WidgetCreateRequest {
   config: WidgetConfig;
   position?: WidgetPosition | null;
-  page_id?: number | null;    // ← NEW
+  page_id?: number | null;    //  NEW
 }
 
 
@@ -127,7 +130,7 @@ export interface WidgetUpdateRequest {
 
 export interface WidgetResponse {
   id: number;
-  page_id: number | null;     // ← NEW
+  page_id: number | null;     // NEW
   config: WidgetConfig;
   chart_data: any[];
   position?: WidgetPosition | null;
@@ -138,7 +141,8 @@ export interface WidgetResponse {
 export interface DashboardResponse {
   id: number;
   title: string;
-  pages: DashboardPage[];     // ← NEW
+  model_id?: number | null;  // NEW
+  pages: DashboardPage[];     //  NEW
   widgets: WidgetResponse[];
   created_at: string;
   updated_at: string;

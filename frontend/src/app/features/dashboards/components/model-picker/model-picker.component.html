@@ -1,0 +1,82 @@
+<!-- src/app/features/dashboards/components/model-picker/model-picker.component.html -->
+<div class="chip" [class.chip-locked]="isLocked">
+
+  <div class="chip-header" (click)="toggleCollapsed()">
+    <mat-icon class="chip-icon">hub</mat-icon>
+    <span class="chip-title">Dashboard Model</span>
+    <span class="chip-spacer"></span>
+    <mat-icon
+      *ngIf="isLocked"
+      class="chip-lock"
+      matTooltip="Locked to this model"
+      matTooltipPosition="left">
+      lock
+    </mat-icon>
+    <mat-icon class="chip-chevron">
+      {{ collapsed ? 'expand_more' : 'expand_less' }}
+    </mat-icon>
+  </div>
+
+  <div class="chip-body" *ngIf="!collapsed">
+
+    <!-- ─── Locked (bound) state ─── -->
+    <ng-container *ngIf="isLocked; else unbound">
+      <div class="bound-model">
+        <div class="bound-name">{{ displayName }}</div>
+        <div class="bound-desc" *ngIf="currentModel?.description as desc">
+          {{ desc }}
+        </div>
+        <div class="bound-hint">
+          <mat-icon>info</mat-icon>
+          <span>This dashboard is locked to this model. It cannot be changed.</span>
+        </div>
+      </div>
+    </ng-container>
+
+    <!-- ─── Unbound state ─── -->
+    <ng-template #unbound>
+
+      <!-- Collapsed list: empty or current pick -->
+      <div *ngIf="!listExpanded" class="picker-collapsed" (click)="toggleList()">
+        <mat-icon class="picker-plus">add_circle_outline</mat-icon>
+        <span *ngIf="!currentModel" class="picker-empty-text">
+          No model selected. Click to choose.
+        </span>
+        <span *ngIf="currentModel" class="picker-current-text">
+          <strong>{{ currentModel.name }}</strong> — click to change
+        </span>
+      </div>
+
+      <!-- Expanded list -->
+      <div *ngIf="listExpanded" class="picker-list-wrapper">
+        <mat-form-field appearance="outline" class="search-field">
+          <input matInput placeholder="Search models" (input)="onSearch($event)" />
+          <mat-icon matSuffix>search</mat-icon>
+        </mat-form-field>
+
+        <div *ngIf="loading" class="loading-indicator">
+          <mat-spinner diameter="20"></mat-spinner>
+        </div>
+
+        <div *ngIf="errorMessage" class="error-message">{{ errorMessage }}</div>
+
+        <div *ngIf="!loading && !errorMessage" class="model-list">
+          <div
+            *ngFor="let model of filteredModels"
+            class="model-item"
+            [class.model-item-active]="currentModel?.id === model.id"
+            (click)="pickModel(model)">
+            <div class="model-item-name">{{ model.name }}</div>
+            <div class="model-item-desc">
+              {{ model.description || 'No description' }}
+            </div>
+          </div>
+          <div *ngIf="filteredModels.length === 0" class="no-models">
+            No models found
+          </div>
+        </div>
+      </div>
+
+    </ng-template>
+  </div>
+</div>

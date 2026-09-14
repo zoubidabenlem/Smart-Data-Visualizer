@@ -105,10 +105,12 @@ class DashboardPageUpdateRequest(BaseModel):
 # Dashboard creation – can include initial widgets
 class DashboardCreateRequest(BaseModel):
     title: str
+    model_id: Optional[int] = None                 # NEW — bind at creation
     widgets: Optional[List[WidgetConfig]] = None   # optional initial widgets
 
 class DashboardUpdateRequest(BaseModel):
     title: Optional[str] = None
+    model_id: Optional[int] = None                 # NEW — bind at creation
 
 # ─── Modify WidgetCreateRequest ───
 class WidgetCreateRequest(BaseModel):
@@ -133,6 +135,7 @@ class WidgetResponse(BaseModel):
 class DashboardResponse(BaseModel):
     id: int
     title: str
+    model_id: Optional[int] = None                 # NEW — bind at creation
     pages: List[DashboardPageMeta] = Field(default_factory=list)   # NEW
     widgets: List[WidgetResponse]
     created_at: str

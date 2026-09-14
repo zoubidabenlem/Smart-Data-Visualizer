@@ -4,10 +4,6 @@
   flex-direction: column;
 }
 
-.top-banner {
-  /* keep existing styles */
-}
-
 .main-area {
   display: flex;
   flex: 1;
@@ -15,12 +11,14 @@
 }
 
 /* Left pane */
+/* Left pane */
 .left-pane {
-  width: 280px;
-  background: var(--color-surface);
+  width: 300px;
+  background: var(--color-background, #f7fafc);
   border-right: 1px solid var(--color-border);
   overflow-y: auto;
   transition: width 0.3s ease;
+  flex-shrink: 0;
 }
 .left-pane.collapsed {
   width: 0;
@@ -28,24 +26,11 @@
   overflow: hidden;
 }
 
-/* Toggle button for left pane */
-.toggle-left {
-  width: 24px;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: 0 4px 4px 0;
-  cursor: pointer;
+.left-pane-content {
+  padding: 12px 0;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.2s;
-  z-index: 10;
+  flex-direction: column;
 }
-.toggle-left:hover { background: var(--color-background); }
-.toggle-left.collapsed {
-  border-radius: 4px 0 0 4px; /* invert? actually keep same */
-}
-
 /* Center pane */
 /* Center pane */
 .center-pane {
