@@ -28,7 +28,12 @@ export class DashboardEditorComponent implements OnInit, OnDestroy {
   renameTitle = '';
 
   leftCollapsed = false;
+  configCollapsed = false;
   rightCollapsed = false;
+
+  activePageId: number | null = null;
+  activePageWidgets: WidgetResponse[] = [];
+  selectedWidgetId: number | null = null;
 
   private subscriptions = new Subscription();
 
@@ -47,6 +52,21 @@ export class DashboardEditorComponent implements OnInit, OnDestroy {
     private dataModelService: DataModelService,
     private editorService: DashboardEditorService
   ) {}
+ 
+  //helpers
+    private recomputeActiveWidgets(): void {
+    if (!this.dashboard || this.activePageId == null) {
+      this.activePageWidgets = [];
+      return;
+    }
+    this.activePageWidgets = this.dashboard.widgets.filter(
+      (w) => w.page_id === this.activePageId
+    );
+  }
+
+  onWidgetPicked(widgetId: number): void {
+    this.editorService.selectWidget(widgetId);
+  }
 
   ngOnInit(): void {
     this.dashboardId = Number(this.route.snapshot.paramMap.get('id'));
@@ -73,6 +93,26 @@ export class DashboardEditorComponent implements OnInit, OnDestroy {
               'measures =', w.config?.measures?.length)
           );
         }
+      })
+    );
+
+        this.subscriptions.add(
+      this.editorService.activePageId$.subscribe((id) => {
+        this.activePageId = id;
+        this.recomputeActiveWidgets();
+      })
+    );
+
+    this.subscriptions.add(
+      this.editorService.dashboard$.subscribe((dash) => {
+        this.dashboard = dash;
+        this.recomputeActiveWidgets();
+      })
+    );
+
+    this.subscriptions.add(
+      this.editorService.selectedWidget$.subscribe((w) => {
+        this.selectedWidgetId = w?.id ?? null;
       })
     );
   }
@@ -213,6 +253,35 @@ export class DashboardEditorComponent implements OnInit, OnDestroy {
     });
   });
 }
+  dashboardDirty = false;
+  isSavingDashboard = false;
+
+  // In ngOnInit, subscribe to whatever dirty signal you want.
+  // Simplest: derive from a service flag. See below.
+
+  onSaveDashboard(): void {
+    if (!this.dashboard) return;
+
+    this.isSavingDashboard = true;
+    this.editorService.saveDashboard().subscribe({
+      next: () => {
+        this.isSavingDashboard = false;
+        this.dashboardDirty = false;
+        this.snackBar.open('Dashboard saved', 'Close', { duration: 2000 });
+      },
+      error: (err) => {
+        this.isSavingDashboard = false;
+        this.snackBar.open('Save failed', 'Close', { duration: 4000 });
+        console.error(err);
+      },
+    });
+  }
+
+  onDiscardOrRevert(): void {
+    if (!this.dashboardId) return;
+    // Simplest revert: reload from server
+    this.loadDashboard();
+  }
 
   // ------------------------------------------------------------------
   // Panel toggles

@@ -4,9 +4,13 @@ import {
   OnInit,
   ChangeDetectorRef,
   ChangeDetectionStrategy,
+  ViewChild,
 } from '@angular/core';
 import { Observable, Subscription } from 'rxjs';
 import { GridsterConfig, GridsterItem } from 'angular-gridster2';
+
+import { AfterViewInit, ElementRef } from '@angular/core';
+import { GridsterComponent } from 'angular-gridster2';
 
 import { DashboardEditorService } from '../../services/dashboard-editor.service';
 import { GridsterService } from '../../services/gridster.service';
@@ -23,10 +27,14 @@ import {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CenterCanvasComponent implements OnInit, OnDestroy {
+  @ViewChild(GridsterComponent) gridster?: GridsterComponent;
+
+  private resizeObserver: ResizeObserver | null = null;
+
   dashboard$: Observable<DashboardResponse | null>;
 
   options!: GridsterConfig;
-
+  
   pages: DashboardPage[] = [];
   activePageId: number | null = null;
 
@@ -44,7 +52,9 @@ export class CenterCanvasComponent implements OnInit, OnDestroy {
   constructor(
     private editorService: DashboardEditorService,
     private gridsterService: GridsterService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private hostRef: ElementRef<HTMLElement>
+
   ) {
     this.dashboard$ = this.editorService.dashboard$;
   }
@@ -110,8 +120,17 @@ export class CenterCanvasComponent implements OnInit, OnDestroy {
     );
   }
 
+  ngAfterViewInit(): void {
+    // Watch our own host for size changes (panel collapses, window resize).
+    this.resizeObserver = new ResizeObserver(() => {
+      this.options?.api?.resize?.();
+    });
+    this.resizeObserver.observe(this.hostRef.nativeElement);
+  }
+
   ngOnDestroy(): void {
     this.subs.unsubscribe();
+    this.resizeObserver?.disconnect();
   }
 
   // ─── Page tab handlers ───

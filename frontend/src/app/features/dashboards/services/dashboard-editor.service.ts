@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, Subject, tap, throwError } from 'rxjs';
+import { BehaviorSubject, forkJoin, map, Observable, of, Subject, tap, throwError } from 'rxjs';
 import { DashboardService } from 'src/app/core/services/dashboard.service';
 import {
   DashboardResponse,
@@ -155,7 +155,63 @@ export class DashboardEditorService {
       error: (err) => console.error('Failed to delete widget', err),
     });
   }
+  /**
+   * Persist a widget's config to the server (PUT).
+   * Distinct from `updateWidget` because we want an Observable back
+   * so the caller can track saving/error state.
+   */
+  saveWidget(widgetId: number, config: WidgetConfig): Observable<WidgetResponse> {
+    const dashboard = this.dashboardSubject.value;
+    if (!dashboard) return throwError(() => new Error('Dashboard not loaded'));
 
+    return this.dashboardService.updateWidget(dashboard.id, widgetId, { config }).pipe(
+      tap((updated: WidgetResponse) => {
+        const updatedWidgets = dashboard.widgets.map(w =>
+          w.id === widgetId ? updated : w
+        );
+        this.updateDashboardState({ ...dashboard, widgets: updatedWidgets });
+        if (this.selectedWidgetSubject.value?.id === widgetId) {
+          this.selectedWidgetSubject.next(updated);
+        }
+      })
+    );
+  }
+
+    private dirtyWidgetIds = new Set<number>();
+
+  markWidgetDirty(widgetId: number): void {
+    this.dirtyWidgetIds.add(widgetId);
+  }
+
+  clearWidgetDirty(widgetId: number): void {
+    this.dirtyWidgetIds.delete(widgetId);
+  }
+
+  hasUnsavedChanges(): boolean {
+    return this.dirtyWidgetIds.size > 0;
+  }
+
+  saveDashboard(): Observable<void> {
+    const dash = this.dashboardSubject.value;
+    if (!dash) return throwError(() => new Error('Dashboard not loaded'));
+
+    const dirtyIds = [...this.dirtyWidgetIds];
+    if (dirtyIds.length === 0) return of(void 0);
+
+    // Save all dirty widgets in parallel; wait for all.
+    const saves = dirtyIds.map((id) => {
+      const widget = dash.widgets.find((w) => w.id === id);
+      if (!widget) return of(null);
+      return this.dashboardService.updateWidget(dash.id, id, { config: widget.config });
+    });
+
+    return forkJoin(saves).pipe(
+      map(() => void 0),
+      tap(() => {
+        this.dirtyWidgetIds.clear();
+      })
+    );
+  }
   updateWidgetPosition(widgetId: number, position: WidgetPosition): void {
     const dashboard = this.dashboardSubject.value;
     if (!dashboard) return;

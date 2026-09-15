@@ -1,0 +1,48 @@
+<!-- src/app/features/dashboards/components/widget-list/widget-list.component.html -->
+<div class="chip">
+
+  <div class="chip-header" (click)="toggleCollapsed()">
+    <mat-icon class="chip-icon">widgets</mat-icon>
+    <span class="chip-title">Widget Details</span>
+    <span class="chip-spacer"></span>
+    <span class="chip-badge">{{ widgets.length }}</span>
+    <mat-icon class="chip-chevron">
+      {{ collapsed ? 'expand_more' : 'expand_less' }}
+    </mat-icon>
+  </div>
+
+  <div class="chip-body" *ngIf="!collapsed">
+
+    <div *ngIf="widgets.length === 0" class="empty-state">
+      <mat-icon>info_outline</mat-icon>
+      <span>No widgets on this page.</span>
+    </div>
+
+    <div
+      *ngFor="let w of widgets; trackBy: trackByWidgetId"
+      class="widget-row"
+      [class.widget-row-selected]="w.id === selectedWidgetId"
+      (click)="pick(w.id)">
+
+      <mat-icon class="widget-icon">{{ chartIcon(w.config?.chart_type) }}</mat-icon>
+      <span class="widget-name">{{ w.config?.title || 'Untitled' }}</span>
+
+      <ng-container *ngIf="confirmingDeleteId !== w.id; else confirmTpl">
+        <button
+          class="widget-action"
+          (click)="requestDelete(w.id, $event)"
+          aria-label="Delete widget">
+          <mat-icon>delete_outline</mat-icon>
+        </button>
+      </ng-container>
+
+      <ng-template #confirmTpl>
+        <button class="confirm-yes" (click)="confirmDelete(w.id, $event)">Delete</button>
+        <button class="confirm-no" (click)="cancelDelete($event)" aria-label="Cancel">
+          <mat-icon>close</mat-icon>
+        </button>
+      </ng-template>
+    </div>
+
+  </div>
+</div>

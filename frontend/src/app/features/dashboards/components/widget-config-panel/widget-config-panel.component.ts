@@ -1,4 +1,5 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+// src/app/features/dashboards/components/widget-config-panel/widget-config-panel.component.ts
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import { debounceTime } from 'rxjs/operators';
@@ -7,6 +8,7 @@ import { DashboardEditorService } from '../../services/dashboard-editor.service'
 import { DashboardService } from 'src/app/core/services/dashboard.service';
 import {
   WidgetConfig,
+  WidgetResponse,
   ChartType,
   ColumnRef,
   MeasureSpec,
@@ -19,6 +21,12 @@ interface DatasetInfo {
   columns: { name: string; type: string }[];
 }
 
+interface ChartTypeOption {
+  value: ChartType;
+  label: string;
+  icon: string;
+}
+
 @Component({
   selector: 'app-widget-config-panel',
   standalone: false,
@@ -27,24 +35,30 @@ interface DatasetInfo {
 })
 export class WidgetConfigPanelComponent implements OnInit, OnDestroy {
   configForm: FormGroup;
-  chartTypes: ChartType[] = ['bar', 'line', 'pie', 'scatter', 'area', 'heatmap', 'kpi'];
-  colorSchemes: string[] = ['default', 'pastel', 'dark'];
+
+  chartTypes: ChartTypeOption[] = [
+    { value: 'bar',     label: 'Bar',     icon: 'bar_chart' },
+    { value: 'line',    label: 'Line',    icon: 'show_chart' },
+    { value: 'area',    label: 'Area',    icon: 'area_chart' },
+    { value: 'pie',     label: 'Pie',     icon: 'pie_chart' },
+    { value: 'scatter', label: 'Scatter', icon: 'scatter_plot' },
+    { value: 'heatmap', label: 'Heatmap', icon: 'grid_on' },
+    { value: 'kpi',     label: 'KPI',     icon: 'speed' },
+  ];
+  colorSchemes = ['default', 'pastel', 'dark'];
+
   datasets: DatasetInfo[] = [];
-private get DEBUG(): boolean {
-  return (window as any).__dashDebug === true;
-}
-private log(...args: any[]): void {
-  if (this.DEBUG) console.log('[ConfigPanel]', ...args);
-}
-  /** ─── NEW: backend / frontend validation errors ─── */
+  selectedWidget: WidgetResponse | null = null;
+  currentWidgetId: number | null = null;
+
   validationErrors: string[] = [];
   isPreviewLoading = false;
+  isSaving = false;
 
-  private subscriptions = new Subscription();
-  private currentWidgetId: number | null = null;
-  private selectedWidget: any = null;
+  private subs = new Subscription();
   private isInternalChange = false;
-  private datasetsLoaded = false;
+  private lastPreviewedSignature = '';
+  private lastPersistedSignature = '';
 
   constructor(
     private fb: FormBuilder,
@@ -53,162 +67,210 @@ private log(...args: any[]): void {
   ) {
     this.configForm = this.fb.group({
       title: ['', Validators.required],
-      chart_type: ['bar', Validators.required],
+      chart_type: ['bar' as ChartType, Validators.required],
       color_scheme: ['default'],
       dimensions: this.fb.array([]),
       measures: this.fb.array([]),
     });
   }
 
+  // ─────────────────────────────────────────────────────────
+  // Lifecycle
+  // ─────────────────────────────────────────────────────────
+
   ngOnInit(): void {
-    this.subscriptions.add(
-      this.configForm.valueChanges.pipe(debounceTime(150)).subscribe(() => {
-        if (!this.isInternalChange && this.currentWidgetId) {
-          this.updateDraftConfig();
-        }
+    // Datasets (set by editor when a model loads)
+    this.subs.add(
+      this.editorService.datasets$.subscribe((raw) => {
+        this.datasets = this.mapDatasets(raw);
       })
     );
 
-   // ─── FIX 3: react to chart_type changes ───
-this.subscriptions.add(
-  this.configForm.get('chart_type')!.valueChanges.subscribe((type: string) => {
-    if (this.isInternalChange) return;
-    this.log('chart_type changed to', type);
+    // Currently selected widget — repopulate only when its id changes.
+    this.subs.add(
+      this.editorService.selectedWidget$.subscribe((widget) => {
+        const newId = widget?.id ?? null;
+        const idChanged = newId !== this.currentWidgetId;
 
-    if (type === 'kpi') {
-      // KPI needs exactly 1 measure and 0 dimensions
-      while (this.dimensions.length) this.dimensions.removeAt(0);
-      if (this.measures.length === 0) this.addMeasure();
-      if (this.measures.length > 1) {
-        while (this.measures.length > 1) this.measures.removeAt(this.measures.length - 1);
-      }
-    } else if (this.dimensions.length === 0) {
-      this.addDimension();
-    }
-  })
-);
+        this.selectedWidget = widget;
+        this.currentWidgetId = newId;
 
-    this.subscriptions.add(
-      this.editorService.datasets$.subscribe(datasets => {
-        this.datasets = datasets.map((md: any): DatasetInfo => ({
-          id: md.dataset_id ?? md.dataset?.id,
-          name: md.alias || md.dataset?.name || 'Unnamed dataset',
-          columns: this.extractColumns(md.dataset),
-        }));
-        this.datasetsLoaded = true;
+        if (!idChanged) return;
 
-        if (this.selectedWidget) {
-          this.populateForm(this.selectedWidget.config);
-        }
+        this.validationErrors = [];
+        this.lastPreviewedSignature = '';
+        this.lastPersistedSignature = widget ? this.signatureOf(widget.config) : '';
+
+        if (widget) this.populateForm(widget.config);
+        else this.resetForm();
+      })
+    );
+
+    // Debounced form changes → preview.
+    this.subs.add(
+      this.configForm.valueChanges.pipe(debounceTime(300)).subscribe(() => {
+        if (this.isInternalChange) return;
+        this.updateDraftConfig();
+      })
+    );
+
+    // Chart-type change → adjust dims/measures for KPI.
+    this.subs.add(
+      this.configForm.get('chart_type')!.valueChanges.subscribe((type: ChartType) => {
+        if (this.isInternalChange) return;
+        this.applyChartTypeRules(type);
       })
     );
   }
 
-  // ------------------------------------------------------------------
-  // Convenience getters
-  // ------------------------------------------------------------------
+  ngOnDestroy(): void {
+    this.subs.unsubscribe();
+  }
+
+  // ─────────────────────────────────────────────────────────
+  // Getters
+  // ─────────────────────────────────────────────────────────
 
   get dimensions(): FormArray {
     return this.configForm.get('dimensions') as FormArray;
   }
-
   get measures(): FormArray {
     return this.configForm.get('measures') as FormArray;
   }
-
-  /** ─── NEW: template helper — show error banner when present ─── */
   get hasValidationErrors(): boolean {
     return this.validationErrors.length > 0;
   }
+  get isKpi(): boolean {
+    return this.configForm.get('chart_type')?.value === 'kpi';
+  }
+  get currentChartType(): ChartType {
+    return this.configForm.get('chart_type')?.value;
+  }
+  get currentColorScheme(): string {
+    return this.configForm.get('color_scheme')?.value;
+  }
 
-  // ------------------------------------------------------------------
-  // Column helpers
-  // ------------------------------------------------------------------
+  /** Recomputed every CD cycle — derived state, cannot go stale. */
+  get isDirty(): boolean {
+    if (!this.selectedWidget || !this.currentWidgetId) return false;
+    if (!this.configForm.valid) return false;
+    const config = this.buildConfigFromForm();
+    if (!config) return false;
+    return this.signatureOf(config) !== this.lastPersistedSignature;
+  }
+
+  // ─────────────────────────────────────────────────────────
+  // Chart type / scheme
+  // ─────────────────────────────────────────────────────────
+
+  setChartType(type: ChartType): void {
+    if (this.configForm.get('chart_type')?.value === type) return;
+    this.configForm.get('chart_type')?.setValue(type);
+  }
+
+  setColorScheme(scheme: string): void {
+    if (this.configForm.get('color_scheme')?.value === scheme) return;
+    this.configForm.get('color_scheme')?.setValue(scheme);
+  }
+
+  private applyChartTypeRules(type: ChartType): void {
+    this.isInternalChange = true;
+
+    if (type === 'kpi') {
+      while (this.dimensions.length) {
+        this.dimensions.removeAt(0, { emitEvent: false });
+      }
+      if (this.measures.length === 0) {
+        this.measures.push(this.createMeasureGroup(), { emitEvent: false });
+      }
+      while (this.measures.length > 1) {
+        this.measures.removeAt(this.measures.length - 1, { emitEvent: false });
+      }
+    } else if (this.dimensions.length === 0) {
+      this.dimensions.push(this.createDimensionGroup(), { emitEvent: false });
+    }
+
+    this.isInternalChange = false;
+
+    // Manually trigger — we suppressed all emissions above.
+    this.updateDraftConfig();
+  }
+
+  // ─────────────────────────────────────────────────────────
+  // Datasets / columns
+  // ─────────────────────────────────────────────────────────
+
+  private mapDatasets(raw: any[]): DatasetInfo[] {
+    return (raw || []).map((md): DatasetInfo => ({
+      id: md.dataset_id ?? md.dataset?.id,
+      name:
+        md.alias ||
+        md.dataset?.source_table ||
+        md.dataset?.filename ||
+        `Dataset ${md.dataset_id}`,
+      columns: this.extractColumns(md.dataset),
+    }));
+  }
 
   private extractColumns(dataset: any): { name: string; type: string }[] {
     if (!dataset) return [];
-
     const raw = dataset.column_schema;
     const refined = dataset.refined_column_schema;
+    const source = refined || raw;
+    if (!source) return [];
 
-    const typeLookup: Record<string, string> = {};
-    if (refined && !Array.isArray(refined) && typeof refined === 'object') {
-      Object.entries(refined).forEach(([n, info]: [string, any]) => {
-        typeLookup[n] = this.normalizeType(
-          typeof info === 'object' ? info.type || info.dtype || 'string' : info
-        );
-      });
-    } else if (Array.isArray(refined)) {
-      refined.forEach((c: any) => {
-        if (c && c.name) typeLookup[c.name] = this.normalizeType(c.type || c.dtype || 'string');
-      });
-    }
-
-    const schema = raw || refined;
-    if (!schema) return [];
-
-    if (Array.isArray(schema)) {
-      return schema
-        .filter((c: any) => c && c.name)
+    if (Array.isArray(source)) {
+      return source
+        .filter((c: any) => c)
         .map((c: any) => ({
-          name: c.name,
-          type: this.normalizeType(
-            typeLookup[c.name] ?? c.type ?? c.dtype ?? c.data_type ?? 'string'
-          ),
+          name: c.name ?? c.column ?? '?',
+          type: String(c.type ?? c.dtype ?? c.data_type ?? 'unknown').toLowerCase(),
         }));
     }
 
-    if (typeof schema === 'object') {
-      return Object.entries(schema)
-        .filter(([name]) => !!name)
-        .map(([name, info]: [string, any]) => ({
-          name,
-          type: this.normalizeType(
-            typeLookup[name] ??
-              (typeof info === 'object'
-                ? info.type || info.dtype || info.data_type
-                : info) ??
-              'string'
-          ),
-        }));
+    if (typeof source === 'object') {
+      return Object.entries(source).map(([name, info]: [string, any]) => ({
+        name,
+        type: String(
+          (typeof info === 'object'
+            ? info?.type ?? info?.dtype ?? info?.data_type
+            : info) ?? 'unknown'
+        ).toLowerCase(),
+      }));
     }
-
     return [];
-  }
-
-  private normalizeType(type: any): string {
-    return String(type || 'string').toLowerCase();
-  }
-
-  private getColumnsForDataset(datasetId: number): { name: string; type: string }[] {
-    const ds = this.datasets.find(d => d.id === datasetId);
-    return ds ? ds.columns : [];
   }
 
   getColumnsForDimension(index: number): { name: string; type: string }[] {
     const g = this.dimensions.at(index) as FormGroup;
-    return g ? this.getColumnsForDataset(g.get('dataset_id')?.value) : [];
+    if (!g) return [];
+    return this.columnsFor(g.get('dataset_id')?.value);
   }
 
   getColumnsForMeasure(index: number): { name: string; type: string }[] {
     const g = this.measures.at(index) as FormGroup;
-    return g ? this.getColumnsForDataset(g.get('dataset_id')?.value) : [];
+    if (!g) return [];
+    return this.columnsFor(g.get('dataset_id')?.value);
   }
 
-  // ------------------------------------------------------------------
+  private columnsFor(datasetId: number | null): { name: string; type: string }[] {
+    if (datasetId == null) return [];
+    return this.datasets.find((d) => d.id === datasetId)?.columns ?? [];
+  }
+
+  // ─────────────────────────────────────────────────────────
   // Form construction
-  // ------------------------------------------------------------------
+  // ─────────────────────────────────────────────────────────
 
   private populateForm(config: WidgetConfig): void {
     this.isInternalChange = true;
 
-    if (!this.datasetsLoaded || this.datasets.length === 0) {
-      this.isInternalChange = false;
-      return;
+    while (this.dimensions.length) {
+      this.dimensions.removeAt(0, { emitEvent: false });
     }
-
-    while (this.dimensions.length) this.dimensions.removeAt(0);
-    while (this.measures.length) this.measures.removeAt(0);
+    while (this.measures.length) {
+      this.measures.removeAt(0, { emitEvent: false });
+    }
 
     this.configForm.patchValue(
       {
@@ -219,31 +281,26 @@ this.subscriptions.add(
       { emitEvent: false }
     );
 
-    (config.dimensions || []).forEach(dim => {
-      const valid = this.getColumnsForDataset(dim.dataset_id).some(c => c.name === dim.column);
-      this.dimensions.push(
-        this.createDimensionGroup({
-          dataset_id: dim.dataset_id,
-          column: valid ? dim.column : '',
-        })
-      );
+    (config.dimensions || []).forEach((d) => {
+      this.dimensions.push(this.createDimensionGroup(d), { emitEvent: false });
+    });
+    (config.measures || []).forEach((m) => {
+      this.measures.push(this.createMeasureGroup(m), { emitEvent: false });
     });
 
-    (config.measures || []).forEach(measure => {
-      const valid = this.getColumnsForDataset(measure.dataset_id).some(c => c.name === measure.column);
-      this.measures.push(
-        this.createMeasureGroup({ ...measure, column: valid ? measure.column : '' })
-      );
-    });
-
-    if (this.dimensions.length === 0) this.addDimension();
-    if (this.measures.length === 0) this.addMeasure();
+    if (this.dimensions.length === 0 && config.chart_type !== 'kpi') {
+      this.dimensions.push(this.createDimensionGroup(), { emitEvent: false });
+    }
+    if (this.measures.length === 0) {
+      this.measures.push(this.createMeasureGroup(), { emitEvent: false });
+    }
 
     this.isInternalChange = false;
   }
 
   private resetForm(): void {
     this.isInternalChange = true;
+
     this.configForm.reset(
       {
         title: '',
@@ -254,114 +311,154 @@ this.subscriptions.add(
       },
       { emitEvent: false }
     );
-    while (this.dimensions.length) this.dimensions.removeAt(0);
-    while (this.measures.length) this.measures.removeAt(0);
+    while (this.dimensions.length) {
+      this.dimensions.removeAt(0, { emitEvent: false });
+    }
+    while (this.measures.length) {
+      this.measures.removeAt(0, { emitEvent: false });
+    }
+
     this.validationErrors = [];
+    this.lastPreviewedSignature = '';
     this.isInternalChange = false;
   }
 
   private createDimensionGroup(dim?: ColumnRef): FormGroup {
-    const datasetId = dim?.dataset_id || (this.datasets.length > 0 ? this.datasets[0].id : null);
+    const fallbackId = this.datasets[0]?.id ?? null;
     return this.fb.group({
-      dataset_id: [datasetId, Validators.required],
-      column: [dim?.column || '', Validators.required],
+      dataset_id: [dim?.dataset_id ?? fallbackId, Validators.required],
+      column: [dim?.column ?? '', Validators.required],
     });
   }
 
   private createMeasureGroup(measure?: MeasureSpec): FormGroup {
-    const datasetId = measure?.dataset_id || (this.datasets.length > 0 ? this.datasets[0].id : null);
+    const fallbackId = this.datasets[0]?.id ?? null;
     return this.fb.group({
-      dataset_id: [datasetId, Validators.required],
-      column: [measure?.column || '', Validators.required],
-      aggregation: [measure?.aggregation || 'SUM', Validators.required],
-      alias: [measure?.alias || ''],
+      dataset_id: [measure?.dataset_id ?? fallbackId, Validators.required],
+      column: [measure?.column ?? '', Validators.required],
+      aggregation: [measure?.aggregation ?? 'SUM', Validators.required],
+      alias: [measure?.alias ?? ''],
     });
   }
 
-  // ------------------------------------------------------------------
-  // Form mutations
-  // ------------------------------------------------------------------
+  // ─────────────────────────────────────────────────────────
+  // Form mutations (user actions — these SHOULD emit)
+  // ─────────────────────────────────────────────────────────
 
   addDimension(): void {
     this.dimensions.push(this.createDimensionGroup());
   }
-
   addMeasure(): void {
     this.measures.push(this.createMeasureGroup());
   }
-
-  removeDimension(index: number): void {
-    this.dimensions.removeAt(index);
+  removeDimension(i: number): void {
+    this.dimensions.removeAt(i);
+  }
+  removeMeasure(i: number): void {
+    this.measures.removeAt(i);
   }
 
-  removeMeasure(index: number): void {
-    this.measures.removeAt(index);
+  onDatasetChange(index: number, kind: 'dimension' | 'measure'): void {
+    const g =
+      kind === 'dimension' ? this.dimensions.at(index) : this.measures.at(index);
+    g?.get('column')?.setValue('');
   }
 
-  onDatasetChange(index: number, type: 'dimension' | 'measure'): void {
-    const group = type === 'dimension' ? this.dimensions.at(index) : this.measures.at(index);
-    group?.get('column')?.setValue('');
-  }
+  // ─────────────────────────────────────────────────────────
+  // Config building
+  // ─────────────────────────────────────────────────────────
 
-  // ------------------------------------------------------------------
-  // Validation & preview
-  // ------------------------------------------------------------------
-
-  /** Frontend-only sanity check used BEFORE sending anything. */
-  private validateLocally(formValue: any): string[] {
-    const errors: string[] = [];
-    const dims: any[] = formValue.dimensions ?? [];
-    const meas: any[] = formValue.measures ?? [];
-
-    if (dims.length === 0 && meas.length === 0) {
-      errors.push('Widget must have at least one dimension or measure.');
-    }
-
-    dims.forEach((d, i) => {
-      if (!d.dataset_id) errors.push(`Dimension ${i + 1}: dataset is required.`);
-      if (!d.column) errors.push(`Dimension ${i + 1}: column is required.`);
+  private signatureOf(config: WidgetConfig | null): string {
+    if (!config) return '';
+    return JSON.stringify({
+      t: config.title,
+      ct: config.chart_type,
+      cs: config.color_scheme,
+      d: config.dimensions,
+      m: config.measures,
+      f: config.filters,
+      o: config.order_by,
+      l: config.limit,
     });
-    meas.forEach((m, i) => {
-      if (!m.dataset_id) errors.push(`Measure ${i + 1}: dataset is required.`);
-      if (!m.column) errors.push(`Measure ${i + 1}: column is required.`);
-      if (!m.aggregation) errors.push(`Measure ${i + 1}: aggregation is required.`);
-    });
-
-    return errors;
   }
 
-  private updateDraftConfig(): void {
-    if (!this.currentWidgetId || !this.selectedWidget) return;
+  private buildConfigFromForm(): WidgetConfig | null {
+    if (!this.selectedWidget) return null;
+    const v = this.configForm.value;
 
-    const formValue = this.configForm.value;
-    const localErrors = this.validateLocally(formValue);
-
-    if (localErrors.length) {
-      this.validationErrors = localErrors;
-      // Clear stale data so the chart does not render an invalid config.
-      this.editorService.updateWidgetLocally(this.selectedWidget.id, {
-        ...this.selectedWidget,
-        chart_data: [],
-      });
-      return;
-    }
-
-    const config: WidgetConfig = {
-      ...this.selectedWidget.config,
-      title: formValue.title,
-      chart_type: formValue.chart_type as ChartType,
-      color_scheme: formValue.color_scheme,
-      dimensions: formValue.dimensions.map((d: any) => ({
+    return {
+      ...this.selectedWidget.config, // preserves model_id, filters, etc.
+      title: v.title,
+      chart_type: v.chart_type as ChartType,
+      color_scheme: v.color_scheme,
+      dimensions: (v.dimensions as any[]).map((d) => ({
         dataset_id: d.dataset_id,
         column: d.column,
       })),
-      measures: formValue.measures.map((m: any) => ({
+      measures: (v.measures as any[]).map((m) => ({
         dataset_id: m.dataset_id,
         column: m.column,
         aggregation: m.aggregation as Aggregation,
         alias: m.alias || null,
       })),
     };
+  }
+
+  // ─────────────────────────────────────────────────────────
+  // Validation
+  // ─────────────────────────────────────────────────────────
+
+  private validateLocally(v: any): string[] {
+    const errs: string[] = [];
+    const dims: any[] = v.dimensions ?? [];
+    const meas: any[] = v.measures ?? [];
+    const type: ChartType = v.chart_type;
+
+    if (type === 'kpi') {
+      if (meas.length !== 1) errs.push('KPI requires exactly one measure.');
+      if (dims.length > 0) errs.push('KPI cannot have dimensions.');
+      return errs;
+    }
+
+    if (dims.length === 0 && meas.length === 0) {
+      errs.push('Widget must have at least one dimension or measure.');
+    }
+    dims.forEach((d, i) => {
+      if (!d.dataset_id) errs.push(`Dimension ${i + 1}: dataset required.`);
+      if (!d.column) errs.push(`Dimension ${i + 1}: column required.`);
+    });
+    meas.forEach((m, i) => {
+      if (!m.dataset_id) errs.push(`Measure ${i + 1}: dataset required.`);
+      if (!m.column) errs.push(`Measure ${i + 1}: column required.`);
+      if (!m.aggregation) errs.push(`Measure ${i + 1}: aggregation required.`);
+      if (meas.length > 1 && !m.alias) {
+        errs.push(`Measure ${i + 1}: alias required when multiple measures.`);
+      }
+    });
+    return errs;
+  }
+
+  // ─────────────────────────────────────────────────────────
+  // Preview (does NOT persist)
+  // ─────────────────────────────────────────────────────────
+
+  private updateDraftConfig(): void {
+    if (!this.currentWidgetId || !this.selectedWidget) return;
+
+    const config = this.buildConfigFromForm();
+    if (!config) return;
+
+    const localErrors = this.validateLocally(this.configForm.value);
+    this.validationErrors = localErrors;
+
+    if (localErrors.length) {
+      // IMPORTANT: do NOT wipe chart_data. Leave last-good render on screen.
+      return;
+    }
+
+    const sig = this.signatureOf(config);
+    if (sig === this.lastPreviewedSignature) return;
+    this.lastPreviewedSignature = sig;
 
     this.editorService.setDraftConfig(config);
     this.previewWidgetData(config);
@@ -370,7 +467,7 @@ this.subscriptions.add(
   private previewWidgetData(config: WidgetConfig): void {
     const modelId = config.model_id;
     if (!modelId) {
-      this.validationErrors = ['Cannot preview: widget has no model_id.'];
+      this.validationErrors = ['Widget has no model. Reload the dashboard.'];
       return;
     }
 
@@ -379,36 +476,67 @@ this.subscriptions.add(
     this.dashboardService.getWidgetData(modelId, config).subscribe({
       next: (res) => {
         this.isPreviewLoading = false;
-        this.validationErrors = [];           // ─── clear on success ───
-
+        this.validationErrors = [];
         if (!this.selectedWidget) return;
-
-        const widgetWithData = {
+        this.editorService.updateWidgetLocally(this.selectedWidget.id, {
           ...this.selectedWidget,
           config,
           chart_data: res.chart_data,
-        };
-        this.editorService.updateWidgetLocally(this.selectedWidget.id, widgetWithData);
+        });
       },
       error: (err) => {
         this.isPreviewLoading = false;
         this.validationErrors = this.extractErrors(err);
-        // Wipe chart_data so the chart hides stale/invalid visuals.
+        // IMPORTANT: leave last-good chart_data intact.
+        // Just update the config so the user sees what failed.
         if (this.selectedWidget) {
           this.editorService.updateWidgetLocally(this.selectedWidget.id, {
             ...this.selectedWidget,
             config,
-            chart_data: [],
           });
         }
       },
     });
   }
 
-  /** Normalize whatever FastAPI sends into a flat list of strings. */
+  // ─────────────────────────────────────────────────────────
+  // Save (persists)
+  // ─────────────────────────────────────────────────────────
+
+  onSave(): void {
+    if (!this.currentWidgetId || !this.selectedWidget) return;
+
+    const localErrors = this.validateLocally(this.configForm.value);
+    if (localErrors.length) {
+      this.validationErrors = localErrors;
+      return;
+    }
+
+    const config = this.buildConfigFromForm();
+    if (!config) return;
+
+    this.isSaving = true;
+    this.validationErrors = [];
+
+    this.editorService.saveWidget(this.currentWidgetId, config).subscribe({
+      next: (updated) => {
+        this.isSaving = false;
+        this.lastPersistedSignature = this.signatureOf(updated.config);
+        this.editorService.clearWidgetDirty(this.currentWidgetId!);
+      },
+      error: (err) => {
+        this.isSaving = false;
+        this.validationErrors = this.extractErrors(err);
+      },
+    });
+  }
+
+  // ─────────────────────────────────────────────────────────
+  // Error normalization
+  // ─────────────────────────────────────────────────────────
+
   private extractErrors(err: any): string[] {
     const detail = err?.error?.detail ?? err?.error ?? err?.message;
-
     if (Array.isArray(detail)) {
       return detail.map((d: any) =>
         typeof d === 'string' ? d : d?.msg ?? JSON.stringify(d)
@@ -416,31 +544,8 @@ this.subscriptions.add(
     }
     if (detail && Array.isArray(detail.errors)) return detail.errors.map(String);
     if (typeof detail === 'string') return [detail];
-    if (detail && typeof detail === 'object') return Object.values(detail).map(String);
-
+    if (detail && typeof detail === 'object')
+      return Object.values(detail).map(String);
     return ['Unable to validate the widget configuration.'];
-  }
-
-  saveConfig(): void {
-    if (this.configForm.valid) {
-      this.updateDraftConfig();
-    }
-  }
-
-  getChartIcon(type: string): string {
-    switch (type) {
-      case 'bar': return 'bar_chart';
-      case 'line': return 'show_chart';
-      case 'pie': return 'pie_chart';
-      case 'scatter': return 'scatter_plot';
-      case 'area': return 'area_chart';
-      case 'heatmap': return 'grid_on';
-      case 'kpi': return 'assessment';
-      default: return 'insert_chart';
-    }
-  }
-
-  ngOnDestroy(): void {
-    this.subscriptions.unsubscribe();
   }
 }

@@ -1,46 +1,57 @@
 <div class="editor-container">
   <!-- Top banner (optional, already exists) -->
-  <div class="top-banner">
-    <div class="dashboard-title">
-  <ng-container *ngIf="!isRenaming; else renameInput">
-    <h2 (click)="enableRename()" title="Click to rename">
-      {{ dashboard?.title || 'Untitled Dashboard' }}
-      <mat-icon class="edit-icon">edit</mat-icon>
-    </h2>
-  </ng-container>
-  <ng-template #renameInput>
-    <input
-      matInput
-      [(ngModel)]="renameTitle"
-      (keyup.enter)="saveRename()"
-      (blur)="saveRename()"
-      (keyup.escape)="cancelRename()"
-      autofocus
-    />
-    <button mat-icon-button (click)="saveRename()">
-      <mat-icon>check</mat-icon>
-    </button>
-    <button mat-icon-button (click)="cancelRename()">
-      <mat-icon>close</mat-icon>
-    </button>
-  </ng-template>
-</div>
-    <div class="actions">
-      <!-- Save, preview, etc. -->
+   <div class="top-banner">
+    <div class="banner-left">
+      <mat-icon class="banner-icon">dashboard</mat-icon>
+      <div class="title-wrap">
+        <ng-container *ngIf="!isRenaming; else renameInput">
+          <h1 class="dashboard-title" (click)="enableRename()" title="Click to rename">
+            {{ dashboard?.title || 'Untitled Dashboard' }}
+          </h1>
+          <span class="edit-hint">click to rename</span>
+        </ng-container>
+        <ng-template #renameInput>
+          <input
+            class="dashboard-title-input"
+            [(ngModel)]="renameTitle"
+            (keyup.enter)="saveRename()"
+            (blur)="saveRename()"
+            (keyup.escape)="cancelRename()"
+            autofocus />
+        </ng-template>
+      </div>
+    </div>
+
+    <div class="banner-right">
+      <span class="dirty-indicator" *ngIf="dashboardDirty">Unsaved changes</span>
+      <span class="saved-indicator" *ngIf="!dashboardDirty">All changes saved</span>
     </div>
   </div>
 
   <!-- Main three-pane area -->
   <div class="main-area">
-    <!-- Left pane toggle button (outside the pane) -->
-    <button class="toggle-left" (click)="toggleLeft()" [class.collapsed]="leftCollapsed"
-            aria-label="Toggle left panel">
-      <mat-icon>{{ leftCollapsed ? 'chevron_right' : 'chevron_left' }}</mat-icon>
-    </button>
 
-        <!-- Left pane: two independent chips -->
+        <!-- Left pane: Model Tools -->
     <div class="left-pane" [class.collapsed]="leftCollapsed">
-      <div class="left-pane-content">
+
+      <!-- Collapsed strip -->
+      <div
+        class="left-collapsed-strip"
+        *ngIf="leftCollapsed"
+        (click)="toggleLeft()">
+        
+        <div class="strip-title">Model Tools</div>
+      </div>
+
+      <!-- Expanded content -->
+      <div class="left-pane-content" *ngIf="!leftCollapsed">
+        <div class="pane-header">
+          <button class="header-toggle" (click)="toggleLeft()" aria-label="Collapse Model Tools">
+            <mat-icon>chevron_left</mat-icon>
+          </button>
+          <span class="panel-title">Model Tools</span>
+        </div>
+
         <app-model-picker
           [boundModelId]="dashboard?.model_id ?? null"
           [currentModel]="selectedModel"
@@ -59,32 +70,87 @@
         <app-center-canvas></app-center-canvas>
       </div>
     </div>
-
     <!-- Right pane -->
+        <!-- Right pane: Widget Tools -->
     <div class="right-pane" [class.collapsed]="rightCollapsed">
-      <!-- When collapsed, show vertical strip with title and expand button -->
-      <div class="right-collapsed-strip" *ngIf="rightCollapsed">
-        <span class="vertical-title">Widget Configuration</span>
-        <button class="toggle-right" (click)="toggleRight()" aria-label="Expand right panel">
+
+      <!-- Collapsed strip -->
+      <div
+        class="right-collapsed-strip"
+        *ngIf="rightCollapsed"
+        (click)="toggleRight()">
+        <button class="strip-toggle" aria-label="Expand Widget Tools">
           <mat-icon>chevron_left</mat-icon>
         </button>
+        <div class="strip-title">Widget Tools</div>
       </div>
 
-      <!-- When expanded, show full panel -->
+      <!-- Expanded content -->
       <div class="right-expanded" *ngIf="!rightCollapsed">
-        <div class="right-panel-header">
-          <span class="panel-title">Widget Configuration</span>
-          <div class="header-actions">
-            <button mat-stroked-button color="primary" (click)="addNewWidget()">
-              <mat-icon>add</mat-icon> New Widget
-            </button>
-            <button class="toggle-right" (click)="toggleRight()" aria-label="Collapse right panel">
-              <mat-icon>chevron_right</mat-icon>
-            </button>
-          </div>
+
+        <div class="pane-header">
+          <button class="header-toggle" (click)="toggleRight()" aria-label="Collapse Widget Tools">
+            <mat-icon>chevron_right</mat-icon>
+          </button>
+          <span class="panel-title">Widget Tools</span>
+          <span class="header-spacer"></span>
+          <button mat-stroked-button color="primary" class="new-widget-btn" (click)="addNewWidget()">
+            <mat-icon>add</mat-icon> New
+          </button>
         </div>
-        <app-widget-config-panel></app-widget-config-panel>
+
+        <div class="chips-scroll">
+
+          <!-- Chip 1: Widget Details (list) -->
+          <app-widget-list
+            [widgets]="activePageWidgets"
+            [selectedWidgetId]="selectedWidgetId"
+            (widgetPicked)="onWidgetPicked($event)">
+          </app-widget-list>
+
+          <!-- Chip 2: Widget Config -->
+          <div class="chip">
+            <div class="chip-header" (click)="configCollapsed = !configCollapsed">
+              <mat-icon class="chip-icon">tune</mat-icon>
+              <span class="chip-title">Widget Config</span>
+              <span class="chip-spacer"></span>
+              <mat-icon class="chip-chevron">
+                {{ configCollapsed ? 'expand_more' : 'expand_less' }}
+              </mat-icon>
+            </div>
+            <div class="chip-body" *ngIf="!configCollapsed">
+              <app-widget-config-panel></app-widget-config-panel>
+            </div>
+          </div>
+
+        </div>
       </div>
     </div>
+
+    
   </div>
-</div>
+    <div class="editor-footer">
+    <span class="footer-hint" *ngIf="dashboardDirty">
+      <mat-icon>info</mat-icon> You have unsaved changes.
+    </span>
+    <span class="footer-hint" *ngIf="!dashboardDirty">
+      <mat-icon>check_circle</mat-icon> Everything is saved.
+    </span>
+
+    <span class="footer-spacer"></span>
+
+    <button mat-stroked-button class="footer-btn" (click)="onDiscardOrRevert()">
+      <mat-icon>restart_alt</mat-icon> Revert
+    </button>
+    <button
+      mat-flat-button
+      color="primary"
+      class="footer-btn primary"
+      [disabled]="!dashboardDirty || isSavingDashboard"
+      (click)="onSaveDashboard()">
+      <mat-icon *ngIf="!isSavingDashboard">save</mat-icon>
+      <mat-spinner *ngIf="isSavingDashboard" diameter="14" class="inline-spinner"></mat-spinner>
+      {{ isSavingDashboard ? 'Saving…' : 'Save Dashboard' }}
+    </button>
+  </div>
+  

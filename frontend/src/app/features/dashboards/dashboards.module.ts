@@ -31,6 +31,7 @@ import { MatExpansionModule } from '@angular/material/expansion';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { ModelPickerComponent } from './components/model-picker/model-picker.component';
 import { ModelMetadataComponent } from './components/model-metadata/model-metadata.component';
+import { WidgetListComponent } from './components/widget-list/widget-list.component';
 
 @NgModule({
   declarations: [
@@ -41,6 +42,7 @@ import { ModelMetadataComponent } from './components/model-metadata/model-metada
     CenterCanvasComponent,
     ModelPickerComponent,
     ModelMetadataComponent,
+    WidgetListComponent,
   ],
   imports: [
     CommonModule,
