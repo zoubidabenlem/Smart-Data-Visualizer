@@ -17,6 +17,7 @@
         <th>Model Name</th>
         <th>Datasets</th>
         <th>Created</th>
+        
         <th>Actions</th>
       </tr>
     </thead>
@@ -30,14 +31,24 @@
         </td>
         <td>{{ model.datasets?.length || 0 }}</td>
         <td>{{ model.created_at | date:'medium' }}</td>
-        <td class="action-cell">
-          <button class="menu-trigger" (click)="toggleMenu(model.id)">⋮</button>
-          <div class="action-menu" *ngIf="openMenuId === model.id">
-            <button [routerLink]="['/models', model.id, 'studio']">Edit in Studio</button>
-            <button (click)="onMenuAction('delete', model.id)">Delete</button>
-            <button (click)="goToDetail(model.id)">View Details</button>
-          </div>
-        </td>
+       <td class="action-cell">
+  <button
+    class="row-action-btn"
+    (click)="createDashboardFromModel(model)"
+    matTooltip="Create dashboard from this model"
+    matTooltipPosition="left"
+    aria-label="Create dashboard">
+<mat-icon>add_chart</mat-icon><span class="btn-label">Create Dashboard</span>
+  </button>
+
+  <button class="menu-trigger" (click)="toggleMenu(model.id)">⋮</button>
+
+  <div class="action-menu" *ngIf="openMenuId === model.id">
+    <button [routerLink]="['/models', model.id, 'studio']">Edit in Studio</button>
+    <button (click)="onMenuAction('delete', model.id)">Delete</button>
+    <button (click)="goToDetail(model.id)">View Details</button>
+  </div>
+</td>
       </tr>
     </tbody>
   </table>

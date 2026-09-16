@@ -7,6 +7,9 @@ import { DataModelService } from 'src/app/core/services/data-model.service';
 import { ModelCreateComponent } from '../model-create/model-create.component';
 import { Router } from '@angular/router';
 import { HeaderTitleService } from 'src/app/core/services/header-title.service';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { DashboardService } from 'src/app/core/services/dashboard.service';
+
 @Component({
   selector: 'app-model-list',
   templateUrl: './model-list.component.html',
@@ -24,9 +27,16 @@ export class ModelListComponent implements OnInit, OnDestroy {
 
   private destroy$ = new Subject<void>();
   
-
-  constructor(private modelService: DataModelService, private dialog: MatDialog, private router: Router, private headerTitleService: HeaderTitleService) 
-  {   this.headerTitleService.setTitle('Model Explorer');}
+constructor(
+  private modelService: DataModelService,
+  private dashboardService: DashboardService,
+  private snackBar: MatSnackBar,
+  private dialog: MatDialog,
+  private router: Router,
+  private headerTitleService: HeaderTitleService
+) {
+  this.headerTitleService.setTitle('Model Explorer');
+}
   
 
   ngOnInit(): void {
@@ -38,6 +48,26 @@ export class ModelListComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
+
+  createDashboardFromModel(model: DataModelOut): void {
+    this.dashboardService
+      .createDashboard({
+        title: `${model.name} Dashboard`,
+        model_id: model.id,
+      })
+      .subscribe({
+        next: (res) => {
+          this.snackBar.open('Dashboard created', 'Close', { duration: 2000 });
+          this.router.navigate(['/dashboards', res.id, 'edit']);
+        },
+        error: (err) => {
+          console.error('Create failed', err);
+          this.snackBar.open('Failed to create dashboard', 'Close', { duration: 3000 });
+        },
+      });
+  }
+
+  
   loadModels(): void {
     this.isLoading = true;
     this.errorMessage = '';

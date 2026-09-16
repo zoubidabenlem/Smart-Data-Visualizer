@@ -1,104 +1,146 @@
-/* Reuse variables from editor CSS */
-:root {
-  --color-surface: #ffffff;
-  --color-background: #f9f9f9;
-  --color-border: #e0e0e0;
-  --color-primary: #3f51b5;
-  --color-text-secondary: #666;
-  --prussian-blue: #003153; /* or your actual value */
-}
-
 .dashboard-list-container {
-  padding: 1rem;
-  max-width: 1200px;
+  padding: 1.5rem 2rem;
+  max-width: 1280px;
   margin: 0 auto;
 }
 
+/* ─── Header ─── */
 .top-banner {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.5rem 0;
-  border-bottom: 1px solid var(--color-border);
+  padding: 0.5rem 0 1rem 0;
   margin-bottom: 1.5rem;
+  border-bottom: 1px solid #eef2f7;
 }
 
 .page-title {
   margin: 0;
-  font-size: 1.8rem;
-  font-weight: 600;
+  font-size: 1.6rem;
+  font-weight: 700;
   color: var(--prussian-blue);
+  letter-spacing: -0.01em;
 }
 
-.actions {
-  display: flex;
-  gap: 0.5rem;
+.actions button {
+  border-radius: 8px !important;
 }
 
+/* ─── Search ─── */
 .search-bar {
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.75rem;
 }
-
 .search-field {
   width: 100%;
-  max-width: 400px;
+  max-width: 420px;
+}
+.search-field ::ng-deep .mat-mdc-form-field-subscript-wrapper {
+  display: none;
 }
 
-.spinner-container {
-  display: flex;
-  justify-content: center;
-  margin: 2rem 0;
-}
-
+/* ─── Empty ─── */
 .empty-state {
   text-align: center;
-  padding: 3rem 1rem;
-  color: var(--color-text-secondary);
+  padding: 4rem 1rem;
+  color: #94a3b8;
 }
-
 .empty-state mat-icon {
   font-size: 48px;
   width: 48px;
   height: 48px;
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
+  color: #cbd5e0;
 }
-
 .empty-state p {
-  font-size: 1.1rem;
+  font-size: 1rem;
   margin: 0;
 }
 
+/* ─── Grid ─── */
 .dashboard-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.25rem;
 }
 
+/* ─── Card ─── */
 .dashboard-card {
   cursor: pointer;
-  transition: box-shadow 0.2s, transform 0.2s;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  border-radius: 14px !important;
+  border: 1px solid #eef2f7 !important;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04) !important;
+  background: #ffffff;
+  overflow: hidden;
+  transition: box-shadow 0.18s ease, transform 0.18s ease, border-color 0.18s ease;
+  position: relative;
+}
+.dashboard-card:hover {
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08) !important;
+  transform: translateY(-3px);
+  border-color: #dbeafe !important;
 }
 
-.dashboard-card:hover {
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  transform: translateY(-2px);
+/* ─── Card header ─── */
+.dashboard-card mat-card-header {
+  padding: 18px 20px 8px 20px;
+  position: relative;
+}
+.dashboard-card mat-card-title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #0f172a;
+  margin-bottom: 4px;
+  line-height: 1.3;
+}
+.dashboard-card mat-card-subtitle {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  margin: 0;
+}
+
+.dashboard-card mat-card-content {
+  padding: 4px 20px 12px 20px;
+  min-height: 24px;
 }
 
 .widget-count {
-  color: var(--color-text-secondary);
-  font-size: 0.9rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  background: #f1f5f9;
+  color: #475569;
+  font-size: 0.72rem;
+  font-weight: 600;
+  border-radius: 12px;
+  letter-spacing: 0.01em;
 }
 
+/* ─── Card actions ─── */
+.dashboard-card mat-card-actions {
+  padding: 4px 12px 12px 12px;
+  min-height: 0;
+  border-top: 1px solid #f8fafc;
+  margin: 0;
+}
+
+.dashboard-card mat-card-actions button {
+  border-radius: 8px !important;
+}
+
+/* ─── Pagination ─── */
 .pagination-controls {
   display: flex;
   justify-content: center;
   align-items: center;
   gap: 1rem;
   margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #eef2f7;
+  font-size: 0.85rem;
+  color: #64748b;
 }
-
 .pagination-controls button {
   min-width: 100px;
+  border-radius: 8px !important;
 }

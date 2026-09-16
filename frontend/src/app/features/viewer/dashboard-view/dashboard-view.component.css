@@ -192,6 +192,12 @@
     radial-gradient(circle at 1px 1px, #eef2f7 1px, transparent 0);
   background-size: 20px 20px;
 }
+.viewer-canvas ::ng-deep gridster,
+.viewer-canvas ::ng-deep .gridster,
+.viewer-canvas ::ng-deep .gridster-column,
+.viewer-canvas ::ng-deep .gridster-row {
+  background: transparent !important;
+}
 
 .viewer-gridster {
   min-height: 100%;
