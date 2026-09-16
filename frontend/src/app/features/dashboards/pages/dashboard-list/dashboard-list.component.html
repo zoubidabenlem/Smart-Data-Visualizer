@@ -38,11 +38,28 @@
           Created {{ dashboard.created_at | date:'mediumDate' }}
         </mat-card-subtitle>
       </mat-card-header>
-      <mat-card-content>
-        <span class="widget-count">
-          {{ dashboard.widget_count }} {{ dashboard.widget_count === 1 ? 'widget' : 'widgets' }}
-        </span>
-      </mat-card-content>
+              <mat-card-content>
+          <div class="meta-row">
+            <span class="meta-chip model-chip" *ngIf="dashboard.model_name; else noModel">
+              <mat-icon>hub</mat-icon>
+              <span class="chip-label">{{ dashboard.model_name }}</span>
+            </span>
+            <ng-template #noModel>
+              <span class="meta-chip model-chip muted">
+                <mat-icon>hub</mat-icon>
+                <span class="chip-label">No model</span>
+              </span>
+            </ng-template>
+
+            <span class="meta-chip widget-chip">
+              <mat-icon>widgets</mat-icon>
+              <span class="chip-label">
+                {{ dashboard.widget_count }}
+                {{ dashboard.widget_count === 1 ? 'widget' : 'widgets' }}
+              </span>
+            </span>
+          </div>
+        </mat-card-content>
       <mat-card-actions align="end">
         <button mat-icon-button color="primary"
                 (click)="$event.stopPropagation(); editDashboard(dashboard.id)"

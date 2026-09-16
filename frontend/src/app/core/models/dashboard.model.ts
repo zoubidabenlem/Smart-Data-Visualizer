@@ -151,6 +151,8 @@ export interface DashboardResponse {
 export interface DashboardListItem {
   id: number;
   title: string;
+  model_id: number | null;
+  model_name: string | null;
   created_at: string;
   widget_count: number;
 }

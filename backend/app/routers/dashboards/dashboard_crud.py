@@ -1,6 +1,8 @@
 # app/routers/dashboards/dashboard_crud.py
 import math
 
+from sqlalchemy.orm import Session, joinedload
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from typing import Dict, Any
@@ -111,7 +113,9 @@ def list_dashboards(
 
         total = query.count()
         dashboards = (
-            query.order_by(Dashboard.created_at.desc())
+            query
+            .options(joinedload(Dashboard.model))          # Load model for model_name
+            .order_by(Dashboard.created_at.desc())
             .offset((page - 1) * size)
             .limit(size)
             .all()
@@ -121,6 +125,8 @@ def list_dashboards(
             {
                 "id": d.id,
                 "title": d.title,
+                "model_id": d.model_id,
+                "model_name": d.model.name if d.model else None,
                 "created_at": d.created_at.isoformat(),
                 "widget_count": len(d.widgets),
             }

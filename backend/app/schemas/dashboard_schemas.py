@@ -144,9 +144,11 @@ class DashboardResponse(BaseModel):
 class DashboardListItem(BaseModel):
     id: int
     title: str
+    model_id: Optional[int] = None       # NEW
+    model_name: Optional[str] = None     # NEW
     created_at: str
     widget_count: int
-
+    
 class DashboardPaginatedResponse(BaseModel):
     items: List[DashboardListItem]
     total: int

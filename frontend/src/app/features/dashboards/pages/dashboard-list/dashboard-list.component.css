@@ -103,17 +103,60 @@
   min-height: 24px;
 }
 
-.widget-count {
+.meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.meta-chip {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 3px 10px;
-  background: #f1f5f9;
-  color: #475569;
+  gap: 5px;
+  padding: 4px 10px 4px 8px;
+  border-radius: 12px;
   font-size: 0.72rem;
   font-weight: 600;
-  border-radius: 12px;
-  letter-spacing: 0.01em;
+  line-height: 1;
+  max-width: 100%;
+  min-width: 0;
+}
+.meta-chip mat-icon {
+  font-size: 14px;
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+.meta-chip .chip-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Model chip — accent color so it's the "identity" of the dashboard */
+.model-chip {
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+.model-chip mat-icon {
+  color: #3b82f6;
+}
+.model-chip.muted {
+  background: #f1f5f9;
+  color: #94a3b8;
+  font-weight: 500;
+}
+.model-chip.muted mat-icon {
+  color: #cbd5e0;
+}
+
+/* Widget count chip — neutral */
+.widget-chip {
+  background: #f1f5f9;
+  color: #475569;
+}
+.widget-chip mat-icon {
+  color: #94a3b8;
 }
 
 /* ─── Card actions ─── */
