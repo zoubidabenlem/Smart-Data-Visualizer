@@ -162,6 +162,73 @@
         </button>
       </div>
     </div>
+
+        <!-- Filters -->
+    <div class="field-group" formArrayName="filters">
+      <div class="field-header">
+        <span class="field-label">Filters</span>
+        <button type="button" class="mini-btn" (click)="addFilter()" aria-label="Add filter">
+          <mat-icon>add</mat-icon>
+        </button>
+      </div>
+
+      <div *ngIf="filters.length === 0" class="filters-empty">
+        No filters — all rows included.
+      </div>
+
+      <div
+        *ngFor="let f of filters.controls; let i = index"
+        [formGroupName]="i"
+        class="filter-row">
+
+        <div class="filter-row-line">
+          <mat-form-field appearance="outline" class="compact-field">
+            <mat-select
+              formControlName="dataset_id"
+              placeholder="Dataset"
+              (selectionChange)="onFilterDatasetChange(i)">
+              <mat-option *ngFor="let ds of datasets" [value]="ds.id">
+                {{ ds.name }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="compact-field">
+            <mat-select formControlName="column" placeholder="Column">
+              <mat-option *ngFor="let c of getColumnsForFilter(i)" [value]="c.name">
+                {{ c.name }}
+                <small class="col-type">({{ c.type }})</small>
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <button
+            type="button"
+            class="row-remove"
+            (click)="removeFilter(i)"
+            aria-label="Remove filter">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+<!-- Filter operator and value  -->
+        <div class="filter-row-line">
+          <mat-form-field appearance="outline" class="compact-field op-field">
+            <mat-select formControlName="operator" placeholder="Op">
+              <mat-option *ngFor="let op of filterOperators" [value]="op.value">
+                {{ op.label }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="compact-field">
+            <input
+              matInput
+              formControlName="value"
+              [placeholder]="f.get('operator')?.value === 'in' ? 'a, b, c' : 'value'" />
+          </mat-form-field>
+        </div>
+      </div>
+    </div>
     <!-- Save footer -->
   <div class="save-footer" *ngIf="selectedWidget">
   <button

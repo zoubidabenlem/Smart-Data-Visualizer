@@ -1,0 +1,70 @@
+<div class="filter-chip-wrapper">
+  <!-- Toggle button -->
+  <button
+    mat-stroked-button
+    class="filter-toggle"
+    [class.active]="filters.length > 0"
+    (click)="toggleOpen()">
+    <mat-icon>filter_alt</mat-icon>
+    Filters
+    <span class="filter-badge" *ngIf="filters.length > 0">{{ filters.length }}</span>
+  </button>
+
+  <!-- Body -->
+  <div class="chip-body" *ngIf="open">
+
+    <div class="chip-head">
+      <mat-icon class="chip-icon">info_outline</mat-icon>
+      <span>Filters apply to this view only. They are not saved.</span>
+      <button mat-icon-button class="chip-close" (click)="toggleOpen()" aria-label="Close">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <!-- Active pills -->
+    <div class="pill-list" *ngIf="filters.length > 0">
+      <div class="filter-pill" *ngFor="let f of filters; let i = index">
+        <span class="pill-text">{{ displayFilter(f) }}</span>
+        <button class="pill-x" (click)="remove(i)" aria-label="Remove">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+      <button class="clear-all" (click)="clear()">Clear all</button>
+    </div>
+
+    <!-- Add form -->
+    <div class="add-form">
+      <input
+        class="draft-input draft-ds"
+        type="number"
+        placeholder="dataset id"
+        [value]="draftDatasetId ?? ''"
+        (input)="draftDatasetId = +($any($event.target).value) || null" />
+
+      <input
+        class="draft-input"
+        type="text"
+        placeholder="column"
+        [(ngModel)]="draftColumn" />
+
+      <select class="draft-input draft-op" [(ngModel)]="draftOperator">
+        <option *ngFor="let op of operators" [ngValue]="op.value">{{ op.label }}</option>
+      </select>
+
+      <input
+        class="draft-input"
+        type="text"
+        [placeholder]="valuePlaceholder"
+        [(ngModel)]="draftValue" />
+
+      <button
+        mat-flat-button
+        color="primary"
+        class="add-btn"
+        [disabled]="!canAdd"
+        (click)="add()">
+        Add
+      </button>
+    </div>
+  </div>
+</div>

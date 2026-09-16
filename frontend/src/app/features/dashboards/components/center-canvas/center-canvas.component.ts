@@ -60,9 +60,23 @@ export class CenterCanvasComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.options = this.gridsterService.getOptions();
-    this.options.itemChangeCallback = (item) => this.handleItemChange(item);
-    this.options.itemResizeCallback = (item) => this.handleItemChange(item);
+      this.options = this.gridsterService.getOptions();
+
+      this.options.itemChangeCallback = (item) => {
+        this.handleItemChange(item);
+        this.cdr.markForCheck();
+      };
+      this.options.itemResizeCallback = (item) => {
+        this.handleItemChange(item);
+        this.cdr.markForCheck();
+      };
+      this.options.itemInitCallback = (item) => {
+        // Fires once per item after Gridster has auto-placed it.
+        // We do NOT want to PATCH on init (no user action), only re-render.
+        this.cdr.markForCheck();
+          this.recomputePageStats();
+
+      };
 
     this.subs.add(
       this.editorService.dashboard$.subscribe(dash => {
@@ -147,11 +161,6 @@ export class CenterCanvasComponent implements OnInit, OnDestroy {
     this.editorService.setActivePage(pageId);
   }
 
-  addPage(): void {
-    this.editorService.createPage().subscribe({
-      error: (err) => console.error('Failed to create page', err),
-    });
-  }
 
   startRenamePage(page: DashboardPage, event: Event): void {
     event.stopPropagation();
@@ -241,5 +250,26 @@ export class CenterCanvasComponent implements OnInit, OnDestroy {
       case 'kpi': return 'speed';
       default: return 'insert_chart';
     }
+  }
+
+pageStats: { used: number; max: number; nearlyFull: boolean } = {
+  used: 0, max: 0, nearlyFull: false,
+};
+
+private recomputePageStats(): void {
+  const max = this.gridsterService.maxRows;
+  let used = 0;
+  for (const it of this.items) {
+    const bottom = (it.y ?? 0) + (it.rows ?? 1);
+    if (bottom > used) used = bottom;
+  }
+  this.pageStats = { used, max, nearlyFull: used >= max - 4 };
+  this.cdr.markForCheck();
+}
+
+  addPage(): void {
+    this.editorService.createPage().subscribe({
+      error: (err) => console.error('Failed to create page', err),
+    });
   }
 }

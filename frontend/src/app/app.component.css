@@ -1,14 +1,20 @@
 :host {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
 }
 
-.main-content {
-  flex: 1 0 auto;
+.main-content,            /* whatever wraps <router-outlet> */
+.router-wrapper {
+  flex: 1 1 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: auto;         /* or hidden for the editor route */
 }
 
-html, body {
-  height: 100%;
-  margin: 0;
+router-outlet + * {
+  flex: 1 1 0;
+  min-height: 0;
 }

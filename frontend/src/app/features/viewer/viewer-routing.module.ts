@@ -4,10 +4,6 @@ import { authGuard as AuthGuard } from 'src/app/core/auth/auth.guard';
 import { DashboardListComponent } from './dashboard-list/dashboard-list.component';
 import { DashboardViewComponent } from './dashboard-view/dashboard-view.component';
 import { ProfileComponent } from './profile/profile.component';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { CommonModule } from '@angular/common';
-import { SharedModule } from 'src/app/shared/shared.module';
-import { DashboardViewerComponent } from '../dashboards/pages/dashboard-viewer/dashboard-viewer.component';
 
 const routes: Routes = [
   {
@@ -17,7 +13,7 @@ const routes: Routes = [
   },
   {
     path: 'dashboards/:id',
-    component: DashboardViewerComponent,
+    component: DashboardViewComponent,
     canActivate: [AuthGuard]
   },
   {

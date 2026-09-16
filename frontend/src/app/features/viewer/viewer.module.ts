@@ -20,17 +20,23 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatButtonModule } from '@angular/material/button';
 import { GridsterModule } from 'angular-gridster2';
+import { WidgetChartComponent } from 'src/app/shared/components/widget-chart/widget-chart.component';
+import { ViewerFilterChipComponent } from './dashboard-view/components/viewer-filter-chip/viewer-filter-chip.component';
 
 @NgModule({
   declarations: [
     DashboardListComponent,
     DashboardViewComponent,
     ProfileComponent,
+    ViewerFilterChipComponent,
   ],
   imports: [
     CommonModule,
     ViewerRoutingModule,
     RouterModule,
+    WidgetChartComponent,
+    FormsModule,
+    ReactiveFormsModule,
    SharedModule,
    DashboardsModule,
      RouterModule,
@@ -43,7 +49,6 @@ import { GridsterModule } from 'angular-gridster2';
   MatInputModule,
   MatSelectModule,
   SharedModule,            // ← for app-widget-chart
-  ViewerRoutingModule,
 
   ]
 })

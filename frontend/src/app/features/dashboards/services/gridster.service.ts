@@ -22,8 +22,8 @@ export class GridsterService {
     },
     minCols: 12,
     maxCols: 12,
-    minRows: 8,
-    maxRows: 40,
+    minRows: 6,
+    maxRows: 10,
     fixedRowHeight: 110,
     fixedColWidth: 95,
     margin: 8,
@@ -32,6 +32,7 @@ export class GridsterService {
     // We assign the callbacks in the component so they can capture dashboardId.
     itemChangeCallback: undefined,
     itemResizeCallback: undefined,
+    itemInitCallback: undefined,   // wired in the component, like the others
   };
 
   private positionChange$ = new Subject<{
@@ -39,6 +40,8 @@ export class GridsterService {
     widgetId: number;
     position: WidgetPosition;
   }>();
+
+  
 
   constructor(
     private dashboardService: DashboardService,
@@ -56,7 +59,9 @@ export class GridsterService {
       )
     ).subscribe();
   }
-
+  get maxRows(): number {
+    return this.gridOptions.maxRows ?? 5;
+  }
   getOptions(): GridsterConfig {
     return this.gridOptions;
   }
@@ -103,18 +108,30 @@ export class GridsterService {
       cols: item.cols,
       rows: item.rows,
     });
+    console.log('widget position changed', { dashboardId, widgetId, item });
   }
 
-  private widgetToGridsterItem(widget: WidgetResponse): GridsterItem {
-    const pos: WidgetPosition = widget.position ?? { x: 0, y: 0, cols: 4, rows: 3 };
-    return {
-      x: pos.x,
-      y: pos.y,
-      cols: pos.cols,
-      rows: pos.rows,
-      widgetId: widget.id,
-    } as GridsterItem;
+private widgetToGridsterItem(widget: WidgetResponse): GridsterItem {
+  const pos: WidgetPosition = widget.position ?? { x: 0, y: 0, cols: 4, rows: 3 };
+
+  const collides = Object.values(this.itemMap).some(
+    (it) => it.x === pos.x && it.y === pos.y
+  );
+
+  const item: any = {
+    cols: pos.cols,
+    rows: pos.rows,
+    widgetId: widget.id,
+  };
+
+  // Only pin x/y when the requested cell is free.
+  // Otherwise leave them undefined so Gridster auto-places (pushItems: true).
+  if (!collides) {
+    item.x = pos.x;
+    item.y = pos.y;
   }
+  return item as GridsterItem;
+}
 
     private queuePositionUpdate(
     dashboardId: number,

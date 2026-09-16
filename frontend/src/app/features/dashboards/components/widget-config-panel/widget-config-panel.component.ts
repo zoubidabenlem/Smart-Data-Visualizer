@@ -15,6 +15,8 @@ import {
   Aggregation,
 } from 'src/app/core/models/dashboard.model';
 
+import { ModelFilterCondition } from 'src/app/core/models/dashboard.model';
+
 interface DatasetInfo {
   id: number;
   name: string;
@@ -26,6 +28,7 @@ interface ChartTypeOption {
   label: string;
   icon: string;
 }
+
 
 @Component({
   selector: 'app-widget-config-panel',
@@ -71,6 +74,8 @@ export class WidgetConfigPanelComponent implements OnInit, OnDestroy {
       color_scheme: ['default'],
       dimensions: this.fb.array([]),
       measures: this.fb.array([]),
+      filters: this.fb.array([]),   // ← NEW
+
     });
   }
 
@@ -157,6 +162,20 @@ export class WidgetConfigPanelComponent implements OnInit, OnDestroy {
     const config = this.buildConfigFromForm();
     if (!config) return false;
     return this.signatureOf(config) !== this.lastPersistedSignature;
+  }
+
+  get filters(): FormArray {
+    return this.configForm.get('filters') as FormArray;
+  }
+  get filterOperators(): { value: string; label: string }[] {
+    return [
+      { value: '==', label: 'equals' },
+      { value: '!=', label: 'not equals' },
+      { value: '>', label: 'greater than' },
+      { value: '<', label: 'less than' },
+      { value: 'in', label: 'in list' },
+      { value: 'like', label: 'contains' },
+    ];
   }
 
   // ─────────────────────────────────────────────────────────
@@ -288,6 +307,10 @@ export class WidgetConfigPanelComponent implements OnInit, OnDestroy {
       this.measures.push(this.createMeasureGroup(m), { emitEvent: false });
     });
 
+    (config.filters || []).forEach((f) => {
+      this.filters.push(this.createFilterGroup(f), { emitEvent: false });
+    });
+
     if (this.dimensions.length === 0 && config.chart_type !== 'kpi') {
       this.dimensions.push(this.createDimensionGroup(), { emitEvent: false });
     }
@@ -321,8 +344,25 @@ export class WidgetConfigPanelComponent implements OnInit, OnDestroy {
     this.validationErrors = [];
     this.lastPreviewedSignature = '';
     this.isInternalChange = false;
+      while (this.filters.length) {
+      this.filters.removeAt(0, { emitEvent: false });
+    }
+  }
+  private createFilterGroup(f?: ModelFilterCondition): FormGroup {
+    const fallbackId = this.datasets[0]?.id ?? null;
+    return this.fb.group({
+      dataset_id: [f?.dataset_id ?? fallbackId, Validators.required],
+      column: [f?.column ?? '', Validators.required],
+      operator: [f?.operator ?? '==', Validators.required],
+      value: [this.stringifyValue(f?.value), Validators.required],
+    });
   }
 
+  private stringifyValue(v: any): string {
+    if (v == null) return '';
+    if (Array.isArray(v)) return v.join(', ');
+    return String(v);
+  }
   private createDimensionGroup(dim?: ColumnRef): FormGroup {
     const fallbackId = this.datasets[0]?.id ?? null;
     return this.fb.group({
@@ -401,7 +441,17 @@ export class WidgetConfigPanelComponent implements OnInit, OnDestroy {
         aggregation: m.aggregation as Aggregation,
         alias: m.alias || null,
       })),
+            filters: (v.filters as any[]).map((f, i) => ({
+        dataset_id: f.dataset_id,
+        column: f.column,
+        operator: f.operator,
+        value: this.parseFilterValue(i),
+      })),
+      order_by: this.selectedWidget.config.order_by ?? [],
+      limit: this.selectedWidget.config.limit ?? null,
     };
+
+
   }
 
   // ─────────────────────────────────────────────────────────
@@ -547,5 +597,56 @@ export class WidgetConfigPanelComponent implements OnInit, OnDestroy {
     if (detail && typeof detail === 'object')
       return Object.values(detail).map(String);
     return ['Unable to validate the widget configuration.'];
+  }
+
+  //filters
+    addFilter(): void {
+    this.filters.push(this.createFilterGroup());
+  }
+  removeFilter(i: number): void {
+    this.filters.removeAt(i);
+  }
+  onFilterDatasetChange(index: number): void {
+    const g = this.filters.at(index) as FormGroup;
+    g?.get('column')?.setValue('');
+  }
+  getColumnsForFilter(index: number): { name: string; type: string }[] {
+    const g = this.filters.at(index) as FormGroup;
+    if (!g) return [];
+    return this.columnsFor(g.get('dataset_id')?.value);
+  }
+  private filterColumnType(index: number): string {
+    const g = this.filters.at(index) as FormGroup;
+    if (!g) return 'string';
+    const dsId = g.get('dataset_id')?.value;
+    const col = g.get('column')?.value;
+    if (!dsId || !col) return 'string';
+    const match = this.columnsFor(dsId).find((c) => c.name === col);
+    return match?.type ?? 'string';
+  }
+  private isNumericType(t: string): boolean {
+    return [
+      'number', 'integer', 'float', 'int64', 'float64',
+      'int32', 'float32', 'decimal', 'numeric', 'double',
+    ].includes(t);
+  }
+    private parseFilterValue(index: number): any {
+    const g = this.filters.at(index) as FormGroup;
+    const op = g.get('operator')?.value as string;
+    const raw = String(g.get('value')?.value ?? '').trim();
+    const colType = this.filterColumnType(index);
+
+    if (op === 'in') {
+      return raw.split(',').map((s) => s.trim()).filter((s) => s.length > 0);
+    }
+    if (op === '>' || op === '<') {
+      const n = Number(raw);
+      return isNaN(n) ? raw : n;
+    }
+    if (this.isNumericType(colType)) {
+      const n = Number(raw);
+      if (!isNaN(n) && raw !== '') return n;
+    }
+    return raw;
   }
 }

@@ -7,83 +7,20 @@
 
   <div *ngIf="dashboard && !errorMessage" class="viewer-container">
 
-    <!-- Top bar: title + filters toggle -->
     <div class="viewer-topbar">
       <div class="viewer-title">
         <mat-icon>dashboard</mat-icon>
         <h1>{{ dashboard.title }}</h1>
       </div>
 
-      <button
-        mat-stroked-button
-        class="filter-toggle"
-        [class.active]="hasViewerFilters"
-        (click)="toggleFilters()">
-        <mat-icon>filter_alt</mat-icon>
-        Filters
-        <span class="filter-badge" *ngIf="hasViewerFilters">{{ viewerFilters.length }}</span>
-      </button>
+      <app-viewer-filter-chip
+        [filters]="viewerFilters"
+        [open]="filtersOpen"
+        (filtersChange)="onFiltersChange($event)"
+        (openChange)="onFiltersOpenChange($event)">
+      </app-viewer-filter-chip>
     </div>
 
-    <!-- Viewer filter chip (ephemeral) -->
-    <div class="viewer-filter-chip" *ngIf="filtersOpen">
-      <div class="chip-head">
-        <span>Filters apply to this view only. They are not saved.</span>
-        <button mat-icon-button (click)="toggleFilters()" aria-label="Close filters">
-          <mat-icon>close</mat-icon>
-        </button>
-      </div>
-
-      <div class="filter-list" *ngIf="hasViewerFilters">
-        <div class="filter-pill" *ngFor="let f of viewerFilters; let i = index">
-          <span class="pill-text">
-            <strong>#{{ f.dataset_id }}</strong>.{{ f.column }}
-            <em>{{ f.operator }}</em>
-            {{ f.value }}
-          </span>
-          <button mat-icon-button class="pill-x" (click)="removeViewerFilter(i)" aria-label="Remove">
-            <mat-icon>close</mat-icon>
-          </button>
-        </div>
-      </div>
-
-      <div class="chip-actions">
-        <span class="hint">Add filters via the widget config or use the quick input:</span>
-        <button mat-button color="warn" (click)="clearViewerFilters()" [disabled]="!hasViewerFilters">
-          Clear all
-        </button>
-      </div>
-
-      <!-- Minimal inline adder, see TS note below -->
-      <div class="inline-add">
-        <mat-form-field appearance="outline" class="compact">
-          <input matInput #ds placeholder="dataset_id" />
-        </mat-form-field>
-        <mat-form-field appearance="outline" class="compact">
-          <input matInput #col placeholder="column" />
-        </mat-form-field>
-        <mat-form-field appearance="outline" class="compact op">
-          <input matInput #op placeholder="== / != / &gt; / &lt; / in / like" />
-        </mat-form-field>
-        <mat-form-field appearance="outline" class="compact">
-          <input matInput #val placeholder="value" />
-        </mat-form-field>
-        <button
-          mat-flat-button
-          color="primary"
-          (click)="addViewerFilter({
-            dataset_id: +ds.value,
-            column: col.value,
-            operator: op.value as any,
-            value: val.value
-          })"
-          [disabled]="!ds.value || !col.value || !op.value || !val.value">
-          Add
-        </button>
-      </div>
-    </div>
-
-    <!-- Page tabs (read only) -->
     <div class="viewer-page-tabs" *ngIf="pages.length > 1">
       <button
         *ngFor="let page of pages; trackBy: trackByPageId"
@@ -94,9 +31,12 @@
       </button>
     </div>
 
-    <mat-progress-bar *ngIf="isRefreshing" mode="indeterminate" class="refresh-bar"></mat-progress-bar>
+    <mat-progress-bar
+      *ngIf="isRefreshing"
+      mode="indeterminate"
+      class="refresh-bar">
+    </mat-progress-bar>
 
-    <!-- Canvas -->
     <div class="viewer-canvas">
       <div class="viewer-empty" *ngIf="items.length === 0">
         <mat-icon>dashboard_customize</mat-icon>

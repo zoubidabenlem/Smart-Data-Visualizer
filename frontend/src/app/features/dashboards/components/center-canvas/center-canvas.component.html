@@ -1,5 +1,18 @@
 <div class="canvas-container">
 
+  <!-- top bar -->
+    <div class="page-full-banner" *ngIf="pageStats.nearlyFull">
+        <span>used={{ pageStats.used }} / max={{ pageStats.max }}</span>
+
+    <mat-icon>info</mat-icon>
+    <span class="banner-text">
+      This page is <strong>{{ pageStats.used }}/{{ pageStats.max }}</strong> rows full.
+      Add a new page to keep building.
+    </span>
+    <button mat-flat-button color="primary" class="banner-btn" (click)="addPage()">
+      <mat-icon>add</mat-icon> Add Page
+    </button>
+  </div>
   <!-- Page tabs -->
   <div class="page-tabs">
     <div
@@ -80,4 +93,7 @@
         </gridster-item>
     </gridster>
   </ng-container>
+
+
+
 </div>

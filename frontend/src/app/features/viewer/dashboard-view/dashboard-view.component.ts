@@ -34,7 +34,6 @@ export class DashboardViewComponent implements OnInit, OnDestroy {
   widgetsOnPage: WidgetResponse[] = [];
   items: GridsterItem[] = [];
 
-  /** Viewer-only, ephemeral filters. Never persisted. */
   viewerFilters: ModelFilterCondition[] = [];
   filtersOpen = false;
   isRefreshing = false;
@@ -94,17 +93,21 @@ export class DashboardViewComponent implements OnInit, OnDestroy {
     this.subs.unsubscribe();
   }
 
-  // ─── Page handling ───
+  // ─── Pages ───
 
   selectPage(pageId: number): void {
     if (pageId === this.activePageId) return;
     this.activePageId = pageId;
     this.rebuild();
+    if (this.viewerFilters.length > 0) {
+      this.refreshWidgetData();
+    }
     this.cdr.markForCheck();
   }
 
   trackByPageId = (_: number, p: DashboardPage): number => p.id;
-  trackByItemId = (_: number, it: GridsterItem): number => (it as any).widgetId as number;
+  trackByItemId = (_: number, it: GridsterItem): number =>
+    (it as any).widgetId as number;
 
   private rebuild(): void {
     if (!this.dashboard || this.activePageId == null) {
@@ -134,27 +137,17 @@ export class DashboardViewComponent implements OnInit, OnDestroy {
     return this.widgetsOnPage.find((w) => w.id === id);
   }
 
-  // ─── Viewer filters ───
+  // ─── Filter handlers (called from chip) ───
 
-  toggleFilters(): void {
-    this.filtersOpen = !this.filtersOpen;
+  onFiltersChange(next: ModelFilterCondition[]): void {
+    this.viewerFilters = next;
+    this.refreshWidgetData();
     this.cdr.markForCheck();
   }
 
-  addViewerFilter(f: ModelFilterCondition): void {
-    this.viewerFilters = [...this.viewerFilters, f];
-    this.refreshWidgetData();
-  }
-
-  removeViewerFilter(index: number): void {
-    this.viewerFilters = this.viewerFilters.filter((_, i) => i !== index);
-    this.refreshWidgetData();
-  }
-
-  clearViewerFilters(): void {
-    if (this.viewerFilters.length === 0) return;
-    this.viewerFilters = [];
-    this.refreshWidgetData();
+  onFiltersOpenChange(open: boolean): void {
+    this.filtersOpen = open;
+    this.cdr.markForCheck();
   }
 
   private refreshWidgetData(): void {
@@ -194,9 +187,5 @@ export class DashboardViewComponent implements OnInit, OnDestroy {
         this.cdr.markForCheck();
       },
     });
-  }
-
-  get hasViewerFilters(): boolean {
-    return this.viewerFilters.length > 0;
   }
 }

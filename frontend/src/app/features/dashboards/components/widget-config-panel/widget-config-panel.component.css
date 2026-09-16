@@ -277,3 +277,31 @@
   margin-right: 6px;
   vertical-align: middle;
 }
+
+.filters-empty {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  font-style: italic;
+  padding: 4px 0;
+}
+
+.filter-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px;
+  margin-top: 6px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  background: #fbfcfd;
+}
+
+.filter-row-line {
+  display: grid;
+  grid-template-columns: 1fr 1fr 26px;
+  gap: 6px;
+  align-items: center;
+}
+.filter-row-line:last-child {
+  grid-template-columns: 110px 1fr;
+}

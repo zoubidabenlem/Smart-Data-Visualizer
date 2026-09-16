@@ -1,0 +1,151 @@
+:host {
+  display: block;
+}
+
+.filter-chip-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.filter-toggle {
+  align-self: flex-start;
+  position: relative;
+}
+.filter-toggle.active {
+  background: #ecfdf5;
+  border-color: #2ca58d;
+  color: #0f766e;
+}
+.filter-badge {
+  background: #2ca58d;
+  color: #fff;
+  font-size: 0.68rem;
+  padding: 1px 6px;
+  border-radius: 10px;
+  margin-left: 6px;
+}
+
+.chip-body {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 10px 14px;
+}
+
+.chip-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.78rem;
+  color: #64748b;
+  margin-bottom: 8px;
+}
+.chip-head .chip-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  color: #94a3b8;
+}
+.chip-head span { flex: 1; }
+.chip-close {
+  width: 24px !important;
+  height: 24px !important;
+  line-height: 24px !important;
+}
+.chip-close mat-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+}
+
+/* ─── Pills ─── */
+.pill-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+  align-items: center;
+}
+.filter-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 4px 4px 10px;
+  background: #eef2f7;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  color: #334155;
+}
+.pill-text {
+  white-space: nowrap;
+}
+.pill-x {
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  color: #94a3b8;
+}
+.pill-x:hover {
+  color: #dc2626;
+  background: #fee2e2;
+}
+.pill-x mat-icon {
+  font-size: 14px;
+  width: 14px;
+  height: 14px;
+}
+.clear-all {
+  background: transparent;
+  border: none;
+  color: #dc2626;
+  font-size: 0.72rem;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+.clear-all:hover {
+  background: #fef2f2;
+}
+
+/* ─── Add form ─── */
+.add-form {
+  display: grid;
+  grid-template-columns: 90px 1fr 130px 1fr 70px;
+  gap: 6px;
+  align-items: center;
+}
+.draft-input {
+  width: 100%;
+  box-sizing: border-box;
+  height: 32px;
+  padding: 4px 8px;
+  font-size: 0.8rem;
+  border: 1px solid #cbd5e0;
+  border-radius: 6px;
+  background: #fff;
+  color: #0f172a;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.12s;
+}
+.draft-input:focus {
+  border-color: #2ca58d;
+  box-shadow: 0 0 0 2px rgba(44, 165, 141, 0.15);
+}
+.draft-op {
+  font-size: 0.78rem;
+}
+.add-btn {
+  height: 32px !important;
+  line-height: 32px !important;
+  font-size: 0.75rem !important;
+  padding: 0 10px !important;
+}
