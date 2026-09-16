@@ -342,4 +342,14 @@ export class DashboardEditorService {
   getModelId(): number | null {
     return this.dashboardSubject.value?.model_id ?? null;
   }
+
+    /** Update a widget's position in local state without waiting for the server. */
+  patchWidgetPositionLocally(widgetId: number, position: WidgetPosition): void {
+    const dash = this.dashboardSubject.value;
+    if (!dash) return;
+    const updated = dash.widgets.map((w) =>
+      w.id === widgetId ? { ...w, position } : w
+    );
+    this.updateDashboardState({ ...dash, widgets: updated });
+  }
 }

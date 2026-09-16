@@ -4,7 +4,6 @@ import { authGuard } from './core/auth/auth.guard';
 import { roleGuard } from './core/auth/role.guard';
 
 import { UnauthorizedComponent } from './core/unauthorized/unauthorized.component';
-import { DashboardViewerComponent } from './features/dashboards/pages/dashboard-viewer/dashboard-viewer.component';
 import { SurveyComponent } from './features/auth/survey/survey.component';
 const routes: Routes = [
   // Landing page (public)
@@ -50,12 +49,12 @@ const routes: Routes = [
                            .then(m => m.UserManagementModule)
 },
 // Viewer route — protected by AuthGuard
- // {
-   // path: 'viewer',
-    //canActivate: [authGuard],
-    //loadChildren: () =>
-      //  import('./features/viewer/viewer.module').then(m => m.ViewerModule)
-  //},
+ {
+   path: 'viewer',
+  canActivate: [authGuard],
+  loadChildren: () =>
+   import('./features/viewer/viewer.module').then(m => m.ViewerModule)
+  },
 
 { path: 'unauthorized', component: UnauthorizedComponent },
   // Wildcard route — catches any URL that didn't match above.

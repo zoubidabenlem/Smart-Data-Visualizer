@@ -53,22 +53,31 @@
       [options]="options"
       class="gridster-canvas">
       <gridster-item
-        *ngFor="let item of items; trackBy: trackByItemId"
-        [item]="item"
-        class="widget-tile"
-        [class.widget-tile-selected]="isSelected(item)">
+          *ngFor="let item of items; trackBy: trackByItemId"
+          [item]="item"
+          class="widget-tile"
+          [class.widget-tile-selected]="isSelected(item)">
 
-        <div class="widget-tile-body" (click)="onSelectWidget(widgetOf(item), $event)">
-          <app-widget-chart
-            *ngIf="widgetOf(item) as widget"
-            [widget]="widget">
-          </app-widget-chart>
-        </div>
+          <!-- Header / title bar (drag handle) -->
+          <div class="widget-tile-header">
+            <mat-icon class="widget-tile-icon">
+              {{ chartIcon(widgetOf(item)?.config?.chart_type) }}
+            </mat-icon>
+            <span class="widget-tile-title">
+              {{ widgetOf(item)?.config?.title || 'Untitled' }}
+            </span>
+          </div>
 
-        <div class="widget-tile-title">
-          {{ widgetOf(item)?.config?.title || 'Untitled' }}
-        </div>
-      </gridster-item>
+          <!-- Body -->
+          <div
+            class="widget-tile-body"
+            (click)="onSelectWidget(widgetOf(item), $event)">
+            <app-widget-chart
+              *ngIf="widgetOf(item) as widget"
+              [widget]="widget">
+            </app-widget-chart>
+          </div>
+        </gridster-item>
     </gridster>
   </ng-container>
 </div>

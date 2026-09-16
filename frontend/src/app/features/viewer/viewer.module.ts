@@ -13,7 +13,13 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
 import { GridsterService } from '../dashboards/services/gridster.service';
 import { DashboardsModule } from '../dashboards/dashboards.module';
-
+import { MatSelectModule } from '@angular/material/select';
+import { MatInputModule } from '@angular/material/input';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatButtonModule } from '@angular/material/button';
+import { GridsterModule } from 'angular-gridster2';
 
 @NgModule({
   declarations: [
@@ -27,7 +33,17 @@ import { DashboardsModule } from '../dashboards/dashboards.module';
     RouterModule,
    SharedModule,
    DashboardsModule,
-   
+     RouterModule,
+  GridsterModule,          // ← NEW, required
+  MatIconModule,
+  MatButtonModule,
+  MatProgressBarModule,
+  MatProgressSpinnerModule,
+  MatFormFieldModule,
+  MatInputModule,
+  MatSelectModule,
+  SharedModule,            // ← for app-widget-chart
+  ViewerRoutingModule,
 
   ]
 })

@@ -1,25 +1,134 @@
-<div *ngIf="dashboard; else loading" class="viewer-container">
-  <div class="viewer-header">
-    <h1>{{ dashboard.title }}</h1>
+<ng-container *ngIf="!loading; else loadingTpl">
+
+  <div *ngIf="errorMessage" class="viewer-error">
+    <mat-icon>error_outline</mat-icon>
+    <p>{{ errorMessage }}</p>
   </div>
 
-  <div class="widgets-grid">
-    <div *ngFor="let widget of dashboard.widgets" class="viewer-widget-card">
-      <div class="widget-header">
-        <span>{{ widget.config.title }}</span>
-        <mat-icon>{{ getWidgetIcon(widget.config.chart_type) }}</mat-icon>
+  <div *ngIf="dashboard && !errorMessage" class="viewer-container">
+
+    <!-- Top bar: title + filters toggle -->
+    <div class="viewer-topbar">
+      <div class="viewer-title">
+        <mat-icon>dashboard</mat-icon>
+        <h1>{{ dashboard.title }}</h1>
       </div>
-      <div class="widget-body">
-        <app-widget-chart [widget]="widget"></app-widget-chart>
+
+      <button
+        mat-stroked-button
+        class="filter-toggle"
+        [class.active]="hasViewerFilters"
+        (click)="toggleFilters()">
+        <mat-icon>filter_alt</mat-icon>
+        Filters
+        <span class="filter-badge" *ngIf="hasViewerFilters">{{ viewerFilters.length }}</span>
+      </button>
+    </div>
+
+    <!-- Viewer filter chip (ephemeral) -->
+    <div class="viewer-filter-chip" *ngIf="filtersOpen">
+      <div class="chip-head">
+        <span>Filters apply to this view only. They are not saved.</span>
+        <button mat-icon-button (click)="toggleFilters()" aria-label="Close filters">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+
+      <div class="filter-list" *ngIf="hasViewerFilters">
+        <div class="filter-pill" *ngFor="let f of viewerFilters; let i = index">
+          <span class="pill-text">
+            <strong>#{{ f.dataset_id }}</strong>.{{ f.column }}
+            <em>{{ f.operator }}</em>
+            {{ f.value }}
+          </span>
+          <button mat-icon-button class="pill-x" (click)="removeViewerFilter(i)" aria-label="Remove">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+      </div>
+
+      <div class="chip-actions">
+        <span class="hint">Add filters via the widget config or use the quick input:</span>
+        <button mat-button color="warn" (click)="clearViewerFilters()" [disabled]="!hasViewerFilters">
+          Clear all
+        </button>
+      </div>
+
+      <!-- Minimal inline adder, see TS note below -->
+      <div class="inline-add">
+        <mat-form-field appearance="outline" class="compact">
+          <input matInput #ds placeholder="dataset_id" />
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="compact">
+          <input matInput #col placeholder="column" />
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="compact op">
+          <input matInput #op placeholder="== / != / &gt; / &lt; / in / like" />
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="compact">
+          <input matInput #val placeholder="value" />
+        </mat-form-field>
+        <button
+          mat-flat-button
+          color="primary"
+          (click)="addViewerFilter({
+            dataset_id: +ds.value,
+            column: col.value,
+            operator: op.value as any,
+            value: val.value
+          })"
+          [disabled]="!ds.value || !col.value || !op.value || !val.value">
+          Add
+        </button>
       </div>
     </div>
-    <div *ngIf="dashboard.widgets.length === 0" class="empty-state">
-      <mat-icon>dashboard</mat-icon>
-      <p>No widgets added yet.</p>
+
+    <!-- Page tabs (read only) -->
+    <div class="viewer-page-tabs" *ngIf="pages.length > 1">
+      <button
+        *ngFor="let page of pages; trackBy: trackByPageId"
+        class="page-tab"
+        [class.active]="page.id === activePageId"
+        (click)="selectPage(page.id)">
+        {{ page.title }}
+      </button>
+    </div>
+
+    <mat-progress-bar *ngIf="isRefreshing" mode="indeterminate" class="refresh-bar"></mat-progress-bar>
+
+    <!-- Canvas -->
+    <div class="viewer-canvas">
+      <div class="viewer-empty" *ngIf="items.length === 0">
+        <mat-icon>dashboard_customize</mat-icon>
+        <p>This page has no widgets.</p>
+      </div>
+
+      <gridster [options]="options" class="viewer-gridster">
+        <gridster-item
+          *ngFor="let item of items; trackBy: trackByItemId"
+          [item]="item"
+          class="viewer-tile">
+
+          <div class="viewer-tile-header">
+            <span class="viewer-tile-title">
+              {{ widgetOf(item)?.config?.title || 'Untitled' }}
+            </span>
+          </div>
+
+          <div class="viewer-tile-body">
+            <app-widget-chart
+              *ngIf="widgetOf(item) as w"
+              [widget]="w">
+            </app-widget-chart>
+          </div>
+        </gridster-item>
+      </gridster>
     </div>
   </div>
-</div>
+</ng-container>
 
-<ng-template #loading>
-  <div class="loading-spinner"><mat-spinner diameter="50"></mat-spinner></div>
+<ng-template #loadingTpl>
+  <div class="viewer-loading">
+    <mat-spinner diameter="42"></mat-spinner>
+  </div>
 </ng-template>

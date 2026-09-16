@@ -1,13 +1,18 @@
-<div class="chart-container" *ngIf="widget?.config?.chart_type !== 'kpi'; else kpiTemplate">
-  <canvas #chartCanvas></canvas>
-</div>
+<!-- src/app/shared/components/widget-chart/widget-chart.component.html -->
+<ng-container [ngSwitch]="widget?.config?.chart_type">
 
-<ng-template #kpiTemplate>
-  <div class="kpi-value">
-    {{ kpiValue }}
+  <div *ngSwitchCase="'kpi'" class="kpi-container">
+    <div class="kpi-value">{{ kpiValue }}</div>
+    <div class="kpi-label" *ngIf="widget?.config?.title as t">{{ t }}</div>
   </div>
-</ng-template>
 
-<div class="no-chart-data" *ngIf="widget?.config?.chart_type !== 'kpi' && (!widget?.chart_data || widget.chart_data.length === 0)">
-  <p>No chart data available</p>
-</div>
+  <div *ngSwitchDefault class="chart-container">
+    <canvas #chartCanvas></canvas>
+
+    <div class="chart-empty" *ngIf="!hasData">
+      <mat-icon>hourglass_empty</mat-icon>
+      <span>No data</span>
+    </div>
+  </div>
+
+</ng-container>

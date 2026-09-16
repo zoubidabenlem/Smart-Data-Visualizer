@@ -120,15 +120,23 @@ export class CenterCanvasComponent implements OnInit, OnDestroy {
     );
   }
 
-  ngAfterViewInit(): void {
-    // Watch our own host for size changes (panel collapses, window resize).
-    this.resizeObserver = new ResizeObserver(() => {
+  private resizeRaf = 0;
+
+  private scheduleResize(): void {
+    if (this.resizeRaf) return;
+    this.resizeRaf = requestAnimationFrame(() => {
+      this.resizeRaf = 0;
       this.options?.api?.resize?.();
     });
+  }
+
+  ngAfterViewInit(): void {
+    this.resizeObserver = new ResizeObserver(() => this.scheduleResize());
     this.resizeObserver.observe(this.hostRef.nativeElement);
   }
 
   ngOnDestroy(): void {
+  if (this.resizeRaf) cancelAnimationFrame(this.resizeRaf);
     this.subs.unsubscribe();
     this.resizeObserver?.disconnect();
   }
@@ -221,5 +229,17 @@ export class CenterCanvasComponent implements OnInit, OnDestroy {
     this.items = this.activeWidgets
       .map(w => this.gridsterService.itemMap[w.id])
       .filter((it): it is GridsterItem => !!it);
+  }
+    chartIcon(type: string | undefined): string {
+    switch (type) {
+      case 'bar': return 'bar_chart';
+      case 'line': return 'show_chart';
+      case 'area': return 'area_chart';
+      case 'pie': return 'pie_chart';
+      case 'scatter': return 'scatter_plot';
+      case 'heatmap': return 'grid_on';
+      case 'kpi': return 'speed';
+      default: return 'insert_chart';
+    }
   }
 }

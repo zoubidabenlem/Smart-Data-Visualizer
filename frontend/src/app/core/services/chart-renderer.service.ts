@@ -257,7 +257,7 @@ export class ChartRendererService {
     });
   }
 
-  private renderScatterChart(
+   private renderScatterChart(
     ctx: CanvasRenderingContext2D,
     config: WidgetConfig,
     data: any[],
@@ -265,86 +265,101 @@ export class ChartRendererService {
     measureCols: string[],
     dimensionCols: string[]
   ): Chart | null {
-    let xCol: string;
+    if (!data.length) return null;
+
+    const firstRow = data[0];
+
+    // Pick X: first dimension that exists in data, else first measure.
+    let xCol: string | null = null;
     let isXCategory = false;
-    if (dimensionCols.length > 0) {
-      xCol = dimensionCols[0];
-      isXCategory = typeof data[0][xCol] !== 'number';
-    } else if (measureCols.length > 0) {
-      xCol = measureCols[0];
-    } else {
-      console.warn('Scatter chart requires at least one dimension or measure');
+    for (const col of dimensionCols) {
+      if (Object.prototype.hasOwnProperty.call(firstRow, col)) {
+        xCol = col;
+        isXCategory = typeof firstRow[col] !== 'number';
+        break;
+      }
+    }
+    if (!xCol) {
+      for (const col of measureCols) {
+        if (Object.prototype.hasOwnProperty.call(firstRow, col)) {
+          xCol = col;
+          break;
+        }
+      }
+    }
+    if (!xCol) {
+      console.warn('[scatter] no usable X column', { dimensionCols, measureCols });
       return null;
     }
 
-    let yCol: string;
-    if (measureCols.length >= 2) {
-      yCol = measureCols[1];
-    } else if (measureCols.length === 1) {
-      yCol = measureCols[0];
-    } else {
-      console.warn('Scatter chart requires at least one measure');
+    // Pick Y: prefer a second measure that exists; else the X measure.
+    let yCol: string | null = null;
+    for (const col of measureCols) {
+      if (col !== xCol && Object.prototype.hasOwnProperty.call(firstRow, col)) {
+        yCol = col;
+        break;
+      }
+    }
+    if (!yCol) yCol = measureCols.find((c) => Object.prototype.hasOwnProperty.call(firstRow, c)) ?? null;
+    if (!yCol) {
+      console.warn('[scatter] no usable Y column', { measureCols });
       return null;
     }
 
-    let seriesCol: string | null = null;
-    if (dimensionCols.length > 1) {
-      seriesCol = dimensionCols[1];
-    }
+    const xCategories = isXCategory
+      ? Array.from(new Set(data.map((r) => String(r[xCol!]))))
+      : [];
+
+    const toPoint = (row: any): { x: number; y: number } => {
+      const xVal = isXCategory
+        ? xCategories.indexOf(String(row[xCol!]))
+        : Number(row[xCol!]);
+      return { x: xVal, y: Number(row[yCol!]) };
+    };
 
     const schemeName = config.color_scheme || 'default';
     const colorScheme = this.getColorScheme(schemeName);
 
-    const toPoint = (row: any): { x: number; y: number } => {
-      let x: number;
-      if (isXCategory) {
-        const categories = Array.from(new Set(data.map(r => String(r[xCol]))));
-        const baseIndex = categories.indexOf(String(row[xCol]));
-        const jitter = (Math.random() - 0.5) * 0.5;
-        x = baseIndex + jitter;
-      } else {
-        x = Number(row[xCol]);
-      }
-      return { x, y: Number(row[yCol]) };
-    };
+    // Optional series column
+    const seriesCol =
+      dimensionCols.length > 1 &&
+      Object.prototype.hasOwnProperty.call(firstRow, dimensionCols[1])
+        ? dimensionCols[1]
+        : null;
 
     let datasets: any[];
-
-    if (seriesCol && data[0]?.hasOwnProperty(seriesCol)) {
+    if (seriesCol) {
       const groups: Record<string, any[]> = {};
-      data.forEach(row => {
+      data.forEach((row) => {
         const key = String(row[seriesCol!]);
-        if (!groups[key]) groups[key] = [];
-        groups[key].push(toPoint(row));
+        (groups[key] ||= []).push(toPoint(row));
       });
-
-      datasets = Object.entries(groups).map(([label, points], index) => {
-        const color = colorScheme[index % colorScheme.length];
+      datasets = Object.entries(groups).map(([label, pts], i) => {
+        const c = colorScheme[i % colorScheme.length];
         return {
           label,
-          data: points,
-          backgroundColor: color.background,
-          borderColor: color.border,
+          data: pts,
+          backgroundColor: c.background,
+          borderColor: c.border,
           borderWidth: 1,
-          pointRadius: 4,
-          pointHoverRadius: 6,
+          pointRadius: 5,
+          pointHoverRadius: 7,
         };
       });
     } else {
-      const color = colorScheme[0];
-      datasets = [{
-        label: `${xCol} vs ${yCol}`,
-        data: data.map(toPoint),
-        backgroundColor: color.background,
-        borderColor: color.border,
-        borderWidth: 1,
-        pointRadius: 4,
-      }];
+      const c = colorScheme[0];
+      datasets = [
+        {
+          label: `${xCol} vs ${yCol}`,
+          data: data.map(toPoint),
+          backgroundColor: c.background,
+          borderColor: c.border,
+          borderWidth: 1,
+          pointRadius: 5,
+          pointHoverRadius: 7,
+        },
+      ];
     }
-
-    const xCategories = isXCategory
-      ? Array.from(new Set(data.map(r => String(r[xCol]))))
-      : [];
 
     return new Chart(ctx, {
       type: 'scatter',
@@ -358,17 +373,13 @@ export class ChartRendererService {
             callbacks: {
               label: (context: any) => {
                 const p = context.raw;
-                let xDisplay: string;
-                if (isXCategory) {
-                  const nearestIndex = Math.round(p.x);
-                  xDisplay = xCategories[nearestIndex] ?? String(p.x);
-                } else {
-                  xDisplay = String(p.x);
-                }
+                const xDisplay = isXCategory
+                  ? xCategories[Math.round(p.x)] ?? p.x
+                  : p.x;
                 return `${context.dataset.label}: (${xDisplay}, ${p.y})`;
-              }
-            }
-          }
+              },
+            },
+          },
         },
         scales: {
           x: {
@@ -377,29 +388,26 @@ export class ChartRendererService {
             min: isXCategory ? -0.5 : undefined,
             max: isXCategory ? xCategories.length - 0.5 : undefined,
             ticks: {
+              stepSize: isXCategory ? 1 : undefined,
               autoSkip: false,
               maxRotation: 45,
               callback: (value: any) => {
-                if (isXCategory && Number.isInteger(value)) {
-                  return xCategories[value] ?? '';
+                if (isXCategory && Number.isInteger(Number(value))) {
+                  return xCategories[Number(value)] ?? '';
                 }
                 return value;
-              }
-            }
+              },
+            },
           },
           y: {
             type: 'linear',
             title: { display: true, text: yCol },
-            ticks: {
-              callback: (value) => Number(value).toLocaleString()
-            }
-          }
-        }
-      }
+          },
+        },
+      },
     });
   }
-
-  private renderHeatmapChart(
+    private renderHeatmapChart(
     ctx: CanvasRenderingContext2D,
     config: WidgetConfig,
     data: any[],
@@ -407,31 +415,36 @@ export class ChartRendererService {
     measureCols: string[],
     dimensionCols: string[]
   ): Chart | null {
-    if (dimensionCols.length < 2) {
-      console.warn('Heatmap requires at least two dimensions');
+    if (!data.length || dimensionCols.length < 2 || measureCols.length < 1) {
       return this.renderMultiDatasetChart(ctx, config, data, labelCol, measureCols);
     }
 
-    const xCol = dimensionCols[0];
-    const yCol = dimensionCols[1];
-    const valueCol = measureCols[0];
-    if (!valueCol || !data[0]?.hasOwnProperty(valueCol)) {
-      console.warn('Heatmap requires a valid measure column');
+    const firstRow = data[0];
+    const [xCol, yCol] = dimensionCols;
+    const valueCol = measureCols.find((c) =>
+      Object.prototype.hasOwnProperty.call(firstRow, c)
+    );
+
+    if (
+      !Object.prototype.hasOwnProperty.call(firstRow, xCol) ||
+      !Object.prototype.hasOwnProperty.call(firstRow, yCol) ||
+      !valueCol
+    ) {
       return this.renderMultiDatasetChart(ctx, config, data, labelCol, measureCols);
     }
 
-    const xCategories = Array.from(new Set(data.map(r => String(r[xCol]))));
-    const yCategories = Array.from(new Set(data.map(r => String(r[yCol]))));
+    const xCategories = Array.from(new Set(data.map((r) => String(r[xCol]))));
+    const yCategories = Array.from(new Set(data.map((r) => String(r[yCol]))));
 
-    const matrixData = data.map(row => ({
+    if (!xCategories.length || !yCategories.length) {
+      return this.renderMultiDatasetChart(ctx, config, data, labelCol, measureCols);
+    }
+
+    const matrixData = data.map((row) => ({
       x: xCategories.indexOf(String(row[xCol])),
       y: yCategories.indexOf(String(row[yCol])),
-      v: Number(row[valueCol]) || 0
+      v: Number(row[valueCol]) || 0,
     }));
-
-    if (matrixData.length === 0) {
-      return this.renderMultiDatasetChart(ctx, config, data, labelCol, measureCols);
-    }
 
     const schemeName = config.color_scheme || 'default';
     const colorScheme = this.getColorScheme(schemeName);
@@ -440,39 +453,47 @@ export class ChartRendererService {
     const hexToRgb = (hex: string) => ({
       r: parseInt(hex.slice(1, 3), 16),
       g: parseInt(hex.slice(3, 5), 16),
-      b: parseInt(hex.slice(5, 7), 16)
+      b: parseInt(hex.slice(5, 7), 16),
     });
     const base = hexToRgb(baseColor);
     const light = { r: 240, g: 240, b: 240 };
-
-    const lerpColor = (c1: any, c2: any, t: number) => ({
-      r: Math.round(c1.r + (c2.r - c1.r) * t),
-      g: Math.round(c1.g + (c2.g - c1.g) * t),
-      b: Math.round(c1.b + (c2.b - c1.b) * t)
+    const lerp = (a: any, b: any, t: number) => ({
+      r: Math.round(a.r + (b.r - a.r) * t),
+      g: Math.round(a.g + (b.g - a.g) * t),
+      b: Math.round(a.b + (b.b - a.b) * t),
     });
 
-    const values = matrixData.map(d => d.v);
+    const values = matrixData.map((d) => d.v);
     const minVal = Math.min(...values);
     const maxVal = Math.max(...values);
     const range = maxVal - minVal || 1;
 
-    return new Chart(ctx, {
-      type: 'matrix',
+    return new Chart(ctx as any, {
+      type: 'matrix' as any,
       data: {
-        datasets: [{
-          label: valueCol,
-          data: matrixData,
-          backgroundColor(ctx: any) {
-            const value = ctx.raw?.v;
-            const t = (value - minVal) / range;
-            const colour = lerpColor(light, base, t);
-            return `rgb(${colour.r}, ${colour.g}, ${colour.b})`;
+        datasets: [
+          {
+            label: valueCol,
+            data: matrixData,
+            backgroundColor(c: any) {
+              const v = c.raw?.v ?? 0;
+              const t = (v - minVal) / range;
+              const col = lerp(light, base, t);
+              return `rgb(${col.r}, ${col.g}, ${col.b})`;
+            },
+            borderColor: '#ffffff',
+            borderWidth: 1,
+            // Use callbacks that tolerate chartArea not being ready yet.
+            width: ({ chart }: any) => {
+              const w = chart.chartArea?.width ?? chart.width ?? 0;
+              return w / xCategories.length;
+            },
+            height: ({ chart }: any) => {
+              const h = chart.chartArea?.height ?? chart.height ?? 0;
+              return h / yCategories.length;
+            },
           },
-          borderColor: '#fff',
-          borderWidth: 1,
-          width: ({ chart }) => (chart.chartArea?.width || 100) / xCategories.length,
-          height: ({ chart }) => (chart.chartArea?.height || 100) / yCategories.length,
-        }]
+        ],
       },
       options: {
         responsive: true,
@@ -482,12 +503,14 @@ export class ChartRendererService {
           tooltip: {
             callbacks: {
               title: () => '',
-              label: (ctx: any) => {
-                const p = ctx.raw;
-                return `${xCategories[p.x]}, ${yCategories[p.y]}: ${p.v.toLocaleString()}`;
-              }
-            }
-          }
+              label: (c: any) => {
+                const p = c.raw;
+                const xLabel = xCategories[p.x] ?? '?';
+                const yLabel = yCategories[p.y] ?? '?';
+                return `${xLabel} / ${yLabel}: ${Number(p.v).toLocaleString()}`;
+              },
+            },
+          },
         },
         scales: {
           x: {
@@ -499,9 +522,9 @@ export class ChartRendererService {
               stepSize: 1,
               autoSkip: false,
               maxRotation: 0,
-              callback: (val: any) => xCategories[Math.round(Number(val))] || ''
+              callback: (val: any) => xCategories[Math.round(Number(val))] ?? '',
             },
-            grid: { display: false }
+            grid: { display: false },
           },
           y: {
             type: 'linear',
@@ -512,12 +535,12 @@ export class ChartRendererService {
               stepSize: 1,
               autoSkip: false,
               maxRotation: 0,
-              callback: (val: any) => yCategories[Math.round(Number(val))] || ''
+              callback: (val: any) => yCategories[Math.round(Number(val))] ?? '',
             },
-            grid: { display: false }
-          }
-        }
-      }
+            grid: { display: false },
+          },
+        },
+      },
     });
   }
 

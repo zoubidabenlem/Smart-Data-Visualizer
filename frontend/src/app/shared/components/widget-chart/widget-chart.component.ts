@@ -1,134 +1,135 @@
 // src/app/shared/components/widget-chart/widget-chart.component.ts
-
 import {
-  Component, Input, OnDestroy, AfterViewInit,
-  ElementRef, ViewChild, NgZone, ChangeDetectorRef
+  AfterViewInit,
+  ChangeDetectorRef,
+  Component,
+  ElementRef,
+  Input,
+  OnDestroy,
+  ViewChild,
 } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { MatIconModule } from '@angular/material/icon';
+import { Chart } from 'chart.js/auto';
+
 import { WidgetResponse } from 'src/app/core/models/dashboard.model';
 import { ChartRendererService } from 'src/app/core/services/chart-renderer.service';
-import { Chart } from 'chart.js/auto';
-import { CommonModule, TitleCasePipe } from '@angular/common';
-import { ReactiveFormsModule } from '@angular/forms';
-import { MatButtonModule } from '@angular/material/button';
-import { MatOptionModule } from '@angular/material/core';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
-import { MatProgressBarModule } from '@angular/material/progress-bar';
-import { MatSelectModule } from '@angular/material/select';
 
 @Component({
   standalone: true,
-  imports: [
-     CommonModule,
-    ReactiveFormsModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatSelectModule,
-    MatOptionModule,
-    MatButtonModule,
-    MatIconModule,
-    MatProgressBarModule,
-    TitleCasePipe
-  ],
+  imports: [CommonModule, MatIconModule],
   selector: 'app-widget-chart',
   templateUrl: './widget-chart.component.html',
-  styleUrls: ['./widget-chart.component.css']
+  styleUrls: ['./widget-chart.component.css'],
 })
 export class WidgetChartComponent implements AfterViewInit, OnDestroy {
-  private _widget!: WidgetResponse;
+  @ViewChild('chartCanvas') canvasRef?: ElementRef<HTMLCanvasElement>;
 
-  @Input() set widget(val: WidgetResponse) {
-    this._widget = val;
-    if (val) {
-      if (val.config.chart_type === 'kpi') {
-        // KPI doesn't need a canvas; compute display value directly
-        this.kpiValue = this.chartRenderer.getKpiValue(val);
-      } else {
-        // Try to render chart (will wait for canvas if not ready)
-        this.tryRenderChart();
-      }
-    }
-  }
-  get widget(): WidgetResponse {
-    return this._widget;
-  }
-
-  @ViewChild('chartCanvas') canvasRef!: ElementRef<HTMLCanvasElement>;
-
+  private _widget: WidgetResponse | null = null;
   private chartInstance: Chart | null = null;
   private resizeObserver: ResizeObserver | null = null;
-  private renderAttempts = 0;
-  private maxAttempts = 12;
+  private viewReady = false;
+  private renderScheduled = false;
 
-  kpiValue: string = '';
+  kpiValue = '';
 
   constructor(
-    private ngZone: NgZone,
     private cdr: ChangeDetectorRef,
     private chartRenderer: ChartRendererService
   ) {}
 
+  @Input()
+  set widget(val: WidgetResponse | null) {
+    const prev = this._widget;
+    this._widget = val;
+
+    if (val?.config?.chart_type === 'kpi') {
+      this.kpiValue = this.chartRenderer.getKpiValue(val);
+    }
+
+    // Config identity changed? Re-render (covers chart_type switch).
+    const chartChanged =
+      prev?.config?.chart_type !== val?.config?.chart_type;
+    const dataChanged =
+      prev?.chart_data !== val?.chart_data;
+    const configDirty =
+      JSON.stringify(prev?.config) !== JSON.stringify(val?.config);
+
+    if (chartChanged || dataChanged || configDirty) {
+      this.scheduleRender();
+    }
+  }
+  get widget(): WidgetResponse | null {
+    return this._widget;
+  }
+
+  get hasData(): boolean {
+    return (this._widget?.chart_data?.length ?? 0) > 0;
+  }
+
+   private resizeRaf = 0;
+
   ngAfterViewInit(): void {
-    // Setup resize observer
-    if (this.canvasRef) {
-      const container = this.canvasRef.nativeElement.parentElement;
-      if (container) {
-        this.resizeObserver = new ResizeObserver(() => {
-          this.chartRenderer.resizeChart(this.chartInstance);
-        });
-        this.resizeObserver.observe(container);
-      }
+    this.viewReady = true;
+
+    const host = this.canvasRef?.nativeElement?.parentElement ?? null;
+    if (host && typeof ResizeObserver !== 'undefined') {
+      this.resizeObserver = new ResizeObserver(() => this.scheduleResize());
+      this.resizeObserver.observe(host);
     }
 
-    // If widget is already set and not KPI, try to render
-    if (this.widget && this.widget.config.chart_type !== 'kpi') {
-      this.tryRenderChart();
-    }
+    this.scheduleRender();
   }
 
-  ngOnDestroy(): void {
-    this.chartRenderer.destroyChart(this.chartInstance);
-    this.resizeObserver?.disconnect();
-  }
-
-  /**
-   * Attempt to render the chart, waiting for the canvas to become available.
-   */
-  private tryRenderChart(): void {
-    if (this.canvasRef?.nativeElement && this.widget?.chart_data?.length) {
-      this.renderAttempts = 0;
-      this.renderChart();
-      return;
-    }
-
-    if (this.renderAttempts >= this.maxAttempts) {
-      console.error('[WidgetChart] Canvas never became available');
-      return;
-    }
-
-    this.renderAttempts++;
-    requestAnimationFrame(() => {
-      // Force change detection (important inside gridster)
-      this.cdr.detectChanges();
-      this.tryRenderChart();
+  private scheduleResize(): void {
+    if (this.resizeRaf) return;
+    this.resizeRaf = requestAnimationFrame(() => {
+      this.resizeRaf = 0;
+      this.chartRenderer.resizeChart(this.chartInstance);
     });
   }
 
-  /**
-   * Render the chart using the service.
-   */
-  private renderChart(): void {
-    if (!this.canvasRef?.nativeElement || !this.widget) return;
+    ngOnDestroy(): void {
+    if (this.resizeRaf) cancelAnimationFrame(this.resizeRaf);
+    this.chartRenderer.destroyChart(this.chartInstance);
+    this.chartInstance = null;
+    this.resizeObserver?.disconnect();
+    this.resizeObserver = null;
+  }
+  // ─── Render pipeline ───
 
-    // Destroy previous chart if exists
+  private scheduleRender(): void {
+    if (this.renderScheduled) return;
+    this.renderScheduled = true;
+
+    // Wait one frame so *ngIf / view switch has settled.
+    requestAnimationFrame(() => {
+      this.renderScheduled = false;
+      this.cdr.detectChanges();
+
+      // Canvas may not exist yet on chart-type switch; try again next frame.
+      if (!this.canvasRef?.nativeElement) {
+        if (this.viewReady && this._widget?.config?.chart_type !== 'kpi') {
+          requestAnimationFrame(() => this.scheduleRender());
+        }
+        return;
+      }
+
+      this.renderNow();
+    });
+  }
+
+  private renderNow(): void {
     this.chartRenderer.destroyChart(this.chartInstance);
     this.chartInstance = null;
 
-    // Create new chart
+    if (!this._widget || this._widget.config.chart_type === 'kpi') return;
+    if (!this.canvasRef?.nativeElement) return;
+    if (!this.hasData) return;
+
     this.chartInstance = this.chartRenderer.createChart(
       this.canvasRef.nativeElement,
-      this.widget
+      this._widget
     );
   }
 }

@@ -1,9 +1,10 @@
 // src/app/features/dashboards/services/gridster.service.ts
 import { Injectable } from '@angular/core';
 import { GridsterConfig, GridsterItem } from 'angular-gridster2';
-import { debounceTime, Subject, switchMap } from 'rxjs';
+import { catchError, debounceTime, of, Subject, switchMap } from 'rxjs';
 import { WidgetPosition, WidgetResponse } from 'src/app/core/models/dashboard.model';
 import { DashboardService } from 'src/app/core/services/dashboard.service';
+import { DashboardEditorService } from './dashboard-editor.service';
 
 @Injectable()
 export class GridsterService {
@@ -21,8 +22,8 @@ export class GridsterService {
     },
     minCols: 12,
     maxCols: 12,
-    minRows: 6,
-    maxRows: 200,
+    minRows: 8,
+    maxRows: 40,
     fixedRowHeight: 110,
     fixedColWidth: 95,
     margin: 8,
@@ -39,33 +40,58 @@ export class GridsterService {
     position: WidgetPosition;
   }>();
 
-  constructor(private dashboardService: DashboardService) {
-    this.positionChange$
-      .pipe(
-        debounceTime(500),
-        switchMap(({ dashboardId, widgetId, position }) =>
-          this.dashboardService.updateWidgetPosition(dashboardId, widgetId, position)
+  constructor(
+    private dashboardService: DashboardService,
+    private editorService: DashboardEditorService
+  ) {
+    this.positionChange$.pipe(
+      debounceTime(500),
+      switchMap(({ dashboardId, widgetId, position }) =>
+        this.dashboardService.updateWidgetPosition(dashboardId, widgetId, position).pipe(
+          catchError((err) => {
+            console.error('[GridsterService] position save failed', err);
+            return of(null);
+          })
         )
       )
-      .subscribe({
-        error: (err) => console.error('[GridsterService] position save failed', err),
-      });
+    ).subscribe();
   }
 
   getOptions(): GridsterConfig {
     return this.gridOptions;
   }
 
-  /**
-   * Reconcile itemMap against the current widget list.
-   * Keeps x/y/cols/rows stable for widgets that already exist.
+  
+
+    /**
+   * Reconcile itemMap against the given widget list.
+   *
+   * IMPORTANT: we do NOT clear the map. Gridster mutates items in place during
+   * drag/resize; if we wiped the map on every page switch, in-flight position
+   * changes would be lost before the PATCH debounce fires.
+   *
+   * We only:
+   *   - add entries for widgets we've never seen
+   *   - remove entries for widgets that no longer exist (deleted)
+   *   - leave existing entries untouched (Gridster already owns their state)
    */
   syncWidgets(widgets: WidgetResponse[]): void {
-    const next: { [id: number]: GridsterItem } = {};
-    widgets.forEach(w => {
-      next[w.id] = this.itemMap[w.id] ?? this.widgetToGridsterItem(w);
-    });
-    this.itemMap = next;
+    const presentIds = new Set(widgets.map((w) => w.id));
+
+    // Drop entries for widgets that no longer exist anywhere.
+    for (const key of Object.keys(this.itemMap)) {
+      const id = Number(key);
+      if (!presentIds.has(id)) {
+        delete this.itemMap[id];
+      }
+    }
+
+    // Add new widgets. Existing entries keep their in-memory position.
+    for (const w of widgets) {
+      if (!this.itemMap[w.id]) {
+        this.itemMap[w.id] = this.widgetToGridsterItem(w);
+      }
+    }
   }
 
   onItemChange(item: GridsterItem, dashboardId: number): void {
@@ -90,7 +116,7 @@ export class GridsterService {
     } as GridsterItem;
   }
 
-  private queuePositionUpdate(
+    private queuePositionUpdate(
     dashboardId: number,
     widgetId: number,
     position: WidgetPosition
@@ -102,6 +128,9 @@ export class GridsterService {
       item.cols = position.cols;
       item.rows = position.rows;
     }
+
+     // ...item map update as above...
+    this.editorService.patchWidgetPositionLocally(widgetId, position);
     this.positionChange$.next({ dashboardId, widgetId, position });
   }
 }

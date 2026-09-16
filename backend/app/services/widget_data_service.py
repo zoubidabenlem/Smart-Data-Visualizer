@@ -262,50 +262,104 @@ def _apply_filters_on_joined_df(df: pd.DataFrame, config: WidgetConfig, model: D
     return apply_filters(df, translated_filters)
 
 
-def _apply_aggregation_on_joined_df(df: pd.DataFrame, config: WidgetConfig, model: DataModel) -> pd.DataFrame:
+def _apply_aggregation_on_joined_df(
+    df: pd.DataFrame, config: WidgetConfig, model: DataModel
+) -> pd.DataFrame:
     """
     Group by dimensions and aggregate measures.
-    """
-    if not config.measures:
-        # No aggregation: just return unique dimension combinations (optional)
-        if config.dimensions:
-            prefixed_dims = [f"ds{d.dataset_id}_{d.column}" for d in config.dimensions]
-            return df[prefixed_dims].drop_duplicates().reset_index(drop=True)
-        else:
-            # No dims, no measures -> return empty DataFrame? Raise error
-            raise HTTPException(status_code=400, detail="Widget must have at least one dimension or measure")
 
-    # Build group_by columns (dimensions)
+    Special case: scatter with no dimensions returns RAW measure values
+    (one point per source row), not a single aggregated row.
+    """
+    # ─── Scatter, no dimensions → raw scatter data ───
+    if config.chart_type == "scatter" and not config.dimensions:
+        if len(config.measures) < 2:
+            raise HTTPException(
+                status_code=422,
+                detail="Scatter chart requires at least 2 measures",
+            )
+
+        out = {}
+        for meas in config.measures:
+            prefixed = f"ds{meas.dataset_id}_{meas.column}"
+            if prefixed not in df.columns:
+                raise HTTPException(
+                    status_code=422,
+                    detail=f"Measure column '{meas.column}' not found in joined data",
+                )
+            alias = meas.alias or meas.column
+            out[alias] = df[prefixed]
+
+        result = pd.DataFrame(out)
+
+        # Drop rows with NaN in any measure
+        result = result.dropna()
+
+        # Cap to a sane number to protect the browser.
+        cap = config.limit if config.limit is not None else 5000
+        result = result.head(cap).reset_index(drop=True)
+        return result
+
+    # ─── No measures → unique dimension combos ───
+    if not config.measures:
+        if config.dimensions:
+            prefixed_dims = [
+                f"ds{d.dataset_id}_{d.column}" for d in config.dimensions
+            ]
+            result = df[prefixed_dims].drop_duplicates().reset_index(drop=True)
+            return _strip_dimension_prefix(result, config)
+        raise HTTPException(
+            status_code=400,
+            detail="Widget must have at least one dimension or measure",
+        )
+
+    # ─── Standard group-by aggregation ───
     group_by_cols = [f"ds{d.dataset_id}_{d.column}" for d in config.dimensions]
 
-    # Build aggregation specs for measures
-    agg_specs = []
+    from app.schemas.pipeline import AggregationSpec as PipelineAggSpec
+
+    pipeline_specs = []
     for meas in config.measures:
         prefixed_col = f"ds{meas.dataset_id}_{meas.column}"
         if prefixed_col not in df.columns:
             raise HTTPException(
                 status_code=422,
-                detail=f"Measure column '{meas.column}' not found in joined data"
+                detail=f"Measure column '{meas.column}' not found in joined data",
             )
-        # Determine alias
-        alias = meas.alias or f"{meas.column}_{meas.aggregation}"
-        agg_specs.append(
-            AggregationSpec(
+        # Fallback alias matches the frontend's expectation (measure column name).
+        alias = meas.alias or meas.column
+        pipeline_specs.append(
+            PipelineAggSpec(
                 value_col=prefixed_col,
                 agg_func=meas.aggregation,
-                alias=alias
+                alias=alias,
             )
         )
 
-    # Use the existing aggregation service (converted to new style)
-    # We need to convert our AggregationSpec to the pipeline's AggregationSpec
-    from app.schemas.pipeline import AggregationSpec as PipelineAggSpec
-    pipeline_specs = [
-        PipelineAggSpec(value_col=s.value_col, agg_func=s.agg_func, alias=s.alias)
-        for s in agg_specs
-    ]
-
     result = apply_aggregation(df, group_by=group_by_cols, aggregations=pipeline_specs)
+
+    # ─── KEY FIX: rename prefixed dim columns back to bare column names ───
+    return _strip_dimension_prefix(result, config)
+
+
+def _strip_dimension_prefix(result: pd.DataFrame, config: WidgetConfig) -> pd.DataFrame:
+    """
+    The aggregation keeps 'ds{id}_{column}' prefixed names for group_by.
+    The frontend expects the bare column name (e.g. 'product_category').
+    Rename them so chart_data keys line up with config.dimensions[].column.
+    """
+    rename_map = {}
+    for dim in config.dimensions:
+        prefixed = f"ds{dim.dataset_id}_{dim.column}"
+        if prefixed in result.columns:
+            # If two dims from different datasets share a bare name, prefer keeping
+            # the first one bare and leave subsequent ones prefixed to avoid a clash.
+            if dim.column in rename_map.values():
+                continue
+            rename_map[prefixed] = dim.column
+
+    if rename_map:
+        result = result.rename(columns=rename_map)
     return result
 
 
