@@ -14,6 +14,7 @@ import { DashboardService } from 'src/app/core/services/dashboard.service';
 import {
   DashboardPage,
   DashboardResponse,
+  FilterDatasetOption,
   ModelFilterCondition,
   WidgetResponse,
 } from 'src/app/core/models/dashboard.model';
@@ -38,6 +39,9 @@ export class DashboardViewComponent implements OnInit, OnDestroy {
   filtersOpen = false;
   isRefreshing = false;
 
+    filterDatasets: FilterDatasetOption[] = [];
+  private modelLoaded = false;
+
   options: GridsterConfig = {
     gridType: 'scrollVertical',
     displayGrid: 'none',
@@ -60,7 +64,8 @@ export class DashboardViewComponent implements OnInit, OnDestroy {
   constructor(
     private route: ActivatedRoute,
     private dashboardService: DashboardService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+
   ) {}
 
   ngOnInit(): void {
@@ -78,12 +83,13 @@ export class DashboardViewComponent implements OnInit, OnDestroy {
         this.activePageId = this.pages[0]?.id ?? null;
         this.rebuild();
         this.loading = false;
-        this.cdr.markForCheck();
-      },
-      error: (err) => {
-        console.error('[Viewer] load failed', err);
-        this.errorMessage = 'Could not load this dashboard.';
-        this.loading = false;
+
+        // Fetch metadata for filters — works for viewers because it's
+        // gated by dashboard access, not model ownership.
+        if (dash.model_id) {
+          this.loadFilterDatasets(dash.id);   // ← dash.id, not dash.model_id
+        }
+
         this.cdr.markForCheck();
       },
     });
@@ -91,6 +97,52 @@ export class DashboardViewComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.subs.unsubscribe();
+  }
+
+  //LOADER
+      private loadFilterDatasets(dashboardId: number): void {
+    if (this.modelLoaded) return;
+    this.modelLoaded = true;
+
+    this.dashboardService.getDashboardFilterContext(dashboardId).subscribe({
+      next: (ctx) => {
+        this.filterDatasets = ctx.datasets.map((d) => ({
+          id: d.dataset_id,
+          name: d.name,
+          columns: d.columns,
+        }));
+        this.cdr.markForCheck();
+      },
+      error: (err) => {
+        console.error('[Viewer] failed to load filter context', err);
+      },
+    });
+  }
+
+  private extractColumns(dataset: any): { name: string; type: string }[] {
+    if (!dataset) return [];
+    const source = dataset.refined_column_schema || dataset.column_schema;
+    if (!source) return [];
+
+    if (Array.isArray(source)) {
+      return source
+        .filter((c: any) => c)
+        .map((c: any) => ({
+          name: c.name ?? c.column ?? '?',
+          type: String(c.type ?? c.dtype ?? c.data_type ?? 'unknown').toLowerCase(),
+        }));
+    }
+    if (typeof source === 'object') {
+      return Object.entries(source).map(([name, info]: [string, any]) => ({
+        name,
+        type: String(
+          (typeof info === 'object'
+            ? info?.type ?? info?.dtype ?? info?.data_type
+            : info) ?? 'unknown'
+        ).toLowerCase(),
+      }));
+    }
+    return [];
   }
 
   // ─── Pages ───
@@ -150,23 +202,27 @@ export class DashboardViewComponent implements OnInit, OnDestroy {
     this.cdr.markForCheck();
   }
 
-  private refreshWidgetData(): void {
+   private refreshWidgetData(): void {
     if (!this.dashboard) return;
     const modelId = this.dashboard.model_id;
     if (!modelId) return;
+
+    const dashboardId = this.dashboard.id;   // ← capture
 
     const jobs = this.widgetsOnPage.map((w) => {
       const config = {
         ...w.config,
         filters: [...(w.config.filters ?? []), ...this.viewerFilters],
       };
-      return this.dashboardService.getWidgetData(modelId, config).pipe(
-        map((res) => ({ id: w.id, data: res.chart_data ?? [] })),
-        catchError((err) => {
-          console.error(`[Viewer] refresh widget ${w.id} failed`, err);
-          return of({ id: w.id, data: [] as any[] });
-        })
-      );
+      return this.dashboardService
+        .prepareWidgetData(dashboardId, config)   // ← was getWidgetData(modelId, config)
+        .pipe(
+          map((res) => ({ id: w.id, data: res.chart_data ?? [] })),
+          catchError((err) => {
+            console.error(`[Viewer] refresh widget ${w.id} failed`, err);
+            return of({ id: w.id, data: [] as any[] });
+          })
+        );
     });
 
     if (jobs.length === 0) return;

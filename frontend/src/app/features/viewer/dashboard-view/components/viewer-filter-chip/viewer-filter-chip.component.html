@@ -1,5 +1,4 @@
 <div class="filter-chip-wrapper">
-  <!-- Toggle button -->
   <button
     mat-stroked-button
     class="filter-toggle"
@@ -10,7 +9,6 @@
     <span class="filter-badge" *ngIf="filters.length > 0">{{ filters.length }}</span>
   </button>
 
-  <!-- Body -->
   <div class="chip-body" *ngIf="open">
 
     <div class="chip-head">
@@ -34,28 +32,48 @@
 
     <!-- Add form -->
     <div class="add-form">
-      <input
-        class="draft-input draft-ds"
-        type="number"
-        placeholder="dataset id"
-        [value]="draftDatasetId ?? ''"
-        (input)="draftDatasetId = +($any($event.target).value) || null" />
 
-      <input
-        class="draft-input"
-        type="text"
-        placeholder="column"
-        [(ngModel)]="draftColumn" />
+      <!-- Dataset -->
+      <mat-form-field appearance="outline" class="compact">
+        <mat-select
+          placeholder="Dataset"
+          [(ngModel)]="draftDatasetId"
+          (selectionChange)="onDatasetChange()">
+          <mat-option *ngFor="let ds of datasets" [value]="ds.id">
+            {{ ds.name }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
 
-      <select class="draft-input draft-op" [(ngModel)]="draftOperator">
-        <option *ngFor="let op of operators" [ngValue]="op.value">{{ op.label }}</option>
-      </select>
+      <!-- Column -->
+      <mat-form-field appearance="outline" class="compact">
+        <mat-select
+          placeholder="Column"
+          [(ngModel)]="draftColumn"
+          [disabled]="!draftDatasetId">
+          <mat-option *ngFor="let c of availableColumns" [value]="c.name">
+            {{ c.name }}
+            <small class="col-type">({{ c.type }})</small>
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
 
-      <input
-        class="draft-input"
-        type="text"
-        [placeholder]="valuePlaceholder"
-        [(ngModel)]="draftValue" />
+      <!-- Operator -->
+      <mat-form-field appearance="outline" class="compact op-field">
+        <mat-select placeholder="Op" [(ngModel)]="draftOperator">
+          <mat-option *ngFor="let op of operators" [value]="op.value">
+            {{ op.label }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <!-- Value -->
+      <mat-form-field appearance="outline" class="compact">
+        <input
+          matInput
+          [(ngModel)]="draftValue"
+          [placeholder]="valuePlaceholder" />
+      </mat-form-field>
 
       <button
         mat-flat-button
@@ -65,6 +83,10 @@
         (click)="add()">
         Add
       </button>
+    </div>
+
+    <div class="no-datasets" *ngIf="datasets.length === 0">
+      No datasets available. The dashboard's model may still be loading.
     </div>
   </div>
 </div>

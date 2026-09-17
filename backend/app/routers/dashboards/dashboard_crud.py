@@ -22,6 +22,12 @@ from app.schemas.dashboard_schemas import (
 from app.core.cache import get_cache, set_cache, invalidate_cache
 from app.core.logging_config import logger
 from app.routers.dashboards.helpers import get_widget_data_for_dashboard
+from app.models.dataset import Dataset
+
+from app.schemas.dashboard_schemas import WidgetConfig
+from app.services.widget_data_service import get_widget_data
+from app.services.chart_rules import validate_widget_config
+from app.services.model_metadata import get_model_column_metadata
 
 router = APIRouter()
 
@@ -203,6 +209,139 @@ def get_dashboard(
     except Exception:
         logger.exception("Unexpected error fetching dashboard")
         raise HTTPException(status_code=500, detail="Internal server error")
+
+
+@router.get("/{dashboard_id}/filter-context")
+def get_dashboard_filter_context(
+    dashboard_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Read-only model metadata for viewer-side filters.
+
+    Access is gated by dashboard visibility (admin OR assigned user),
+    NOT by model ownership. This is what viewers are allowed to see
+    because it's the metadata of the dashboard they've been given.
+    """
+    dash = db.query(Dashboard).filter(Dashboard.id == dashboard_id).first()
+    if not dash:
+        raise HTTPException(404, "Dashboard not found")
+
+    # Same access rule as get_dashboard
+    if current_user.role.name != "admin":
+        accessible = (
+            db.query(Dashboard)
+            .filter(
+                Dashboard.id == dashboard_id,
+                Dashboard.assigned_users.any(id=current_user.id),
+            )
+            .first()
+        )
+        if not accessible:
+            raise HTTPException(403, "Access denied")
+
+    if dash.model_id is None:
+        return {"model_id": None, "datasets": []}
+
+    model = db.query(DataModel).filter(DataModel.id == dash.model_id).first()
+    if not model:
+        return {"model_id": dash.model_id, "datasets": []}
+
+    from app.services.model_metadata import get_model_column_metadata
+
+    metadata = get_model_column_metadata(model, db)
+
+    datasets_out = []
+    for md in model.datasets:
+        ds = db.query(Dataset).filter(Dataset.id == md.dataset_id).first()
+        if not ds:
+            continue
+        datasets_out.append(
+            {
+                "dataset_id": md.dataset_id,
+                "alias": md.alias,
+                "name": (
+                    md.alias
+                    or ds.source_table
+                    or ds.filename
+                    or f"Dataset {md.dataset_id}"
+                ),
+                "columns": metadata.get(md.dataset_id, []),
+            }
+        )
+
+    return {"model_id": dash.model_id, "datasets": datasets_out}
+
+
+@router.post("/{dashboard_id}/prepare")
+def prepare_dashboard_widget_data(
+    dashboard_id: int,
+    config: WidgetConfig,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Compute chart_data for a widget config on a given dashboard.
+
+    Access is gated by dashboard visibility, not model ownership.
+    Used by viewers to preview filter combinations without saving.
+
+    Enforces: config.model_id must equal the dashboard's model_id
+    (if bound), so a viewer can't pivot to another model.
+    """
+    dash = db.query(Dashboard).filter(Dashboard.id == dashboard_id).first()
+    if not dash:
+        raise HTTPException(404, "Dashboard not found")
+
+    # Same access rule as GET /dashboards/{id}
+    if current_user.role.name != "admin":
+        accessible = (
+            db.query(Dashboard)
+            .filter(
+                Dashboard.id == dashboard_id,
+                Dashboard.assigned_users.any(id=current_user.id),
+            )
+            .first()
+        )
+        if not accessible:
+            raise HTTPException(403, "Access denied")
+
+    if dash.model_id is None:
+        raise HTTPException(400, "Dashboard has no model bound")
+
+    # Lock the config to the dashboard's model — path is authoritative.
+    if config.model_id != dash.model_id:
+        raise HTTPException(
+            400,
+            f"Widget model {config.model_id} does not match "
+            f"dashboard model {dash.model_id}.",
+        )
+
+    model = db.query(DataModel).filter(DataModel.id == dash.model_id).first()
+    if not model:
+        raise HTTPException(400, "Dashboard's model no longer exists")
+
+    # Same validation chain as /models/{id}/prepare
+    model_metadata = get_model_column_metadata(model, db)
+    errors = validate_widget_config(config, model_metadata)
+    if errors:
+        raise HTTPException(status_code=422, detail={"errors": errors})
+
+    try:
+        chart_data = get_widget_data(dash.model_id, config, db)
+    except Exception as exc:
+        logger.exception("Failed to prepare widget data for dashboard %s", dashboard_id)
+        raise HTTPException(
+            status_code=400,
+            detail={"errors": [f"Failed to prepare data: {exc}"]},
+        ) from exc
+
+    return {
+        "model_id": dash.model_id,
+        "chart_data": chart_data,
+        "row_count": len(chart_data),
+    }
 
 
 @router.put("/{dashboard_id}")

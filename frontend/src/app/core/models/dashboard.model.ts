@@ -170,3 +170,21 @@ export interface WidgetPositionUpdate {
   cols: number;
   rows: number;
 }
+
+export interface FilterDatasetOption {
+  id: number;
+  name: string;
+  columns: { name: string; type: string }[];
+}
+
+export interface DashboardFilterDataset {
+  dataset_id: number;
+  alias: string | null;
+  name: string;
+  columns: { name: string; type: string }[];
+}
+
+export interface DashboardFilterContext {
+  model_id: number | null;
+  datasets: DashboardFilterDataset[];
+}

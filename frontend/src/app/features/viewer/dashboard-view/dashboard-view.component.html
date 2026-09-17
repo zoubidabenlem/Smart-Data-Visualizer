@@ -13,12 +13,14 @@
         <h1>{{ dashboard.title }}</h1>
       </div>
 
-      <app-viewer-filter-chip
+           <app-viewer-filter-chip
         [filters]="viewerFilters"
         [open]="filtersOpen"
+        [datasets]="filterDatasets"
         (filtersChange)="onFiltersChange($event)"
         (openChange)="onFiltersOpenChange($event)">
       </app-viewer-filter-chip>
+      
     </div>
 
     <div class="viewer-page-tabs" *ngIf="pages.length > 1">

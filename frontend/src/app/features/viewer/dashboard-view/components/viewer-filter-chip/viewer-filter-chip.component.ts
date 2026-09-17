@@ -9,6 +9,17 @@ import { ModelFilterCondition } from 'src/app/core/models/dashboard.model';
 
 type FilterOperator = ModelFilterCondition['operator'];
 
+interface FilterColumn {
+  name: string;
+  type: string;
+}
+
+interface FilterDataset {
+  id: number;
+  name: string;
+  columns: FilterColumn[];
+}
+
 @Component({
   selector: 'app-viewer-filter-chip',
   templateUrl: './viewer-filter-chip.component.html',
@@ -16,16 +27,13 @@ type FilterOperator = ModelFilterCondition['operator'];
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ViewerFilterChipComponent {
-  /** Current active filters (owned by the parent, mirrored here for display). */
   @Input() filters: ModelFilterCondition[] = [];
-
-  /** Whether the chip body is visible. */
   @Input() open = false;
+  @Input() datasets: FilterDataset[] = [];
 
   @Output() filtersChange = new EventEmitter<ModelFilterCondition[]>();
   @Output() openChange = new EventEmitter<boolean>();
 
-  // Draft form state — plain fields, no FormGroup needed for 4 inputs.
   draftDatasetId: number | null = null;
   draftColumn = '';
   draftOperator: FilterOperator = '==';
@@ -40,6 +48,13 @@ export class ViewerFilterChipComponent {
     { value: 'like', label: 'contains' },
   ];
 
+  // ─── Derived helpers ───
+
+  get availableColumns(): FilterColumn[] {
+    if (this.draftDatasetId == null) return [];
+    return this.datasets.find((d) => d.id === this.draftDatasetId)?.columns ?? [];
+  }
+
   get valuePlaceholder(): string {
     return this.draftOperator === 'in' ? 'a, b, c' : 'value';
   }
@@ -47,14 +62,23 @@ export class ViewerFilterChipComponent {
   get canAdd(): boolean {
     return (
       this.draftDatasetId != null &&
-      this.draftDatasetId > 0 &&
       !!this.draftColumn.trim() &&
       !!this.draftValue.trim()
     );
   }
 
+  get isNumericOperator(): boolean {
+    return this.draftOperator === '>' || this.draftOperator === '<';
+  }
+
+  // ─── Actions ───
+
   toggleOpen(): void {
     this.openChange.emit(!this.open);
+  }
+
+  onDatasetChange(): void {
+    this.draftColumn = '';
   }
 
   add(): void {
@@ -72,8 +96,7 @@ export class ViewerFilterChipComponent {
   }
 
   remove(index: number): void {
-    const next = this.filters.filter((_, i) => i !== index);
-    this.filtersChange.emit(next);
+    this.filtersChange.emit(this.filters.filter((_, i) => i !== index));
   }
 
   clear(): void {
@@ -81,10 +104,22 @@ export class ViewerFilterChipComponent {
     this.filtersChange.emit([]);
   }
 
+  // ─── Display helpers ───
+
+  displayFilter(f: ModelFilterCondition): string {
+    const ds = this.datasets.find((d) => d.id === f.dataset_id);
+    const dsName = ds?.name ?? `#${f.dataset_id}`;
+    const value = Array.isArray(f.value) ? f.value.join(', ') : String(f.value);
+    const opLabel = this.operators.find((o) => o.value === f.operator)?.label ?? f.operator;
+    return `${dsName}.${f.column} ${opLabel} ${value}`;
+  }
+
+  // ─── Internals ───
+
   private resetDraft(): void {
     this.draftColumn = '';
     this.draftValue = '';
-    // keep datasetId and operator for fast repeated entry
+    // keep dataset + operator for fast repeated entry
   }
 
   private parseValue(raw: string, op: FilterOperator): any {
@@ -97,10 +132,5 @@ export class ViewerFilterChipComponent {
       return isNaN(n) ? s : n;
     }
     return s;
-  }
-
-  displayFilter(f: ModelFilterCondition): string {
-    const value = Array.isArray(f.value) ? f.value.join(', ') : String(f.value);
-    return `#${f.dataset_id}.${f.column} ${f.operator} ${value}`;
   }
 }

@@ -13,12 +13,14 @@ import {
   WidgetCreateRequest,
   WidgetUpdateRequest,
   WidgetResponse,
+  
   WidgetPosition,
   WidgetConfig,
   DashboardCreateResponse,
   DashboardPageCreateRequest,
   DashboardPage,
-  DashboardPageUpdateRequest
+  DashboardPageUpdateRequest,
+  DashboardFilterContext
 } from '../models/dashboard.model';
 
 // ─── FIX D: typed envelope for /models/{id}/prepare ───
@@ -141,4 +143,26 @@ export class DashboardService {
       position
     );
   }
+
+    getDashboardFilterContext(dashboardId: number): Observable<DashboardFilterContext> {
+    return this.http.get<DashboardFilterContext>(
+      `${this.baseUrl}/${dashboardId}/filter-context`
+    );
+  }
+
+    /**
+   * Dashboard-scoped version of /models/{id}/prepare.
+   * Works for viewers because access is gated by dashboard visibility,
+   * not by model ownership.
+   */
+  prepareWidgetData(
+    dashboardId: number,
+    config: WidgetConfig
+  ): Observable<PrepareResponse> {
+    return this.http.post<PrepareResponse>(
+      `${this.baseUrl}/${dashboardId}/prepare`,
+      config
+    );
+  }
+  
 }

@@ -118,23 +118,44 @@
 /* ─── Add form ─── */
 .add-form {
   display: grid;
-  grid-template-columns: 90px 1fr 130px 1fr 70px;
-  gap: 6px;
+  grid-template-columns: 1.1fr 1.1fr 0.9fr 1fr auto;
+  gap: 8px;
   align-items: center;
 }
-.draft-input {
+.add-form .compact {
   width: 100%;
-  box-sizing: border-box;
-  height: 32px;
-  padding: 4px 8px;
   font-size: 0.8rem;
-  border: 1px solid #cbd5e0;
-  border-radius: 6px;
-  background: #fff;
-  color: #0f172a;
-  font-family: inherit;
-  outline: none;
-  transition: border-color 0.12s;
+}
+.add-form .compact ::ng-deep .mat-mdc-form-field-subscript-wrapper {
+  display: none;
+}
+.add-form .compact ::ng-deep .mat-mdc-text-field-wrapper {
+  padding: 0 8px;
+}
+.add-form .compact ::ng-deep .mat-mdc-form-field-infix {
+  min-height: 36px;
+  padding: 6px 0 !important;
+}
+
+.col-type {
+  color: #94a3b8;
+  font-size: 0.68rem;
+  margin-left: 4px;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+}
+
+.add-btn {
+  height: 36px !important;
+  line-height: 36px !important;
+  font-size: 0.75rem !important;
+  padding: 0 14px !important;
+}
+
+.no-datasets {
+  margin-top: 8px;
+  font-size: 0.72rem;
+  color: #94a3b8;
+  font-style: italic;
 }
 .draft-input:focus {
   border-color: #2ca58d;
